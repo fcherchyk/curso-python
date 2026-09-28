@@ -1,0 +1,39 @@
+[[preguntas]]
+texto = "¿Qué devuelve `\"https://sitio.com\".strip(\"https://\")`?"
+opciones = ["`'sitio.com'`", "`'itio.com'`", "`'https://sitio.com'`", "Levanta `ValueError`"]
+correcta = 1
+explicacion = "`strip` saca **caracteres** del conjunto `{h, t, p, s, :, /}` de los extremos, no un prefijo. También se come la `s` de `sitio`. Para un prefijo, usá `removeprefix`."
+
+[[preguntas]]
+texto = "¿Cómo se formatea `1234.5` como `'1,234.50'`?"
+opciones = ["`f\"{x:.2}\"`", "`f\"{x:,.2f}\"`", "`f\"{x:2f,}\"`", "`f\"{x:.2f,}\"`"]
+correcta = 1
+explicacion = "En la especificación va primero el separador de miles (`,`) y después la precisión con el tipo (`.2f`)."
+
+[[preguntas]]
+texto = "¿Qué devuelve `\"sin-igual\".partition(\"=\")`?"
+opciones = [
+  "Levanta `ValueError`",
+  "`['sin-igual']`",
+  "`('sin-igual', '', '')`",
+  "`('', '', 'sin-igual')`",
+]
+correcta = 2
+explicacion = "`partition` siempre devuelve 3 elementos. Si no encuentra el separador, lo que no existe queda como string vacío. Por eso el desempaquetado nunca falla."
+
+[[preguntas]]
+texto = "¿Por qué conviene `\"\".join(partes)` en lugar de `s += parte` dentro de un bucle?"
+opciones = [
+  "Porque `+=` no funciona con strings",
+  "Porque los strings son inmutables y cada `+=` puede copiar todo: el costo pasa a ser cuadrático",
+  "Porque `join` ordena las partes",
+  "No hay diferencia: CPython siempre lo optimiza",
+]
+correcta = 1
+explicacion = "Como un `str` no se puede modificar, cada concatenación puede crear un string nuevo con todo lo anterior. `join` calcula el tamaño total y copia cada parte una sola vez."
+
+[[preguntas]]
+texto = "¿Qué imprime `x = 42; print(f\"{x=}\")`?"
+opciones = ["`42`", "`x=42`", "`{x=}`", "`x = 42`"]
+correcta = 1
+explicacion = "El especificador `=` (3.8+) imprime la expresión y su valor, lo que es muy práctico para depurar. Con espacios, `{x = }`, se respetan los espacios."

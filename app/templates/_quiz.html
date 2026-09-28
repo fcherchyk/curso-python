@@ -1,0 +1,45 @@
+{% from "_macros.html" import marca_tab, boton_resuelto %}
+<form id="quiz" class="quiz" hx-post="/c/{{ cap.id }}/quiz" hx-swap="outerHTML">
+  {% if not preguntas %}
+  <p class="nota">Este capítulo no tiene cuestionario.</p>
+  <div class="panel-pie">{{ boton_resuelto(cap, 'quiz', estado.quiz_ok) }}</div>
+  {% else %}
+  {% if resultado %}
+  <div class="quiz-resumen {{ 'ok' if resultado.aprobado else 'mal' }}" role="status">
+    <strong>{{ resultado.correctas }} de {{ resultado.total }} correctas.</strong>
+    {% if resultado.aprobado %}Aprobado. Seguí con el código.{% else %}Necesitás {{ UMBRAL }} % para aprobar: revisá las explicaciones y volvé a intentar.{% endif %}
+  </div>
+  {% elif estado.quiz_ok %}
+  <p class="nota nota-ok">Ya aprobaste este cuestionario (mejor puntaje: {{ (estado.quiz_mejor * 100) | round | int }} %). Podés repetirlo.</p>
+  {% endif %}
+
+  {% for p in preguntas %}
+  {% set i = loop.index0 %}
+  {% set r = resultado.respuestas[i] if resultado else none %}
+  <fieldset class="pregunta {{ ('bien' if r.ok else 'mal') if r }}">
+    <legend><span class="pregunta-num">{{ loop.index }}</span> {{ p.texto | markdown_inline }}</legend>
+    {% for op in p.opciones %}
+    <label class="opcion {{ 'elegida' if r and r.elegida == loop.index0 }}">
+      <input type="radio" name="p{{ i }}" value="{{ loop.index0 }}" {{ 'checked' if r and r.elegida == loop.index0 }}>
+      <span>{{ op | markdown_inline }}</span>
+    </label>
+    {% endfor %}
+    {% if r %}
+    <p class="feedback">
+      {% if r.ok %}<strong>Correcto.</strong>{% elif r.elegida is none %}<strong>Sin responder.</strong>{% else %}<strong>Incorrecto.</strong>{% endif %}
+      {% if p.explicacion and (r.ok or resultado.aprobado) %}{{ p.explicacion | markdown_inline }}{% endif %}
+    </p>
+    {% endif %}
+  </fieldset>
+  {% endfor %}
+
+  <div class="panel-pie">
+    <button type="submit" class="boton boton-primario">{{ 'Volver a corregir' if resultado else 'Corregir' }}</button>
+    <span class="pie-derecha">
+      {{ boton_resuelto(cap, 'quiz', estado.quiz_ok) }}
+      {% if resultado and resultado.aprobado %}<button type="button" class="boton" data-ir-a="codigo">Ir al código →</button>{% endif %}
+    </span>
+  </div>
+  {% endif %}
+</form>
+{% if resultado %}{{ marca_tab('marca-quiz', estado.quiz_ok, oob=true) }}{% endif %}

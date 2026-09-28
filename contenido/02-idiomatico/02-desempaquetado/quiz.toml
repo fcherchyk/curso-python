@@ -1,0 +1,44 @@
+[[preguntas]]
+texto = "¿Cuánto vale `medio` después de `a, *medio, b = (1, 2, 3, 4)`?"
+opciones = ["`(2, 3)`", "`[2, 3]`", "`2`", "`[1, 2, 3]`"]
+correcta = 1
+explicacion = "El nombre con asterisco siempre recibe una **lista**, aunque el origen sea una tupla."
+
+[[preguntas]]
+texto = "¿Qué pasa con `primero, *resto = []`?"
+opciones = [
+  "`primero` vale `None` y `resto` vale `[]`",
+  "Levanta `ValueError`",
+  "`primero` vale `[]`",
+  "Levanta `IndexError`",
+]
+correcta = 1
+explicacion = "El `*resto` puede quedar vacío, pero los nombres sin asterisco necesitan un elemento cada uno. Sin elementos, falla con `ValueError: not enough values to unpack`."
+
+[[preguntas]]
+texto = "Dado `defaults = {\"a\": 1, \"b\": 2}` y `cfg = {\"b\": 3}`, ¿qué devuelve `defaults | cfg`?"
+opciones = [
+  "`{'a': 1, 'b': 2}`",
+  "`{'a': 1, 'b': 3}` y además modifica `defaults`",
+  "`{'a': 1, 'b': 3}` sin modificar ninguno",
+  "`TypeError`: los dicts no soportan `|`",
+]
+correcta = 2
+explicacion = "`|` (3.9+) crea un dict nuevo en el que la derecha pisa a la izquierda. El que modifica en el lugar es `|=`."
+
+[[preguntas]]
+texto = "Si `def f(a, b, c)` y `args = [1, 2]`, ¿qué llamada es válida?"
+opciones = ["`f(args, c=3)`", "`f(*args, c=3)`", "`f(**args, c=3)`", "`f(*args, *3)`"]
+correcta = 1
+explicacion = "`*args` expande la lista en posicionales (`a=1`, `b=2`) y `c` se pasa por nombre. `**` sirve para expandir dicts, no listas."
+
+[[preguntas]]
+texto = "¿Por qué funciona `a, b = b, a` sin una variable temporal?"
+opciones = [
+  "Porque Python asigna de derecha a izquierda",
+  "Porque primero se evalúa la tupla `(b, a)` con los valores viejos y después se asigna",
+  "Porque `a` y `b` pasan a ser la misma referencia",
+  "Solo funciona con enteros",
+]
+correcta = 1
+explicacion = "La expresión de la derecha se evalúa completa antes de cualquier asignación: se arma una tupla con los valores originales y después se desempaqueta."

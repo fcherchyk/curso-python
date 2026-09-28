@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% from "_macros.html" import marca_tab, boton_resuelto %}
+
+{% block titulo %}{{ cap.titulo }} · Curso de Python{% endblock %}
+
+{% block cabecera %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/python/python.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/edit/matchbrackets.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/edit/closebrackets.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/selection/active-line.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/comment/comment.min.js" defer></script>
+{% endblock %}
+
+{% block barra %}
+<nav class="migas" aria-label="Ubicación">
+  <span>{{ modulo.numero }} · {{ modulo.titulo }}</span>
+</nav>
+{% endblock %}
+
+{% block contenido %}
+<div class="layout-capitulo">
+  <aside class="lateral" aria-label="Capítulos del módulo">
+    <p class="lateral-titulo">{{ modulo.titulo }}</p>
+    <ol>
+      {% for c in modulo.capitulos %}
+      {% set e = estados.get(c.id) %}
+      <li>
+        <a href="/c/{{ c.id }}" class="{{ 'actual' if c.id == cap.id }} {{ 'completo' if e and e.completo }}">
+          <span class="punto" aria-hidden="true"></span>{{ c.titulo }}
+        </a>
+      </li>
+      {% endfor %}
+    </ol>
+    <a class="lateral-volver" href="/">← Todo el temario</a>
+  </aside>
+
+  <main class="capitulo" data-cap="{{ cap.id }}">
+    <header class="capitulo-cabecera">
+      <p class="sobretitulo">Capítulo {{ modulo.numero }}.{{ cap.numero }}</p>
+      <h1>{{ cap.titulo }}</h1>
+    </header>
+
+    <div class="tabs" role="tablist">
+      <button role="tab" class="tab" data-tab="leccion" aria-selected="true">
+        {{ marca_tab('marca-leido', estado.leido) }} Lectura
+      </button>
+      <button role="tab" class="tab" data-tab="quiz" aria-selected="false">
+        {{ marca_tab('marca-quiz', estado.quiz_ok) }} Cuestionario
+      </button>
+      <button role="tab" class="tab" data-tab="codigo" aria-selected="false">
+        {{ marca_tab('marca-tests', estado.tests_ok) }} Código
+      </button>
+    </div>
+
+    <section class="panel" id="panel-leccion" role="tabpanel">
+      <article class="prosa">{{ leccion }}</article>
+      <footer class="panel-pie">
+        {% include "_leido.html" %}
+        <button class="boton boton-primario" data-ir-a="quiz">Ir al cuestionario →</button>
+      </footer>
+    </section>
+
+    <section class="panel" id="panel-quiz" role="tabpanel" hidden>
+      {% set resultado = none %}
+      {% include "_quiz.html" %}
+    </section>
+
+    <section class="panel panel-ancho" id="panel-codigo" role="tabpanel" hidden>
+      <div class="codigo-grid">
+        <form id="form-codigo" class="editor-caja"
+              hx-post="/c/{{ cap.id }}/tests" hx-target="#tests-resultado"
+              hx-indicator="#corriendo" hx-disabled-elt="#boton-correr">
+          <div class="editor-barra">
+            <span class="archivo">ejercicio.py</span>
+            <span id="guardado" class="guardado" aria-live="polite"></span>
+            <button type="button" class="boton boton-texto" id="boton-restaurar">Restaurar inicial</button>
+            <button type="submit" class="boton boton-primario" id="boton-correr">
+              Correr tests <kbd>⌘↵</kbd>
+            </button>
+          </div>
+          <textarea name="codigo" id="editor" spellcheck="false">{{ codigo }}</textarea>
+        </form>
+        <div class="resultados">
+          <div id="corriendo" class="corriendo htmx-indicator">Corriendo pytest…</div>
+          <div class="resultados-barra">{{ boton_resuelto(cap, 'tests', estado.tests_ok) }}</div>
+          <div id="tests-resultado">{% include "_tests_estado.html" %}</div>
+        </div>
+      </div>
+    </section>
+
+    <nav class="navegacion">
+      {% if anterior %}<a href="/c/{{ anterior.id }}" class="nav-anterior"><small>Anterior</small>{{ anterior.titulo }}</a>{% else %}<span></span>{% endif %}
+      {% if siguiente %}<a href="/c/{{ siguiente.id }}" class="nav-siguiente"><small>Siguiente</small>{{ siguiente.titulo }}</a>{% endif %}
+    </nav>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='app.js') }}?v={{ V }}" defer></script>
+{% endblock %}

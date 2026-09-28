@@ -1,0 +1,39 @@
+[project]
+name = "curso-python"
+version = "0.1.0"
+description = "Curso de Python: app web con lecciones, cuestionarios y ejercicios con tests"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.141.1",
+    "jinja2>=3.1.6",
+    "markdown-it-py>=4.2.0",
+    "pygments>=2.21.0",
+    "python-multipart>=0.0.32",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "httpx>=0.28.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["semana1", "tests"]
+# contenido/ tiene tests de ejercicios que solo se corren a través de la app (tests/test_contenido.py).
+norecursedirs = ["contenido", ".*", "__pycache__"]
+addopts = "-q"
+filterwarnings = ["ignore:.*install `httpx2`"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"

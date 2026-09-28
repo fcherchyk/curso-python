@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "_macros.html" import paso %}
+
+{% block contenido %}
+<main class="indice">
+  <section class="intro">
+    <h1>Python, de lo básico a los frameworks</h1>
+    <p>Cada capítulo tiene tres pasos: leer la lección, aprobar el cuestionario (≥ {{ UMBRAL }} %) y
+      escribir el código que hace pasar los tests.</p>
+    {% if siguiente %}
+    <a class="continuar" href="/c/{{ siguiente.id }}">
+      <span class="continuar-label">Continuar</span>
+      <span class="continuar-titulo">{{ siguiente.titulo }}</span>
+      <span class="flecha" aria-hidden="true">→</span>
+    </a>
+    {% endif %}
+  </section>
+
+  {% for m in temario.modulos %}
+  {% set hechos = completos[m.slug] %}
+  <section class="modulo">
+    <header class="modulo-cabecera">
+      <span class="modulo-num">{{ m.numero }}</span>
+      <div>
+        <h2>{{ m.titulo }}</h2>
+        {% if m.descripcion %}<p>{{ m.descripcion }}</p>{% endif %}
+      </div>
+      <span class="modulo-avance" title="Capítulos completos">
+        {{ hechos }}/{{ m.capitulos | length }}
+        <span class="barra-avance"><span style="width: {{ (100 * hechos / (m.capitulos | length or 1)) | round | int }}%"></span></span>
+      </span>
+    </header>
+    <ol class="capitulos">
+      {% for c in m.capitulos %}
+      {% set e = estados.get(c.id) %}
+      <li>
+        <a href="/c/{{ c.id }}" class="capitulo-fila {{ 'completo' if e and e.completo }}">
+          <span class="capitulo-num">{{ c.numero }}</span>
+          <span class="capitulo-titulo">{{ c.titulo }}</span>
+          <span class="pasos">
+            {{ paso(e and e.leido, 'Lectura') }}
+            {{ paso(e and e.quiz_ok, 'Quiz') }}
+            {{ paso(e and e.tests_ok, 'Código') }}
+          </span>
+        </a>
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+  {% else %}
+  <p>No hay contenido cargado en <code>contenido/</code>.</p>
+  {% endfor %}
+</main>
+{% endblock %}

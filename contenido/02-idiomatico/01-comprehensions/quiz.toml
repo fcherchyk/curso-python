@@ -1,0 +1,39 @@
+[[preguntas]]
+texto = "¿Qué devuelve `[x for fila in [[1, 2], [3]] for x in fila]`?"
+opciones = ["`[[1, 2], [3]]`", "`[1, 2, 3]`", "`NameError`", "`[3, 1, 2]`"]
+correcta = 1
+explicacion = "Dos `for` seguidos se leen como bucles anidados en el mismo orden: primero `fila`, después `x`. El resultado queda aplanado."
+
+[[preguntas]]
+texto = "¿Cuál de estas expresiones es un **generador** y no una colección?"
+opciones = ["`[x * 2 for x in xs]`", "`{x * 2 for x in xs}`", "`(x * 2 for x in xs)`", "`{x: x * 2 for x in xs}`"]
+correcta = 2
+explicacion = "Con paréntesis se obtiene un *generator expression*: produce los valores de a uno y no construye nada en memoria. La \"tuple comprehension\" no existe."
+
+[[preguntas]]
+texto = "Querés reemplazar los negativos por 0 y dejar el resto igual. ¿Qué expresión es correcta?"
+opciones = [
+  "`[x for x in xs if x >= 0 else 0]`",
+  "`[0 if x < 0 else x for x in xs]`",
+  "`[x for x in xs if x >= 0]`",
+  "`[if x < 0: 0 else: x for x in xs]`",
+]
+correcta = 1
+explicacion = "Para **transformar** todos los elementos, el `if/else` va al principio como expresión condicional. El `if` del final solo **filtra** y no admite `else`."
+
+[[preguntas]]
+texto = "¿Qué devuelve `{len(p): p for p in [\"ab\", \"cd\", \"e\"]}`?"
+opciones = ["`{2: 'ab', 1: 'e'}`", "`{2: 'cd', 1: 'e'}`", "`{2: ['ab', 'cd'], 1: ['e']}`", "Levanta `KeyError` por clave duplicada"]
+correcta = 1
+explicacion = "En un dict, cuando una clave se repite gana la última asignación: `'cd'` pisa a `'ab'`."
+
+[[preguntas]]
+texto = "¿En cuál de estos casos es mejor un `for` común que una comprehension?"
+opciones = [
+  "Para construir una lista con los cuadrados de los números pares",
+  "Para mandar un email por cada usuario (efecto secundario)",
+  "Para armar un dict `id -> objeto`",
+  "Para calcular una suma con `sum(...)`",
+]
+correcta = 1
+explicacion = "Las comprehensions sirven para *construir* valores. Usarlas solo por el efecto secundario genera una lista de `None` que no se usa y confunde a quien lee el código."
