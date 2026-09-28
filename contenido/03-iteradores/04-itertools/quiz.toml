@@ -1,0 +1,34 @@
+[[preguntas]]
+texto = "¿Cuántos grupos produce `groupby(\"aabaa\")`?"
+opciones = ["2", "3", "5", "1"]
+correcta = 1
+explicacion = "`groupby` agrupa solo elementos **consecutivos**: `aa`, `b` y `aa`. Para agrupar todas las `a` juntas hay que ordenar antes."
+
+[[preguntas]]
+texto = "¿Qué devuelve `list(takewhile(lambda x: x < 3, [1, 2, 5, 1]))`?"
+opciones = ["`[1, 2, 1]`", "`[1, 2]`", "`[5, 1]`", "`[1, 2, 5]`"]
+correcta = 1
+explicacion = "`takewhile` corta en el primer elemento que no cumple la condición y ya no sigue mirando. No es un `filter`."
+
+[[preguntas]]
+texto = "¿Qué devuelve `list(accumulate([1, 2, 3]))`?"
+opciones = ["`[1, 2, 3]`", "`[1, 3, 6]`", "`6`", "`[6]`"]
+correcta = 1
+explicacion = "`accumulate` produce los resultados parciales: por defecto, las sumas acumuladas."
+
+[[preguntas]]
+texto = "¿Cuántos elementos tiene `combinations(\"abcd\", 2)`?"
+opciones = ["4", "6", "12", "16"]
+correcta = 1
+explicacion = "Son combinaciones sin orden ni repetición: C(4, 2) = 6. Las permutaciones serían 12 y el producto `product(\"abcd\", repeat=2)`, 16."
+
+[[preguntas]]
+texto = "¿Qué hace `chain.from_iterable([[1, 2], [3]])`?"
+opciones = [
+  "Devuelve `[[1, 2], [3]]`",
+  "Produce `1, 2, 3` de forma perezosa",
+  "Suma las listas internas",
+  "Levanta `TypeError`",
+]
+correcta = 1
+explicacion = "Aplana un nivel de forma perezosa, sin construir una lista intermedia."

@@ -1,0 +1,34 @@
+[[preguntas]]
+texto = "Con `xs = [0, 1, 2, 3, 4]`, ¿qué devuelve `xs[1:-1]`?"
+opciones = ["`[1, 2, 3, 4]`", "`[1, 2, 3]`", "`[0, 1, 2, 3]`", "`[1]`"]
+correcta = 1
+explicacion = "El inicio es inclusivo y el fin exclusivo: desde el índice 1 hasta el anteúltimo, sin incluirlo."
+
+[[preguntas]]
+texto = "¿Qué devuelve `[1, 2, 3][5:10]`?"
+opciones = ["Levanta `IndexError`", "`[]`", "`None`", "`[3]`"]
+correcta = 1
+explicacion = "El slicing recorta los límites fuera de rango y nunca levanta `IndexError`. Acceder a un índice suelto como `xs[5]` sí lo levanta."
+
+[[preguntas]]
+texto = "¿Cuál de estas expresiones es una tupla de un solo elemento?"
+opciones = ["`(42)`", "`(42,)`", "`tuple(42)`", "`[42]`"]
+correcta = 1
+explicacion = "Lo que crea la tupla es la coma. `(42)` es solo el entero entre paréntesis, y `tuple(42)` falla porque un `int` no es iterable."
+
+[[preguntas]]
+texto = "Necesitás una cola donde agregás al final y sacás del principio millones de veces. ¿Qué usás?"
+opciones = [
+  "Una lista con `append` y `pop(0)`",
+  "`collections.deque` con `append` y `popleft`",
+  "Una tupla",
+  "Una lista con `insert(0, x)` y `pop()`",
+]
+correcta = 1
+explicacion = "En una lista, `pop(0)` e `insert(0, x)` cuestan O(n) porque corren todos los elementos. `deque` opera en los dos extremos en O(1)."
+
+[[preguntas]]
+texto = "Si `n = 0`, ¿qué devuelve `xs[-n:]`?"
+opciones = ["`[]`", "La lista completa", "El último elemento", "Levanta `ValueError`"]
+correcta = 1
+explicacion = "`-0` es `0`, y `xs[0:]` es toda la lista. Si `n` puede ser 0, conviene `xs[len(xs) - n:]`."

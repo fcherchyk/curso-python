@@ -1,0 +1,44 @@
+[[preguntas]]
+texto = "En `errores = solo_errores(parsear(leer(\"a.log\")))`, ¿cuántas líneas se leyeron después de esa asignación?"
+opciones = ["Todas", "Una", "Ninguna", "Depende del tamaño del archivo"]
+correcta = 2
+explicacion = "Las etapas son generadores: armar el pipeline no ejecuta nada. Se lee recién cuando alguien pide elementos."
+
+[[preguntas]]
+texto = "¿Por qué `en_lotes` hace `it = iter(iterable)` antes del bucle?"
+opciones = [
+  "Para convertir el iterable en lista",
+  "Para que cada `islice` continúe donde dejó el anterior, incluso si el argumento es una lista",
+  "Porque `islice` no acepta listas",
+  "Para poder usar `len()`",
+]
+correcta = 1
+explicacion = "Con una lista, cada `islice(lista, n)` empezaría desde el principio y el bucle sería infinito. Compartiendo un solo iterador, cada lote sigue desde donde terminó el anterior."
+
+[[preguntas]]
+texto = "¿Cuál es el equivalente de `xs[:10]` para un iterador?"
+opciones = ["`it[:10]`", "`itertools.islice(it, 10)`", "`list(it)[:10]`", "`next(it, 10)`"]
+correcta = 1
+explicacion = "Los iteradores no admiten slicing. `islice` los corta de forma perezosa. `list(it)[:10]` funciona, pero consume todo el iterador."
+
+[[preguntas]]
+texto = "Una línea mal formada llega a la etapa de parseo. ¿Qué es lo más habitual en un pipeline de datos?"
+opciones = [
+  "Dejar que la excepción corte todo el procesamiento",
+  "Saltearla y registrarla (log o contador) para seguir con el resto",
+  "Reiniciar el pipeline desde el principio",
+  "Convertirla en `None` y seguir pasándola",
+]
+correcta = 1
+explicacion = "Con datos reales siempre hay basura. Saltear y registrar mantiene el pipeline funcionando y deja rastro de lo que se descartó."
+
+[[preguntas]]
+texto = "Necesitás el total de bytes y además el top 10 de IPs de un mismo pipeline. ¿Qué problema aparece?"
+opciones = [
+  "Ninguno: los generadores se pueden recorrer varias veces",
+  "El pipeline se consume una vez: hay que calcular las dos cosas en una pasada o rearmarlo",
+  "`sum` no funciona con generadores",
+  "Hay que usar threads",
+]
+correcta = 1
+explicacion = "Después del primer recorrido, el generador queda vacío. Hay que acumular las dos métricas en el mismo bucle o volver a construir el pipeline."

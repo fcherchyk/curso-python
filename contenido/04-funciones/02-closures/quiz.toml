@@ -1,0 +1,44 @@
+[[preguntas]]
+texto = "¿Qué devuelve `[f() for f in [lambda: i for i in range(3)]]`?"
+opciones = ["`[0, 1, 2]`", "`[2, 2, 2]`", "`[0, 0, 0]`", "Levanta `NameError`"]
+correcta = 1
+explicacion = "Las lambdas capturan la **variable** `i`, no su valor. Cuando se llaman, el bucle ya terminó y `i` vale 2."
+
+[[preguntas]]
+texto = "Dentro de una función interna, `total += 1` sobre una variable de la función externa levanta…"
+opciones = ["`NameError`", "`UnboundLocalError`", "`SyntaxError`", "Nada: funciona"]
+correcta = 1
+explicacion = "La asignación convierte a `total` en local de la función interna, y se lee antes de asignarse. Hace falta `nonlocal total`."
+
+[[preguntas]]
+texto = "¿En qué orden busca Python un nombre?"
+opciones = [
+  "Global, local, built-in",
+  "Local, enclosing, global, built-in",
+  "Built-in, global, local",
+  "Enclosing, local, global, built-in",
+]
+correcta = 1
+explicacion = "Es la regla LEGB: de lo más cercano a lo más general."
+
+[[preguntas]]
+texto = "Una closure hace `eventos.append(e)` sobre una lista externa, sin reasignarla. ¿Necesita `nonlocal`?"
+opciones = [
+  "Sí, siempre que modifique algo externo",
+  "No: muta el objeto sin reasignar el nombre",
+  "Sí, pero `global`, no `nonlocal`",
+  "No, porque las listas son globales",
+]
+correcta = 1
+explicacion = "`nonlocal` solo hace falta para **reasignar** el nombre. Llamar a un método que muta el objeto no es una asignación."
+
+[[preguntas]]
+texto = "¿Cuál es una forma correcta de crear `[lambda: 0, lambda: 1, lambda: 2]` con un bucle?"
+opciones = [
+  "`[lambda: i for i in range(3)]`",
+  "`[lambda i=i: i for i in range(3)]`",
+  "`[lambda: (i) for i in range(3)]`",
+  "`[lambda: copy(i) for i in range(3)]`",
+]
+correcta = 1
+explicacion = "El default argument se evalúa al **definir** la lambda, así que cada una congela el valor de `i` en ese momento."

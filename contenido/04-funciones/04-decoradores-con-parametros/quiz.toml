@@ -1,0 +1,44 @@
+[[preguntas]]
+texto = "¿A qué equivale `@repetir(3)` sobre `def f`?"
+opciones = ["`f = repetir(3, f)`", "`f = repetir(3)(f)`", "`f = repetir(f)(3)`", "`f = repetir(f(3))`"]
+correcta = 1
+explicacion = "Primero se llama a la fábrica con los parámetros, y lo que devuelve (el decorador) recibe la función."
+
+[[preguntas]]
+texto = "¿Cuántos niveles de funciones anidadas tiene un decorador con parámetros típico?"
+opciones = ["1", "2", "3", "4"]
+correcta = 2
+explicacion = "Fábrica (recibe los parámetros), decorador (recibe la función) y wrapper (recibe los argumentos de cada llamada)."
+
+[[preguntas]]
+texto = "¿Qué pasa si usás `@repetir` (sin paréntesis) cuando la firma es `def repetir(n)`?"
+opciones = [
+  "Funciona con `n` por defecto",
+  "`repetir` recibe la función como `n` y lo que queda asignado es el decorador interno, no un wrapper",
+  "Levanta `SyntaxError`",
+  "Python agrega los paréntesis automáticamente",
+]
+correcta = 1
+explicacion = "Sin paréntesis, `repetir(f)` se ejecuta con `n = f` y devuelve `decorador`. Al llamar a `f()` después, estarías llamando a `decorador()` sin argumentos, y falla."
+
+[[preguntas]]
+texto = "En `reintentar(veces, excepciones=(ConnectionError,))`, ¿qué debería pasar si la función levanta `KeyError`?"
+opciones = [
+  "Reintentar igual",
+  "Propagarse inmediatamente, sin reintentar",
+  "Devolver `None`",
+  "Convertirse en `ConnectionError`",
+]
+correcta = 1
+explicacion = "Solo se reintentan los errores transitorios esperados. Un `KeyError` suele ser un bug y reintentarlo solo lo oculta y demora."
+
+[[preguntas]]
+texto = "Para que un decorador funcione como `@deco` y como `@deco(opcion=1)`, ¿qué se hace?"
+opciones = [
+  "Es imposible en Python",
+  "Primer parámetro `func=None` y opciones solo keyword; si `func` no es `None`, se decora directamente",
+  "Se usa `*args` y se adivina el tipo",
+  "Se definen dos funciones con el mismo nombre",
+]
+correcta = 1
+explicacion = "Si se usó sin paréntesis, llega la función como primer argumento. Si no, llegan solo keywords y se devuelve el decorador."

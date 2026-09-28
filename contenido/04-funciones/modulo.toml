@@ -1,0 +1,2 @@
+titulo = "Funciones avanzadas"
+descripcion = "Funciones como objetos, closures, decoradores y context managers: la base de casi todos los frameworks."

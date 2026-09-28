@@ -1,0 +1,44 @@
+[[preguntas]]
+texto = "¿Qué vale `__name__` dentro de `utiles.py` cuando ejecutás `python utiles.py`?"
+opciones = ["`\"utiles\"`", "`\"__main__\"`", "`\"utiles.py\"`", "`None`"]
+correcta = 1
+explicacion = "El módulo que se ejecuta directamente se llama `__main__`. Cuando se importa, `__name__` es el nombre del módulo."
+
+[[preguntas]]
+texto = "Si dos archivos distintos hacen `import config`, ¿cuántas veces se ejecuta `config.py`?"
+opciones = ["Dos veces", "Una sola vez", "Ninguna, hasta que se usa algo", "Depende de `__all__`"]
+correcta = 1
+explicacion = "Después del primer import, el módulo queda cacheado en `sys.modules` y los imports siguientes lo reutilizan."
+
+[[preguntas]]
+texto = "¿Para qué sirve `__all__` en un módulo?"
+opciones = [
+  "Para hacer privados los nombres que no están en la lista",
+  "Para definir qué exporta `from modulo import *` y documentar la API pública",
+  "Para acelerar los imports",
+  "Para listar las dependencias del módulo",
+]
+correcta = 1
+explicacion = "Controla qué se importa con `import *` y sirve como documentación. No impide acceder a otros nombres."
+
+[[preguntas]]
+texto = "Ejecutás `python tienda/pagos/mp.py`, que usa `from ..modelos import Pedido`. ¿Qué pasa?"
+opciones = [
+  "Funciona normalmente",
+  "`ImportError`: import relativo sin paquete padre conocido",
+  "Importa `modelos` desde el directorio actual",
+  "Se ignora el import",
+]
+correcta = 1
+explicacion = "Al ejecutarlo como script, el archivo es `__main__` y no pertenece a ningún paquete. Hay que usar `python -m tienda.pagos.mp`."
+
+[[preguntas]]
+texto = "¿Cuál es la mejor solución para un import circular entre `a.py` y `b.py`?"
+opciones = [
+  "Usar `from a import *`",
+  "Mover lo compartido a un tercer módulo",
+  "Borrar `sys.modules` antes de importar",
+  "Renombrar los archivos",
+]
+correcta = 1
+explicacion = "Un import circular suele indicar un problema de diseño. Extraer lo común a otro módulo rompe el ciclo."

@@ -1,0 +1,34 @@
+[[preguntas]]
+texto = "Después de `a = [1]; b = a; b.append(2)`, ¿cuánto vale `a`?"
+opciones = ["`[1]`", "`[1, 2]`", "`[2]`", "Levanta `NameError`"]
+correcta = 1
+explicacion = "`b = a` no copia: los dos nombres apuntan a la misma lista, así que el `append` se ve desde ambos."
+
+[[preguntas]]
+texto = "¿Cuándo es correcto usar `is` en lugar de `==`?"
+opciones = [
+  "Para comparar strings cortos, porque es más rápido",
+  "Para comparar con singletons como `None`",
+  "Siempre que los dos lados sean del mismo tipo",
+  "Para comparar números enteros",
+]
+correcta = 1
+explicacion = "`is` compara identidad. Se usa con `None` y centinelas. Que funcione con enteros chicos o strings cortos es un detalle de implementación de CPython."
+
+[[preguntas]]
+texto = "¿Qué devuelve `-7 // 2`?"
+opciones = ["`-3`", "`-4`", "`-3.5`", "`3`"]
+correcta = 1
+explicacion = "La división entera redondea hacia -infinito (floor), no hacia cero. Por eso `-7 // 2` es `-4` y `-7 % 2` es `1`."
+
+[[preguntas]]
+texto = "`t = [[0] * 2] * 2; t[0][0] = 5`. ¿Cuánto vale `t`?"
+opciones = ["`[[5, 0], [0, 0]]`", "`[[5, 0], [5, 0]]`", "`[[5, 5], [0, 0]]`", "Levanta `TypeError`"]
+correcta = 1
+explicacion = "`* 2` repite la referencia a la **misma** lista interna. Para filas independientes: `[[0] * 2 for _ in range(2)]`."
+
+[[preguntas]]
+texto = "¿Cuál es la forma correcta de representar `0.1` pesos para cálculos exactos?"
+opciones = ["`0.1`", "`Decimal(0.1)`", "`Decimal(\"0.1\")`", "`float(\"0.1\")`"]
+correcta = 2
+explicacion = "`Decimal` construido desde un string conserva el valor decimal exacto. Desde un float, hereda el error de la representación binaria."

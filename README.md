@@ -25,8 +25,9 @@ uv run uvicorn app.main:app --reload     # abrí http://localhost:8000
 
 Temario previsto: fundamentos rápidos → Python idiomático → iteradores → funciones avanzadas →
 modelado → Python moderno → herramientas → stdlib → algoritmos → concurrencia → Pydantic →
-FastAPI → SQLAlchemy 2.0 → Django → pandas → proyecto integrador. Hoy está cargado el módulo
-**02 · Python idiomático** (6 capítulos).
+FastAPI → SQLAlchemy 2.0 → Django → pandas → proyecto integrador. Hoy están cargados los
+módulos **01 · Fundamentos rápidos**, **02 · Python idiomático**, **03 · Iteradores y
+generadores** y **04 · Funciones avanzadas** (22 capítulos).
 
 ## Puesta en marcha (una sola vez)
 
