@@ -1,0 +1,39 @@
+[[preguntas]]
+texto = "Con `ROJO = \"rojo\"`, ¿qué hace `case ROJO:` dentro de un `match`?"
+opciones = [
+  "Compara el sujeto con `\"rojo\"`",
+  "Captura cualquier valor en una variable llamada `ROJO` (siempre matchea)",
+  "Levanta `SyntaxError`",
+  "Compara con el string `\"ROJO\"`",
+]
+correcta = 1
+explicacion = "Un nombre suelto en un patrón es una captura. Para comparar con una constante hay que usar un nombre con punto (`Color.ROJO`) o un literal."
+
+[[preguntas]]
+texto = "¿El patrón `{\"tipo\": \"click\", \"x\": x}` matchea `{\"tipo\": \"click\", \"x\": 1, \"boton\": \"izq\"}`?"
+opciones = ["No, sobra la clave `boton`", "Sí: los patrones de mapeo ignoran las claves extra", "Solo con `**resto`", "Levanta `KeyError`"]
+correcta = 1
+explicacion = "Los patrones de mapeo solo exigen las claves que nombran. Para capturar las demás existe `**resto`."
+
+[[preguntas]]
+texto = "Si varios `case` coinciden, ¿cuál se ejecuta?"
+opciones = ["Todos, en orden", "El primero que coincide", "El último", "El más específico"]
+correcta = 1
+explicacion = "Los `case` se prueban en orden y solo se ejecuta el primero que coincide. No hay fall-through."
+
+[[preguntas]]
+texto = "¿Qué hace `case {\"x\": int(x)}`?"
+opciones = [
+  "Convierte el valor a int",
+  "Matchea solo si el valor de `\"x\"` es un int, y lo captura en `x`",
+  "Llama a `int()` y falla si no se puede",
+  "Es un error de sintaxis",
+]
+correcta = 1
+explicacion = "`int(x)` en un patrón es un patrón de clase: verifica `isinstance(valor, int)` y captura. No convierte."
+
+[[preguntas]]
+texto = "¿El patrón `[a, b]` matchea el string `\"ab\"`?"
+opciones = ["Sí, con `a = \"a\"` y `b = \"b\"`", "No: los patrones de secuencia no desarman strings", "Solo si es una tupla", "Levanta `TypeError`"]
+correcta = 1
+explicacion = "Por diseño, `str`, `bytes` y `bytearray` no matchean patrones de secuencia, para evitar sorpresas."

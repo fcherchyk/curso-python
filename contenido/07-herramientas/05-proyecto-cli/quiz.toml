@@ -1,0 +1,49 @@
+[[preguntas]]
+texto = "¿Por qué `main` recibe `argv` como parámetro en lugar de leer `sys.argv` directamente?"
+opciones = [
+  "Porque `sys.argv` está deprecado",
+  "Para que los tests puedan llamar a `main([...])` sin lanzar un subproceso",
+  "Porque argparse lo exige",
+  "Para que sea más rápido",
+]
+correcta = 1
+explicacion = "Con `argv=None`, argparse usa `sys.argv[1:]` en producción, y en los tests se pasa una lista. La CLI queda testeable como una función común."
+
+[[preguntas]]
+texto = "¿A dónde conviene mandar los mensajes de error de una CLI?"
+opciones = ["A stdout", "A stderr", "A un archivo de log siempre", "A ningún lado: solo el código de salida"]
+correcta = 1
+explicacion = "Así, redirigir la salida (`> reporte.txt`) no mezcla los errores con el resultado. Además, conviene devolver un código de salida distinto de 0."
+
+[[preguntas]]
+texto = "¿Qué aporta `(?P<status>\\d{3})` en una regex?"
+opciones = [
+  "Hace la búsqueda más rápida",
+  "Crea un grupo con nombre: se accede con `m[\"status\"]`",
+  "Valida que el status sea un int",
+  "Es obligatorio para usar `re.compile`",
+]
+correcta = 1
+explicacion = "Los grupos con nombre hacen legible el código que usa el match y no dependen de la posición del grupo."
+
+[[preguntas]]
+texto = "¿Por qué `LineaInvalida` hereda de `ValueError`?"
+opciones = [
+  "Porque las excepciones propias tienen que heredar de `ValueError`",
+  "Para que el código que ya atrapa `ValueError` la siga atrapando, con un tipo más específico disponible",
+  "Para que no aparezca en el traceback",
+  "No tiene ningún efecto",
+]
+correcta = 1
+explicacion = "Heredar de la excepción estándar más cercana mantiene la compatibilidad y a la vez permite atrapar solo `LineaInvalida` cuando haga falta."
+
+[[preguntas]]
+texto = "Para reportar latencias, ¿por qué se prefiere el p95 al promedio?"
+opciones = [
+  "Porque es más fácil de calcular",
+  "Porque unos pocos valores extremos distorsionan el promedio; el p95 dice cuánto tarda el 95 % de los requests",
+  "Porque el promedio no existe para enteros",
+  "Porque el p95 siempre es menor",
+]
+correcta = 1
+explicacion = "Las latencias tienen colas largas. Los percentiles describen la experiencia real de los usuarios mejor que un promedio sesgado por los outliers."

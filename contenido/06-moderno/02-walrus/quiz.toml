@@ -1,0 +1,39 @@
+[[preguntas]]
+texto = "¿Qué valor toma `n` en `if n := len([1, 2, 3]) > 2:`?"
+opciones = ["`3`", "`True`", "`2`", "Es un error de sintaxis"]
+correcta = 1
+explicacion = "Sin paréntesis, `:=` tiene menor precedencia que `>`: se asigna el resultado de `len(...) > 2`, que es `True`. Lo correcto es `(n := len(xs)) > 2`."
+
+[[preguntas]]
+texto = "¿Cuál es la ventaja principal de `while bloque := f.read(4096):`?"
+opciones = [
+  "Es más rápido",
+  "Evita duplicar la lectura antes y al final del bucle",
+  "Lee todo el archivo de una vez",
+  "Cierra el archivo al terminar",
+]
+correcta = 1
+explicacion = "Sin walrus, la lectura aparece antes del `while` y otra vez al final del cuerpo. Con walrus queda en un solo lugar."
+
+[[preguntas]]
+texto = "En `[r for x in xs if (r := f(x)) > 0]`, ¿cuántas veces se llama a `f` por elemento?"
+opciones = ["Ninguna", "Una", "Dos", "Depende del resultado"]
+correcta = 1
+explicacion = "El valor se calcula una vez en el filtro, se guarda en `r` y se reutiliza como resultado."
+
+[[preguntas]]
+texto = "¿Cuál de estas líneas es inválida?"
+opciones = ["`if (m := re.match(p, s)):`", "`x := 5`", "`print(y := 3)`", "`while (d := q.get()) is not None:`"]
+correcta = 1
+explicacion = "Como sentencia suelta, `x := 5` no está permitido: para eso está `=`. Dentro de expresiones (argumentos, condiciones), sí."
+
+[[preguntas]]
+texto = "¿Cuándo **no** conviene usar walrus?"
+opciones = [
+  "Para leer en un `while` hasta que no haya más datos",
+  "Para encadenar tres asignaciones en un mismo `if` solo por ahorrar líneas",
+  "Para usar el resultado de `re.match` en el mismo `if`",
+  "Para no calcular dos veces un valor en una comprehension",
+]
+correcta = 1
+explicacion = "El objetivo es eliminar duplicación. Si la expresión se vuelve difícil de leer, es mejor usar varias líneas."

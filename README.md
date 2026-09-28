@@ -26,8 +26,9 @@ uv run uvicorn app.main:app --reload     # abrí http://localhost:8000
 Temario previsto: fundamentos rápidos → Python idiomático → iteradores → funciones avanzadas →
 modelado → Python moderno → herramientas → stdlib → algoritmos → concurrencia → Pydantic →
 FastAPI → SQLAlchemy 2.0 → Django → pandas → proyecto integrador. Hoy están cargados los
-módulos **01 · Fundamentos rápidos**, **02 · Python idiomático**, **03 · Iteradores y
-generadores** y **04 · Funciones avanzadas** (22 capítulos).
+módulos 01 a 07: fundamentos, Python idiomático, iteradores, funciones avanzadas, modelado de
+datos, Python moderno y herramientas (37 capítulos). En los capítulos de pytest vos escribís
+los tests, y se validan con *mutation testing*.
 
 ## Puesta en marcha (una sola vez)
 

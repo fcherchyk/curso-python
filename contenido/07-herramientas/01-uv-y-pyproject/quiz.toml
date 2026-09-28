@@ -1,0 +1,44 @@
+[[preguntas]]
+texto = "¿Qué diferencia hay entre `pyproject.toml` y `uv.lock`?"
+opciones = [
+  "Son lo mismo en distinto formato",
+  "`pyproject.toml` declara rangos aceptables; `uv.lock` registra las versiones exactas instaladas (incluidas las transitivas)",
+  "`uv.lock` es para desarrollo y `pyproject.toml` para producción",
+  "`uv.lock` se edita a mano",
+]
+correcta = 1
+explicacion = "El lock hace que el entorno sea reproducible: `uv sync` instala exactamente lo mismo en cualquier máquina."
+
+[[preguntas]]
+texto = "¿El archivo `uv.lock` se sube al control de versiones?"
+opciones = ["Sí, siempre", "No, nunca", "Solo en librerías", "Solo si hay dependencias de desarrollo"]
+correcta = 0
+explicacion = "El lock tiene que estar en git para que todo el equipo y el CI usen las mismas versiones."
+
+[[preguntas]]
+texto = "¿Qué hace `uv run pytest`?"
+opciones = [
+  "Instala pytest globalmente",
+  "Sincroniza el entorno del proyecto si hace falta y ejecuta pytest dentro de él",
+  "Corre pytest con el Python del sistema",
+  "Crea un proyecto nuevo",
+]
+correcta = 1
+explicacion = "`uv run` garantiza que el `.venv` esté al día con el lock y ejecuta el comando con ese entorno, sin activarlo a mano."
+
+[[preguntas]]
+texto = "¿Qué rango acepta `~=2.4`?"
+opciones = ["Solo 2.4", "`>=2.4, <3.0`", "`>=2.4, <2.5`", "Cualquier versión"]
+correcta = 1
+explicacion = "El operador de compatibilidad `~=` fija todo menos el último componente indicado: `~=2.4` es `>=2.4, <3.0`."
+
+[[preguntas]]
+texto = "¿Dónde van pytest, ruff y mypy en un proyecto moderno?"
+opciones = [
+  "En `[project] dependencies`",
+  "En `[dependency-groups] dev`",
+  "En `requirements.txt`",
+  "En `[tool.pytest]`",
+]
+correcta = 1
+explicacion = "Son dependencias de desarrollo: no hacen falta para ejecutar la aplicación. `uv add --dev` las agrega al grupo `dev`."

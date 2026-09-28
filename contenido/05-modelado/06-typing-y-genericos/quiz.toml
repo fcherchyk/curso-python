@@ -1,0 +1,44 @@
+[[preguntas]]
+texto = "¿Cuál es la forma moderna (3.10+) de escribir `Optional[str]`?"
+opciones = ["`str?`", "`str | None`", "`Maybe[str]`", "`str or None`"]
+correcta = 1
+explicacion = "Desde 3.10, las uniones se escriben con `|`. `Optional[str]` es equivalente, pero ya no hace falta importarlo."
+
+[[preguntas]]
+texto = "`def doble(x: int) -> int: return x * 2`. ¿Qué pasa con `doble(\"ab\")` al ejecutar?"
+opciones = [
+  "Levanta `TypeError`",
+  "Devuelve `'abab'`: los tipos no se verifican en runtime",
+  "Convierte `\"ab\"` a int",
+  "No compila",
+]
+correcta = 1
+explicacion = "Las anotaciones no cambian la ejecución. mypy o pyright marcarían el error antes de ejecutar."
+
+[[preguntas]]
+texto = "En `def primero[T](xs: Iterable[T]) -> T | None`, ¿qué garantiza `T`?"
+opciones = [
+  "Que `xs` sea una lista",
+  "Que el tipo de los elementos y el del resultado sean el mismo",
+  "Que `T` sea un número",
+  "Nada: es solo documentación sin efecto para el type checker",
+]
+correcta = 1
+explicacion = "La variable de tipo liga la entrada con la salida: si le pasás `Iterable[str]`, el type checker sabe que devuelve `str | None`."
+
+[[preguntas]]
+texto = "¿Para qué sirve un `TypedDict`?"
+opciones = [
+  "Para crear dicts que validan tipos al ejecutar",
+  "Para describir al type checker las claves y los tipos de un dict con forma fija",
+  "Para crear dicts inmutables",
+  "Para ordenar las claves",
+]
+correcta = 1
+explicacion = "En runtime es un `dict` común. Sirve para que mypy sepa qué claves existen y de qué tipo son sus valores, como en el JSON de una API."
+
+[[preguntas]]
+texto = "¿Qué conviene más para un parámetro que puede ser cualquier cosa y que no vas a usar más que para imprimir?"
+opciones = ["`Any`", "`object`", "`T` sin cota", "No anotarlo"]
+correcta = 1
+explicacion = "`object` acepta cualquier cosa pero solo te deja usar lo que todo objeto tiene. `Any` apaga el chequeo por completo."

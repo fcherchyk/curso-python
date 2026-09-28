@@ -31,6 +31,8 @@ filterwarnings = ["ignore:.*install `httpx2`"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# Código inicial con errores de lint a propósito (el ejercicio es corregirlos).
+extend-exclude = ["contenido/07-herramientas/02-ruff-y-mypy/ejercicio.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

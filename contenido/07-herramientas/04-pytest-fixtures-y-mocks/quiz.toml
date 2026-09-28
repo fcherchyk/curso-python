@@ -1,0 +1,49 @@
+[[preguntas]]
+texto = "¿Cómo recibe un test una fixture llamada `usuarios`?"
+opciones = [
+  "Importándola desde el módulo",
+  "Declarando un parámetro llamado `usuarios`",
+  "Llamando a `usuarios()` dentro del test",
+  "Con el decorador `@usa(usuarios)`",
+]
+correcta = 1
+explicacion = "pytest inyecta las fixtures por nombre de parámetro. Las de `conftest.py` ni siquiera hace falta importarlas."
+
+[[preguntas]]
+texto = "En una fixture con `yield`, ¿cuándo corre el código después del `yield`?"
+opciones = [
+  "Solo si el test pasa",
+  "Después del test, aunque falle (es el teardown)",
+  "Antes del test",
+  "Nunca",
+]
+correcta = 1
+explicacion = "Lo que va antes del `yield` es el setup y lo que va después es la limpieza, que se ejecuta pase lo que pase con el test."
+
+[[preguntas]]
+texto = "¿Qué hace `m.get_json.side_effect = KeyError(\"x\")` en un `Mock`?"
+opciones = [
+  "Hace que `m.get_json(...)` devuelva un `KeyError`",
+  "Hace que `m.get_json(...)` levante `KeyError`",
+  "Verifica que se haya levantado un `KeyError`",
+  "Nada: `side_effect` solo acepta funciones",
+]
+correcta = 1
+explicacion = "Si `side_effect` es una excepción (o una clase de excepción), el mock la levanta al ser llamado."
+
+[[preguntas]]
+texto = "¿Qué hace que una función sea fácil de testear sin tocar la red?"
+opciones = [
+  "Que use `httpx` en lugar de `requests`",
+  "Que reciba el cliente HTTP como parámetro (inyección de dependencias)",
+  "Que sea async",
+  "Que tenga docstring",
+]
+correcta = 1
+explicacion = "Si la dependencia se recibe, el test le pasa un fake o un mock. Si está escondida adentro, hay que parchearla."
+
+[[preguntas]]
+texto = "¿Qué fixture incluida usás para escribir y leer archivos en un test?"
+opciones = ["`capsys`", "`tmp_path`", "`monkeypatch`", "`caplog`"]
+correcta = 1
+explicacion = "`tmp_path` da un `Path` a un directorio temporal único para cada test, que pytest limpia después."
