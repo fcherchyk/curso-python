@@ -1,0 +1,44 @@
+[[preguntas]]
+texto = "¿Cuántas palabras clave de bucle tiene Go?"
+opciones = ["Tres: `for`, `while` y `do`", "Dos: `for` y `while`", "Una: `for`", "Ninguna, se usan funciones"]
+correcta = 2
+explicacion = "`for` cubre todos los casos: clásico, como while (`for cond`), infinito (`for {}`) y con `range`."
+
+[[preguntas]]
+texto = "En un `switch`, después de ejecutar un `case`, ¿qué pasa?"
+opciones = [
+  "Sigue con el siguiente `case` salvo que haya `break`",
+  "Termina el `switch`: no hay fall-through implícito",
+  "Vuelve a evaluar la condición",
+  "Ejecuta el `default`",
+]
+correcta = 1
+explicacion = "A diferencia de C, Go no \"se cae\" al siguiente caso. Si hace falta, existe `fallthrough` explícito."
+
+[[preguntas]]
+texto = "¿Compila `if len(xs) { ... }`?"
+opciones = ["Sí, como en Python", "No: la condición tiene que ser `bool`", "Sí, si `xs` no es nil", "Solo con slices"]
+correcta = 1
+explicacion = "Go no tiene truthiness: la condición tiene que ser de tipo `bool`, por ejemplo `len(xs) > 0`."
+
+[[preguntas]]
+texto = "¿Cuál es el scope de `err` en `if n, err := f(); err != nil { ... }`?"
+opciones = [
+  "Toda la función",
+  "Solo el `if` y sus ramas `else`",
+  "Todo el paquete",
+  "Solo la condición",
+]
+correcta = 1
+explicacion = "Las variables declaradas en la sentencia de inicialización viven dentro del `if`, incluidas sus ramas `else if`/`else`."
+
+[[preguntas]]
+texto = "¿Cómo salís de dos bucles `for` anidados a la vez?"
+opciones = [
+  "`break 2`",
+  "Con una etiqueta: `break afuera`",
+  "Con `return` únicamente",
+  "No se puede",
+]
+correcta = 1
+explicacion = "Se etiqueta el bucle externo (`afuera:`) y se usa `break afuera`. `return` también sirve si el bucle está en su propia función."

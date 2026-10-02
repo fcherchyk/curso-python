@@ -4,7 +4,7 @@
 {% block contenido %}
 <main class="indice">
   <section class="intro">
-    <h1>Python, de lo básico a los frameworks</h1>
+    <h1>{{ curso.descripcion or curso.titulo }}</h1>
     <p>Cada capítulo tiene tres pasos: leer la lección, aprobar el cuestionario (≥ {{ UMBRAL }} %) y
       escribir el código que hace pasar los tests.</p>
     {% if siguiente %}
@@ -16,7 +16,7 @@
     {% endif %}
   </section>
 
-  {% for m in temario.modulos %}
+  {% for m in curso.modulos %}
   {% set hechos = completos[m.slug] %}
   <section class="modulo">
     <header class="modulo-cabecera">
@@ -48,7 +48,7 @@
     </ol>
   </section>
   {% else %}
-  <p>No hay contenido cargado en <code>contenido/</code>.</p>
+  <p class="nota">Este curso todavía no tiene capítulos cargados.</p>
   {% endfor %}
 </main>
 {% endblock %}

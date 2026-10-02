@@ -4,31 +4,36 @@ Para quien ya programa (y programó en Python) y quiere ponerse al día con sint
 código idiomático y el ecosistema actual. **Formato:** cada día tiene una lección corta y
 ejercicios con tests que tenés que hacer pasar.
 
-## App web (nuevo)
+## App web
 
-El curso se está migrando a una app web local: cada capítulo tiene **lectura → cuestionario →
-ejercicio de código** que tiene que pasar los tests (se corren con pytest en tu máquina).
+Una app web local con **dos cursos en solapas: Python y Go**. Cada capítulo tiene
+**lectura → cuestionario → ejercicio de código** que tiene que pasar los tests, que corren en
+tu máquina con pytest o con `go test`.
 
 ```bash
 uv sync
+brew install go                          # solo para el curso de Go
 uv run uvicorn app.main:app --reload     # abrí http://localhost:8000
 ```
 
-- Cada paso (lectura, quiz, código) tiene un botón **Marcar como resuelto** para saltearlo:
-  cuenta igual que aprobarlo y, en el código, habilita la solución de referencia.
-- El progreso (qué leíste, quizzes aprobados, tests en verde y tu código) se guarda en
+- El progreso de los dos cursos (lecturas, quizzes, tests y tu código) se guarda en
   `progreso.db` (SQLite, ignorado por git). Borralo para empezar de cero.
-- El contenido vive en `contenido/NN-modulo/NN-capitulo/` (`leccion.md`, `quiz.toml`,
-  `ejercicio.py`, `test_ejercicio.py`, `solucion.py`). La app lo relee en cada request.
-- `uv run pytest tests` valida la app y **todo** el contenido: cada solución pasa sus tests,
-  cada ejercicio inicial no pasa y cada quiz está bien formado.
+- Cada paso tiene **Marcar como resuelto** para saltearlo.
+- El contenido vive en `contenido/<curso>/NN-modulo/NN-capitulo/`:
+  - `leccion.md` y `quiz.toml`;
+  - Python: `ejercicio.py`, `test_ejercicio.py` y `solucion.py`;
+  - Go: `ejercicio.go`, `ejercicio_test.go` y `solucion.go`.
+  Cada curso tiene su `curso.toml` (título, lenguaje, orden).
+- `uv run pytest tests` valida la app y **todo** el contenido de los dos cursos: cada solución
+  pasa sus tests, cada ejercicio inicial no pasa y cada quiz está bien formado.
 
-Temario previsto: fundamentos rápidos → Python idiomático → iteradores → funciones avanzadas →
-modelado → Python moderno → herramientas → stdlib → algoritmos → concurrencia → Pydantic →
-FastAPI → SQLAlchemy 2.0 → Django → pandas → proyecto integrador. Hoy están cargados los
-módulos 01 a 07: fundamentos, Python idiomático, iteradores, funciones avanzadas, modelado de
-datos, Python moderno y herramientas (37 capítulos). En los capítulos de pytest vos escribís
-los tests, y se validan con *mutation testing*.
+**Python** (37 capítulos): fundamentos, idiomático, iteradores, funciones avanzadas, modelado,
+Python moderno y herramientas. Siguen stdlib, algoritmos, concurrencia y frameworks
+(Pydantic, FastAPI, SQLAlchemy, Django, pandas).
+
+**Go** (12 capítulos): fundamentos rápidos y Go idiomático. Siguen tipos y métodos,
+interfaces, errores, genéricos, concurrencia, testing, stdlib, HTTP (net/http, chi/Gin),
+datos (database/sql, pgx, sqlc), GORM y un proyecto integrador.
 
 ## Puesta en marcha (una sola vez)
 

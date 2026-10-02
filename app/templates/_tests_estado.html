@@ -3,6 +3,6 @@
   <button class="enlace" hx-get="/c/{{ cap.id }}/solucion" hx-target="#solucion">ver la solución de referencia</button>.</p>
 <div id="solucion"></div>
 {% else %}
-<p class="nota">Completá las funciones de <code>ejercicio.py</code> (las consignas están en
-  los docstrings) y corré los tests.</p>
+<p class="nota">Completá las funciones de <code>{{ cap.lenguaje.archivo_ejercicio }}</code> (las consignas
+  están en {{ cap.lenguaje.donde_estan_las_consignas }}) y corré los tests.</p>
 {% endif %}

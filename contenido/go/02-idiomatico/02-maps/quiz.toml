@@ -1,0 +1,39 @@
+[[preguntas]]
+texto = "Con `m := map[string]int{\"a\": 1}`, ¿qué devuelve `m[\"z\"]`?"
+opciones = ["Un panic", "`0`", "`nil`", "Un error"]
+correcta = 1
+explicacion = "Leer una clave inexistente devuelve el zero value del tipo del valor. Para saber si existía: `v, ok := m[\"z\"]`."
+
+[[preguntas]]
+texto = "¿Qué pasa con `var m map[string]int; m[\"a\"] = 1`?"
+opciones = ["Funciona", "Panic: asignación en un map nil", "Error de compilación", "Se ignora"]
+correcta = 1
+explicacion = "Un map nil se puede leer, pero no escribir. Hay que inicializarlo con `make` o con un literal."
+
+[[preguntas]]
+texto = "Recorrés un map con `for k := range m` dos veces. ¿El orden es el mismo?"
+opciones = [
+  "Sí, el orden de inserción",
+  "Sí, ordenado por clave",
+  "No necesariamente: el orden es aleatorio a propósito",
+  "Depende del tamaño",
+]
+correcta = 2
+explicacion = "El runtime aleatoriza el orden de iteración. Si necesitás orden, ordená las claves (`slices.Sorted(maps.Keys(m))`)."
+
+[[preguntas]]
+texto = "¿Cuál de estos tipos **no** puede ser clave de un map?"
+opciones = ["`string`", "`struct{ X, Y int }`", "`[]int`", "`[2]int`"]
+correcta = 2
+explicacion = "Las claves tienen que ser comparables con `==`. Los slices no lo son; los arrays de tamaño fijo, sí."
+
+[[preguntas]]
+texto = "¿Cómo se cuenta la frecuencia de palabras de forma idiomática?"
+opciones = [
+  "`if _, ok := m[p]; !ok { m[p] = 0 }; m[p]++`",
+  "`m[p]++` directamente",
+  "`m[p] = m.get(p, 0) + 1`",
+  "Con `collections.Counter`",
+]
+correcta = 1
+explicacion = "Como la clave ausente da 0, `m[p]++` alcanza: no hace falta inicializar la clave."

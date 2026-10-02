@@ -1,0 +1,44 @@
+[[preguntas]]
+texto = "¿Qué es un `iter.Seq[int]`?"
+opciones = [
+  "Un slice de enteros perezoso",
+  "Una función `func(yield func(int) bool)`",
+  "Un channel de enteros",
+  "Una interfaz con método `Next()`",
+]
+correcta = 1
+explicacion = "Un iterador es una función que recibe `yield` y la llama con cada valor. `range` sabe recorrerla desde Go 1.23."
+
+[[preguntas]]
+texto = "¿Qué significa que `yield(v)` devuelva `false`?"
+opciones = [
+  "Que el valor no era válido",
+  "Que quien consume hizo `break` (o `return`) y el iterador tiene que dejar de producir",
+  "Que se terminó el iterador",
+  "Un error de tipos",
+]
+correcta = 1
+explicacion = "El iterador tiene que respetarlo y retornar. Seguir llamando a `yield` después de un `false` hace panic."
+
+[[preguntas]]
+texto = "¿Cómo convertís un iterador `seq` en un slice?"
+opciones = ["`[]int(seq)`", "`slices.Collect(seq)`", "`seq.ToSlice()`", "`append(nil, seq...)`"]
+correcta = 1
+explicacion = "`slices.Collect` recorre el iterador y junta los valores, como `list(gen)` en Python."
+
+[[preguntas]]
+texto = "¿Qué recorre `for i := range 3`?"
+opciones = ["1, 2, 3", "0, 1, 2", "0, 1, 2, 3", "No compila"]
+correcta = 1
+explicacion = "Desde Go 1.22, `range` sobre un entero n recorre de 0 a n-1, como `range(3)` en Python."
+
+[[preguntas]]
+texto = "¿Por qué un iterador de Fibonacci infinito no cuelga el programa?"
+opciones = [
+  "Porque Go limita los bucles a un millón de vueltas",
+  "Porque es perezoso: produce un valor por vez y termina cuando `yield` devuelve false",
+  "Porque se ejecuta en otra goroutine",
+  "Sí lo cuelga siempre",
+]
+correcta = 1
+explicacion = "El cuerpo del bucle se ejecuta en cada `yield`. Cuando el consumidor hace `break`, `yield` devuelve false y el iterador retorna."

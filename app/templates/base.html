@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block titulo %}Curso de Python{% endblock %}</title>
+  <title>{% block titulo %}{{ curso.titulo if curso else "Cursos" }} · Cursos{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -15,7 +15,15 @@
 </head>
 <body>
   <header class="barra">
-    <a class="marca" href="/"><span class="marca-logo">py</span> Curso de Python</a>
+    <a class="marca" href="/{{ curso.slug if curso else '' }}"><span class="marca-logo">{{ '{ }' }}</span> Cursos</a>
+    {% if cursos %}
+    <nav class="solapas" aria-label="Cursos">
+      {% for c in cursos %}
+      <a href="/{{ c.slug }}" class="solapa {{ 'activa' if curso and c.slug == curso.slug }}"
+         {% if curso and c.slug == curso.slug %}aria-current="page"{% endif %}>{{ c.titulo }}</a>
+      {% endfor %}
+    </nav>
+    {% endif %}
     {% block barra %}{% endblock %}
   </header>
   {% block contenido %}{% endblock %}

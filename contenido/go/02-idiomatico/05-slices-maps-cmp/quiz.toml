@@ -1,0 +1,49 @@
+[[preguntas]]
+texto = "¿Qué devuelve la función de comparación de `slices.SortFunc(xs, f)`?"
+opciones = [
+  "Un `bool`: si `a < b`",
+  "Un `int`: negativo si a va antes, 0 si son iguales y positivo si va después",
+  "La clave de ordenamiento, como en Python",
+  "Un `error`",
+]
+correcta = 1
+explicacion = "Es una función de comparación de tres vías. `cmp.Compare(a, b)` la calcula para cualquier tipo ordenable."
+
+[[preguntas]]
+texto = "¿Cómo ordenás por edad **descendente** con `cmp.Compare`?"
+opciones = [
+  "`cmp.Compare(a.Edad, b.Edad)`",
+  "`cmp.Compare(b.Edad, a.Edad)`",
+  "`-cmp.Compare(a.Edad, a.Edad)`",
+  "`cmp.Reverse(a.Edad)`",
+]
+correcta = 1
+explicacion = "Invertir los argumentos invierte el orden. (`-cmp.Compare(a.Edad, b.Edad)` también funcionaría.)"
+
+[[preguntas]]
+texto = "¿Qué hace `cmp.Or(cmp.Compare(a.X, b.X), cmp.Compare(a.Y, b.Y))`?"
+opciones = [
+  "Un OR lógico entre dos bools",
+  "Devuelve la primera comparación distinta de cero: ordena por X y desempata por Y",
+  "Suma las comparaciones",
+  "Devuelve siempre la segunda",
+]
+correcta = 1
+explicacion = "`cmp.Or` devuelve el primer argumento que no es el zero value, así que se usa para encadenar criterios de desempate."
+
+[[preguntas]]
+texto = "¿Qué pasa con `slices.Max([]int{})`?"
+opciones = ["Devuelve 0", "Panic", "Devuelve -1", "Error de compilación"]
+correcta = 1
+explicacion = "`Max`, `Min`, `MaxFunc` y `MinFunc` hacen panic con un slice vacío. Hay que chequear el largo antes."
+
+[[preguntas]]
+texto = "¿Cómo obtenés las claves de un map como slice ordenado (Go 1.23+)?"
+opciones = [
+  "`m.Keys().Sort()`",
+  "`slices.Sorted(maps.Keys(m))`",
+  "`sort(maps.Keys(m))`",
+  "`maps.SortedKeys(m)`",
+]
+correcta = 1
+explicacion = "`maps.Keys` devuelve un iterador y `slices.Sorted` lo recorre, junta los valores en un slice y los ordena."

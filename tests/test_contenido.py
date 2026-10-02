@@ -2,21 +2,28 @@
 
 import pytest
 
-from app.contenido import cargar_temario
+from app.contenido import cargar_cursos
 from app.render import markdown
-from app.runner import correr_tests
 
-TEMARIO = cargar_temario()
-CAPITULOS = TEMARIO.capitulos()
+CURSOS = cargar_cursos()
+CAPITULOS = [c for curso in CURSOS for c in curso.capitulos()]
 
 
 def test_hay_contenido():
     assert CAPITULOS
+    assert {c.slug for c in CURSOS} >= {"python", "go"}
 
 
 @pytest.mark.parametrize("cap", CAPITULOS, ids=lambda c: c.id)
 def test_capitulo_tiene_todos_los_archivos(cap):
-    for nombre in ("leccion.md", "quiz.toml", "ejercicio.py", "test_ejercicio.py", "solucion.py"):
+    lenguaje = cap.lenguaje
+    for nombre in (
+        "leccion.md",
+        "quiz.toml",
+        lenguaje.archivo_ejercicio,
+        lenguaje.archivo_tests,
+        lenguaje.archivo_solucion,
+    ):
         assert (cap.ruta / nombre).exists(), f"falta {nombre}"
     assert cap.titulo != cap.slug, "leccion.md tiene que empezar con '# Título'"
 
@@ -40,7 +47,7 @@ def test_quiz_valido(cap):
 
 @pytest.mark.parametrize("cap", CAPITULOS, ids=lambda c: c.id)
 def test_solucion_pasa_los_tests(cap):
-    resultado = correr_tests(cap.solucion(), cap.archivos_de_soporte())
+    resultado = cap.lenguaje.correr(cap.solucion(), cap.archivos_de_soporte())
     assert resultado.error is None, resultado.error
     fallidos = [t for t in resultado.tests if not t.ok]
     assert not fallidos, "\n\n".join(f"{t.nombre}\n{t.mensaje}" for t in fallidos)
@@ -48,6 +55,12 @@ def test_solucion_pasa_los_tests(cap):
 
 @pytest.mark.parametrize("cap", CAPITULOS, ids=lambda c: c.id)
 def test_ejercicio_inicial_no_pasa(cap):
-    resultado = correr_tests(cap.codigo_inicial(), cap.archivos_de_soporte())
-    assert resultado.error is None, f"el código inicial tiene que importar bien: {resultado.error}"
-    assert not any(t.ok for t in resultado.tests), "ningún test debería pasar sin resolver"
+    resultado = cap.lenguaje.correr(cap.codigo_inicial(), cap.archivos_de_soporte())
+    assert resultado.error is None, f"el código inicial tiene que compilar: {resultado.error}"
+    # Cada test (en Go, cada función de test con sus subtests) tiene que fallar sin resolver.
+    por_test: dict[str, list[bool]] = {}
+    for t in resultado.tests:
+        clave = t.nombre.split("/", 1)[0] if cap.lenguaje.nombre == "go" else t.nombre
+        por_test.setdefault(clave, []).append(t.ok)
+    aprobados = [nombre for nombre, oks in por_test.items() if all(oks)]
+    assert not aprobados, f"estos tests pasan sin resolver el ejercicio: {aprobados}"

@@ -1,0 +1,44 @@
+[[preguntas]]
+texto = "¿Cuánto vale `len(\"año\")`?"
+opciones = ["3", "4", "6", "Error: hay caracteres no ASCII"]
+correcta = 1
+explicacion = "`len` cuenta bytes. En UTF-8, la `ñ` ocupa 2 bytes, así que son 4. Para contar caracteres: `utf8.RuneCountInString`."
+
+[[preguntas]]
+texto = "¿Qué entrega `for i, r := range s` sobre un string?"
+opciones = [
+  "Índice de carácter y byte",
+  "Índice en bytes y rune (carácter Unicode decodificado)",
+  "Índice y string de un carácter",
+  "Solo bytes",
+]
+correcta = 1
+explicacion = "`range` decodifica UTF-8: `r` es una rune y `i` es la posición en bytes donde empieza, que puede saltar de a más de 1."
+
+[[preguntas]]
+texto = "¿Cuál es la forma más directa de invertir un string con caracteres Unicode?"
+opciones = [
+  "Invertir los bytes con un bucle",
+  "Convertir a `[]rune`, invertir y volver a `string`",
+  "`strings.Reverse(s)`",
+  "`s[::-1]`",
+]
+correcta = 1
+explicacion = "Invertir bytes rompe los caracteres multibyte. `strings.Reverse` no existe y el slicing con paso no existe en Go."
+
+[[preguntas]]
+texto = "¿Qué devuelve `strings.Cut(\"host=db\", \"=\")`?"
+opciones = [
+  "`[\"host\", \"db\"]`",
+  "`(\"host\", \"db\", true)`",
+  "`\"host\"`",
+  "`(\"host\", \"=\", \"db\")`",
+]
+correcta = 1
+explicacion = "`Cut` devuelve lo de antes, lo de después y si encontró el separador. Es el equivalente de `partition` en Python."
+
+[[preguntas]]
+texto = "¿Compila `s := \"hola\"; s[0] = 'H'`?"
+opciones = ["Sí", "No: los strings son inmutables", "Sí, pero hace panic", "Solo con `[]byte`"]
+correcta = 1
+explicacion = "Los strings no se pueden modificar. Hay que convertir a `[]byte` o `[]rune`, modificar y convertir de nuevo, o construir otro string."

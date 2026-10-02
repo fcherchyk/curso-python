@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% from "_macros.html" import marca_tab, boton_resuelto %}
 
-{% block titulo %}{{ cap.titulo }} · Curso de Python{% endblock %}
+{% block titulo %}{{ cap.titulo }} · {{ curso.titulo }}{% endblock %}
 
 {% block cabecera %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/python/python.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/{{ cap.lenguaje.modo_editor }}/{{ cap.lenguaje.modo_editor }}.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/edit/matchbrackets.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/edit/closebrackets.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/selection/active-line.min.js" defer></script>
@@ -32,10 +32,11 @@
       </li>
       {% endfor %}
     </ol>
-    <a class="lateral-volver" href="/">← Todo el temario</a>
+    <a class="lateral-volver" href="/{{ curso.slug }}">← Todo el temario de {{ curso.titulo }}</a>
   </aside>
 
-  <main class="capitulo" data-cap="{{ cap.id }}">
+  <main class="capitulo" data-cap="{{ cap.id }}" data-modo="{{ cap.lenguaje.modo_editor }}"
+        data-tabs="{{ 'si' if cap.lenguaje.indentar_con_tabs else 'no' }}">
     <header class="capitulo-cabecera">
       <p class="sobretitulo">Capítulo {{ modulo.numero }}.{{ cap.numero }}</p>
       <h1>{{ cap.titulo }}</h1>
@@ -72,7 +73,7 @@
               hx-post="/c/{{ cap.id }}/tests" hx-target="#tests-resultado"
               hx-indicator="#corriendo" hx-disabled-elt="#boton-correr">
           <div class="editor-barra">
-            <span class="archivo">ejercicio.py</span>
+            <span class="archivo">{{ cap.lenguaje.archivo_ejercicio }}</span>
             <span id="guardado" class="guardado" aria-live="polite"></span>
             <button type="button" class="boton boton-texto" id="boton-restaurar">Restaurar inicial</button>
             <button type="submit" class="boton boton-primario" id="boton-correr">

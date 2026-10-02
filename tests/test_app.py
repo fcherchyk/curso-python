@@ -1,12 +1,15 @@
+import sqlite3
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
-from app.contenido import cargar_temario
+from app.contenido import cargar_cursos
 from app.main import crear_app
+from app.progreso import Progreso
 
-CAP = cargar_temario().capitulos()[0]
+CURSOS = {c.slug: c for c in cargar_cursos()}
+CAP = CURSOS["python"].capitulos()[0]
 URL = f"/c/{CAP.id}"
 
 
@@ -103,3 +106,45 @@ def test_marcar_resuelto_es_un_toggle(cliente):
 
 def test_marcar_resuelto_paso_invalido(cliente):
     assert cliente.post(f"{URL}/leccion/resuelto").status_code == 422
+
+
+def test_solapas_de_cursos(cliente):
+    r = cliente.get("/python")
+    assert 'class="solapa activa"' in r.text
+    assert 'href="/go"' in r.text
+
+
+def test_raiz_recuerda_el_ultimo_curso(cliente):
+    cliente.get("/go")
+    r = cliente.get("/", follow_redirects=False)
+    assert r.headers["location"] == "/go"
+
+
+def test_curso_inexistente(cliente):
+    assert cliente.get("/cobol").status_code == 404
+
+
+def test_url_vieja_redirige_a_python(cliente):
+    viejo = CAP.id.removeprefix("python/")
+    r = cliente.get(f"/c/{viejo}", follow_redirects=False)
+    assert r.status_code == 301
+    assert r.headers["location"] == f"/c/{CAP.id}"
+
+
+def test_migra_ids_sin_curso(tmp_path):
+    db = tmp_path / "viejo.db"
+    Progreso(db).marcar_leido("02-idiomatico/01-comprehensions")
+    Progreso(db).marcar_leido("go/01-fundamentos/01-algo")
+    assert Progreso(db).migrar_ids_sin_curso("python") == 1
+    assert Progreso(db).migrar_ids_sin_curso("python") == 0
+    with sqlite3.connect(db) as con:
+        ids = sorted(fila[0] for fila in con.execute("SELECT id FROM capitulos"))
+    assert ids == ["go/01-fundamentos/01-algo", "python/02-idiomatico/01-comprehensions"]
+
+
+def test_progreso_separado_por_curso(cliente):
+    cliente.post(f"{URL}/leido")
+    cliente.post(f"{URL}/quiz/resuelto")
+    cliente.post(f"{URL}/tests/resuelto")
+    assert "capitulo-fila completo" in cliente.get("/python").text
+    assert "capitulo-fila completo" not in cliente.get("/go").text

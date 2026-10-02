@@ -1,0 +1,39 @@
+[[preguntas]]
+texto = "Con `func f(n int) { n = 5 }` y `x := 1; f(x)`, ¿cuánto vale `x`?"
+opciones = ["5", "1", "0", "Error de compilación"]
+correcta = 1
+explicacion = "Todo se pasa por valor: `f` modifica su copia. Para modificar `x` hay que pasar `&x` a una función que reciba `*int`."
+
+[[preguntas]]
+texto = "¿Es válido devolver `&c` si `c` es una variable local de la función?"
+opciones = [
+  "No, es un puntero colgante como en C",
+  "Sí: el compilador detecta que escapa y la ubica en el heap",
+  "Solo si `c` es global",
+  "Solo con `new`",
+]
+correcta = 1
+explicacion = "El escape analysis de Go mueve al heap las variables cuya dirección sobrevive a la función. Es un patrón muy común (`NewX() *X`)."
+
+[[preguntas]]
+texto = "Con `c *Cuenta`, ¿cómo se accede al campo `Saldo`?"
+opciones = ["`c->Saldo`", "`(*c).Saldo` obligatoriamente", "`c.Saldo`", "`c[Saldo]`"]
+correcta = 2
+explicacion = "Go desreferencia automáticamente los punteros a struct al acceder a campos: `c.Saldo` equivale a `(*c).Saldo`."
+
+[[preguntas]]
+texto = "`func ponerCero(xs []int) { xs[0] = 0 }`. ¿Se ve el cambio afuera?"
+opciones = [
+  "No, el slice se copia entero",
+  "Sí: se copia la cabecera, pero comparten el array subyacente",
+  "Solo si se pasa `&xs`",
+  "Error de compilación",
+]
+correcta = 1
+explicacion = "El slice es una cabecera (puntero, largo y capacidad). La copia apunta al mismo array, así que modificar elementos se ve afuera. Un `append`, en cambio, puede no verse."
+
+[[preguntas]]
+texto = "¿Qué pasa al desreferenciar un puntero `nil`?"
+opciones = ["Devuelve el zero value", "Panic en tiempo de ejecución", "Error de compilación", "Devuelve `nil`"]
+correcta = 1
+explicacion = "Es el equivalente al `AttributeError` sobre `None` en Python: un panic `nil pointer dereference`."

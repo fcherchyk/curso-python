@@ -4,11 +4,13 @@ version = "0.1.0"
 description = "Curso de Python: app web con lecciones, cuestionarios y ejercicios con tests"
 requires-python = ">=3.12"
 dependencies = [
+    "beautifulsoup4>=4.15.0",
     "fastapi>=0.141.1",
     "jinja2>=3.1.6",
     "markdown-it-py>=4.2.0",
     "pygments>=2.21.0",
     "python-multipart>=0.0.32",
+    "requests>=2.34.2",
     "uvicorn[standard]>=0.54.0",
 ]
 
@@ -32,7 +34,7 @@ filterwarnings = ["ignore:.*install `httpx2`"]
 line-length = 100
 target-version = "py312"
 # Código inicial con errores de lint a propósito (el ejercicio es corregirlos).
-extend-exclude = ["contenido/07-herramientas/02-ruff-y-mypy/ejercicio.py"]
+extend-exclude = ["contenido/python/07-herramientas/02-ruff-y-mypy/ejercicio.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

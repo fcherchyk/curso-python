@@ -44,6 +44,19 @@ class Progreso:
         con.execute(ESQUEMA)
         return con
 
+    def migrar_ids_sin_curso(self, curso: str) -> int:
+        """Antes de los cursos, los ids eran `modulo/capitulo`. Les agrega `curso/` delante.
+
+        Es idempotente: solo toca ids con una sola barra.
+        """
+        with closing(self._conectar()) as con, con:
+            cursor = con.execute(
+                "UPDATE OR IGNORE capitulos SET id = ? || '/' || id "
+                "WHERE length(id) - length(replace(id, '/', '')) = 1",
+                (curso,),
+            )
+            return cursor.rowcount
+
     def _upsert(self, id_cap: str, **campos: object) -> None:
         columnas = ", ".join(campos)
         marcadores = ", ".join("?" for _ in campos)

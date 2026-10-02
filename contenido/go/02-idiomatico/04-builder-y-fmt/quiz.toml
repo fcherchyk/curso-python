@@ -1,0 +1,39 @@
+[[preguntas]]
+texto = "Con `type P struct{ Nombre string; Edad int }`, ¿qué imprime `fmt.Printf(\"%+v\", P{\"Ana\", 31})`?"
+opciones = ["`{Ana 31}`", "`{Nombre:Ana Edad:31}`", "`P{Nombre:\"Ana\", Edad:31}`", "`P`"]
+correcta = 1
+explicacion = "`%v` muestra solo los valores, `%+v` agrega los nombres de los campos y `%#v` muestra la sintaxis Go completa."
+
+[[preguntas]]
+texto = "¿Qué devuelve `fmt.Sprintf(\"%-6s|\", \"go\")`?"
+opciones = ["`\"    go|\"`", "`\"go    |\"`", "`\"go|\"`", "`\"-go|\"`"]
+correcta = 1
+explicacion = "El `-` alinea a la izquierda dentro del ancho 6: `go` y cuatro espacios."
+
+[[preguntas]]
+texto = "¿Qué hace que `fmt.Println(x)` muestre un texto personalizado para tu tipo?"
+opciones = [
+  "Un método `__str__`",
+  "Un método `String() string`",
+  "Un tag `fmt:\"...\"`",
+  "No se puede personalizar",
+]
+correcta = 1
+explicacion = "Si el tipo implementa la interfaz `fmt.Stringer` (`String() string`), `fmt` la usa para `%v` y `%s`."
+
+[[preguntas]]
+texto = "¿Por qué conviene `strings.Builder` para armar un string en un bucle?"
+opciones = [
+  "Porque `+=` no compila con strings",
+  "Porque los strings son inmutables y cada `+=` copia todo: con Builder el costo es lineal",
+  "Porque Builder formatea números",
+  "Porque es la única forma de agregar un `\\n`",
+]
+correcta = 1
+explicacion = "Igual que en Python, concatenar repetidamente es cuadrático. Builder acumula en un buffer que crece."
+
+[[preguntas]]
+texto = "¿Qué verbo muestra un string entre comillas y con los caracteres especiales escapados?"
+opciones = ["`%s`", "`%q`", "`%v`", "`%x`"]
+correcta = 1
+explicacion = "`%q` es muy útil en mensajes de error y en tests: deja ver espacios, saltos de línea y strings vacíos."

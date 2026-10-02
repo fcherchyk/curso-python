@@ -3,6 +3,7 @@
   const main = document.querySelector("main.capitulo");
   if (!main) return;
   const idCap = main.dataset.cap;
+  const conTabs = main.dataset.tabs === "si";
   let editor = null;
 
   // ---------- Pestañas ----------
@@ -61,18 +62,18 @@
     if (editor || !window.CodeMirror) return;
     const form = document.getElementById("form-codigo");
     editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
-      mode: "python",
+      mode: main.dataset.modo || "python",
       lineNumbers: true,
       indentUnit: 4,
       tabSize: 4,
-      indentWithTabs: false,
+      indentWithTabs: conTabs,
       matchBrackets: true,
       autoCloseBrackets: true,
       styleActiveLine: true,
       extraKeys: {
         Tab: (cm) => cm.somethingSelected()
           ? cm.indentSelection("add")
-          : cm.replaceSelection(" ".repeat(cm.getOption("indentUnit"))),
+          : cm.replaceSelection(conTabs ? "\t" : " ".repeat(cm.getOption("indentUnit"))),
         "Shift-Tab": (cm) => cm.indentSelection("subtract"),
         "Cmd-Enter": () => htmx.trigger(form, "submit"),
         "Ctrl-Enter": () => htmx.trigger(form, "submit"),
