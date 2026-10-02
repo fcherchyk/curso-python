@@ -1,0 +1,44 @@
+[[preguntas]]
+texto = "¿Qué hace `usuario: Annotated[Usuario, Depends(usuario_actual)]` en un endpoint?"
+opciones = [
+  "Importa la clase Usuario",
+  "Hace que FastAPI llame a `usuario_actual` antes del endpoint y le pase el resultado",
+  "Valida el body como un Usuario",
+  "Crea un usuario nuevo en cada request",
+]
+correcta = 1
+explicacion = "La dependencia se resuelve antes, con sus propios parámetros (headers, query, otras dependencias). Si levanta HTTPException, el endpoint no se ejecuta."
+
+[[preguntas]]
+texto = "Dos dependencias de un mismo request piden `Depends(usuario_actual)`. ¿Cuántas veces se ejecuta?"
+opciones = ["Dos", "Una: se cachea dentro del request", "Ninguna", "Depende del orden"]
+correcta = 1
+explicacion = "FastAPI cachea el resultado de cada dependencia por request (salvo `use_cache=False`)."
+
+[[preguntas]]
+texto = "¿Cómo reemplazás una dependencia en los tests?"
+opciones = [
+  "Con `unittest.mock.patch` sobre el endpoint",
+  "Con `app.dependency_overrides[dependencia_original] = reemplazo`",
+  "Redefiniendo la función en el test",
+  "No se puede",
+]
+correcta = 1
+explicacion = "El dict de overrides mapea la función original a la que la reemplaza. Conviene limpiarlo después de cada test."
+
+[[preguntas]]
+texto = "En una dependencia con `yield`, ¿cuándo corre el código después del `yield`?"
+opciones = [
+  "Antes del endpoint",
+  "Después de que el endpoint termina (limpieza, por ejemplo cerrar la sesión)",
+  "Nunca",
+  "Solo si hubo un error",
+]
+correcta = 1
+explicacion = "Funciona como un context manager: setup antes del `yield` y limpieza después, idealmente en un `finally`."
+
+[[preguntas]]
+texto = "¿Qué código corresponde a un usuario autenticado que no tiene permisos de admin?"
+opciones = ["401", "403", "404", "422"]
+correcta = 1
+explicacion = "Se sabe quién es (no es 401), pero no puede hacer la acción: 403 Forbidden."

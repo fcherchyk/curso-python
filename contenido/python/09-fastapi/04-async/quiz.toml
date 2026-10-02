@@ -1,0 +1,49 @@
+[[preguntas]]
+texto = "¿Qué pasa al llamar a una función `async def` sin `await`?"
+opciones = [
+  "Se ejecuta en segundo plano",
+  "Devuelve una corrutina sin ejecutar el cuerpo",
+  "Se ejecuta sincrónicamente",
+  "Levanta `SyntaxError`",
+]
+correcta = 1
+explicacion = "Igual que un generador, la corrutina no corre hasta que alguien la espera (`await`) o la agenda (`create_task`, `gather`)."
+
+[[preguntas]]
+texto = "Tres llamadas async de 200 ms cada una con `asyncio.gather`. ¿Cuánto tarda aproximadamente?"
+opciones = ["600 ms", "200 ms", "400 ms", "66 ms"]
+correcta = 1
+explicacion = "`gather` las lanza a la vez: mientras una espera, las otras avanzan. El total es aproximadamente el de la más lenta."
+
+[[preguntas]]
+texto = "¿Qué pasa si dentro de un endpoint `async def` llamás a `time.sleep(2)`?"
+opciones = [
+  "Solo ese request espera 2 segundos",
+  "Se bloquea el event loop: toda la app deja de atender requests durante 2 segundos",
+  "FastAPI lo convierte en `asyncio.sleep` automáticamente",
+  "Levanta un error",
+]
+correcta = 1
+explicacion = "El código bloqueante dentro de `async def` congela el loop. Usá `await asyncio.sleep`, una librería async o declarala como `def`."
+
+[[preguntas]]
+texto = "Un endpoint usa `requests` (sincrónica) para llamar a otra API. ¿Cómo conviene declararlo?"
+opciones = [
+  "`async def`",
+  "`def`: FastAPI lo corre en un thread pool y no bloquea el loop",
+  "Da igual",
+  "No se puede usar `requests` con FastAPI",
+]
+correcta = 1
+explicacion = "Con `def`, FastAPI ejecuta la función en un thread aparte. La alternativa async sería `httpx.AsyncClient` con `async def`."
+
+[[preguntas]]
+texto = "¿Cuándo se ejecuta una tarea agregada con `BackgroundTasks.add_task`?"
+opciones = [
+  "Antes del endpoint",
+  "Después de enviar la respuesta al cliente",
+  "En otro proceso, con reintentos",
+  "Solo si el endpoint falla",
+]
+correcta = 1
+explicacion = "Corre después de responder, en el mismo proceso. Para trabajos largos o con reintentos se usa una cola de tareas."
