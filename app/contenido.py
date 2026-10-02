@@ -76,12 +76,14 @@ class Capitulo:
         return self.ruta / self.lenguaje.archivo_tests
 
     def archivos_de_soporte(self) -> list[Path]:
-        """Tests y archivos de datos que necesita el ejercicio para correr."""
+        """Tests, datos y carpetas (p. ej. `templates/`) que necesita el ejercicio."""
         privados = self.lenguaje.archivos_privados
         return [
             p
             for p in sorted(self.ruta.iterdir())
-            if p.is_file() and p.name not in privados and not p.name.startswith(".")
+            if p.name not in privados
+            and not p.name.startswith((".", "__pycache__"))
+            and (p.is_file() or p.is_dir())
         ]
 
 

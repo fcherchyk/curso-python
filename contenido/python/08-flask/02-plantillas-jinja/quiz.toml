@@ -1,0 +1,54 @@
+[[preguntas]]
+texto = "Si `nombre = \"<b>Ana</b>\"`, ¿qué genera `{{ nombre }}` en una plantilla `.html` de Flask?"
+opciones = [
+  "`<b>Ana</b>` (Ana en negrita)",
+  "`&lt;b&gt;Ana&lt;/b&gt;` (el texto escapado)",
+  "Un error",
+  "`Ana`",
+]
+correcta = 1
+explicacion = "El autoescape convierte los caracteres especiales en entidades HTML. Es la defensa principal contra XSS."
+
+[[preguntas]]
+texto = "¿Qué hace `{% extends \"base.html\" %}` en una plantilla?"
+opciones = [
+  "Incluye base.html al principio",
+  "Hereda el layout de base.html y reemplaza solo los bloques que define",
+  "Copia base.html al final",
+  "Importa las macros de base.html",
+]
+correcta = 1
+explicacion = "La plantilla hija define bloques (`{% block x %}`) que reemplazan a los de la base. El resto se hereda tal cual."
+
+[[preguntas]]
+texto = "¿Qué recibe `url_for` como primer argumento?"
+opciones = [
+  "La URL literal, como `\"/productos\"`",
+  "El nombre del endpoint (por defecto, el nombre de la función de la vista)",
+  "El nombre de la plantilla",
+  "El método HTTP",
+]
+correcta = 1
+explicacion = "`url_for(\"detalle\", id=3)` arma `/productos/3`. Si la ruta cambia, los links generados se actualizan solos."
+
+[[preguntas]]
+texto = "¿Cuándo es aceptable usar el filtro `| safe`?"
+opciones = [
+  "Siempre que el texto tenga HTML",
+  "Solo con HTML generado por vos, que sabés que es seguro; nunca con datos del usuario",
+  "Para que la página cargue más rápido",
+  "Para mostrar acentos correctamente",
+]
+correcta = 1
+explicacion = "`safe` desactiva el escape. Con datos del usuario, abre la puerta a un XSS."
+
+[[preguntas]]
+texto = "En un `{% for %}` de Jinja, ¿cuándo se ejecuta el bloque `{% else %}`?"
+opciones = [
+  "Después de la última iteración",
+  "Cuando la secuencia está vacía",
+  "Cuando hubo un `break`",
+  "Nunca: no existe",
+]
+correcta = 1
+explicacion = "En Jinja, el `else` de un `for` corre si no hubo ninguna iteración. Es distinto del `for/else` de Python, que corre si no hubo `break`."

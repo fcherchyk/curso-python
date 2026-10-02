@@ -44,6 +44,14 @@ class ResultadoEjecucion:
         return sum(t.ok for t in self.tests)
 
 
+def _copiar(origen: Path, destino: Path) -> None:
+    """Copia un archivo o una carpeta de soporte al directorio de trabajo."""
+    if origen.is_dir():
+        shutil.copytree(origen, destino / origen.name, ignore=shutil.ignore_patterns("__pycache__"))
+    else:
+        shutil.copy(origen, destino / origen.name)
+
+
 def _recortar(texto: str, max_lineas: int = MAX_LINEAS_MENSAJE) -> str:
     lineas = texto.strip().splitlines()
     if len(lineas) > max_lineas:
@@ -106,7 +114,7 @@ def correr_tests(
         dir_trabajo = Path(tmp)
         (dir_trabajo / "ejercicio.py").write_text(codigo, encoding="utf-8")
         for archivo in archivos:
-            shutil.copy(archivo, dir_trabajo / archivo.name)
+            _copiar(archivo, dir_trabajo)
         # Un pytest.ini vacío fija el rootdir acá e ignora la config del proyecto.
         (dir_trabajo / "pytest.ini").write_text("[pytest]\n", encoding="utf-8")
         junit = dir_trabajo / ".resultado.xml"
@@ -264,7 +272,7 @@ def correr_tests_go(
         (dir_trabajo / "go.mod").write_text(GO_MOD, encoding="utf-8")
         (dir_trabajo / "ejercicio.go").write_text(codigo, encoding="utf-8")
         for archivo in archivos:
-            shutil.copy(archivo, dir_trabajo / archivo.name)
+            _copiar(archivo, dir_trabajo)
 
         entorno = os.environ | {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=mod"}
         comando = [_binario_go(), "test", "-json", "-count=1", "-timeout=10s", "./..."]

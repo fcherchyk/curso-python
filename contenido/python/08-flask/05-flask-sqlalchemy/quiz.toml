@@ -1,0 +1,54 @@
+[[preguntas]]
+texto = "En un modelo de SQLAlchemy 2.0, ¿qué indica `anio: Mapped[int | None]`?"
+opciones = [
+  "Que la columna es de tipo texto",
+  "Una columna entera que admite NULL",
+  "Una relación con otra tabla",
+  "Que la columna no se guarda",
+]
+correcta = 1
+explicacion = "El tipo de `Mapped` define el tipo de la columna, y el `| None` la hace nullable."
+
+[[preguntas]]
+texto = "¿Cuándo se ejecutan los INSERT de los objetos agregados con `db.session.add(...)`?"
+opciones = [
+  "Inmediatamente al llamar a `add`",
+  "Al hacer flush, como mucho en el `commit` (en una transacción)",
+  "Al terminar el programa",
+  "Nunca: hay que llamar a `insert()`",
+]
+correcta = 1
+explicacion = "La sesión acumula los cambios (unit of work) y los envía al hacer flush. El `commit` confirma la transacción."
+
+[[preguntas]]
+texto = "¿Qué es el problema N+1?"
+opciones = [
+  "Un error de clave duplicada",
+  "Hacer una consulta para la lista y otra por cada elemento al acceder a una relación perezosa",
+  "Paginar de a N+1 elementos",
+  "Una tabla con N+1 columnas",
+]
+correcta = 1
+explicacion = "Acceder a `libro.autor` dentro de un bucle dispara un SELECT por libro. Se resuelve con `joinedload` o `selectinload`."
+
+[[preguntas]]
+texto = "¿Qué hace `db.get_or_404(Libro, 7)`?"
+opciones = [
+  "Devuelve el libro 7 o None",
+  "Devuelve el libro 7 o aborta el request con un 404",
+  "Crea el libro 7 si no existe",
+  "Devuelve todos los libros",
+]
+correcta = 1
+explicacion = "Es un atajo de Flask-SQLAlchemy para el caso típico de los endpoints de detalle."
+
+[[preguntas]]
+texto = "Agregaste una columna a un modelo y la tabla ya existe. ¿`db.create_all()` la agrega?"
+opciones = [
+  "Sí, sincroniza todo el esquema",
+  "No: solo crea tablas que no existen; los cambios de esquema se manejan con migraciones (Alembic)",
+  "Sí, pero borra los datos",
+  "Solo en SQLite",
+]
+correcta = 1
+explicacion = "`create_all` no altera tablas existentes. Para evolucionar el esquema se usan migraciones versionadas."

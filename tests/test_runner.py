@@ -126,3 +126,17 @@ def test_go_panic_resume_la_traza(archivos_go):
     assert "index out of range" in fallido.mensaje
     assert "ejercicio.go:3" in fallido.mensaje
     assert "goroutine" not in fallido.mensaje
+
+
+def test_copia_carpetas_de_soporte(tmp_path):
+    plantillas = tmp_path / "templates"
+    plantillas.mkdir()
+    (plantillas / "hola.txt").write_text("hola")
+    tests = tmp_path / "test_ejercicio.py"
+    tests.write_text(
+        "from pathlib import Path\n\n\n"
+        "def test_lee_plantilla():\n"
+        "    assert Path('templates/hola.txt').read_text() == 'hola'\n"
+    )
+    r = correr_tests("", [tests, plantillas])
+    assert r.aprobado, r.tests

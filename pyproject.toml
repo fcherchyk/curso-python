@@ -5,12 +5,17 @@ description = "Curso de Python: app web con lecciones, cuestionarios y ejercicio
 requires-python = ">=3.12"
 dependencies = [
     "beautifulsoup4>=4.15.0",
+    "django>=6.1.1",
+    "djangorestframework>=3.18.1",
     "fastapi>=0.141.1",
+    "flask>=3.1.3",
+    "flask-sqlalchemy>=3.1.1",
     "jinja2>=3.1.6",
     "markdown-it-py>=4.2.0",
     "pygments>=2.21.0",
     "python-multipart>=0.0.32",
     "requests>=2.34.2",
+    "sqlalchemy>=2.1.1",
     "uvicorn[standard]>=0.54.0",
 ]
 
@@ -38,6 +43,12 @@ extend-exclude = ["contenido/python/07-herramientas/02-ruff-y-mypy/ejercicio.py"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+# Las consignas de los ejercicios a veces necesitan líneas largas.
+"contenido/**" = ["E501"]
+# En los tests de Django, los imports van después de configurar settings.
+"contenido/python/10-django/**/test_ejercicio.py" = ["E402"]
 
 [tool.mypy]
 python_version = "3.12"
