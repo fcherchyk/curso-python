@@ -1,0 +1,49 @@
+[[preguntas]]
+texto = "En un `forms.Form`, ¿para qué sirve un método `clean_email`?"
+opciones = [
+  "Para borrar el campo email",
+  "Para validar y/o transformar solo el campo `email`, devolviendo el valor limpio",
+  "Para validar todos los campos",
+  "Para dibujar el campo en HTML",
+]
+correcta = 1
+explicacion = "`clean_<campo>` corre después de la validación propia del campo. Para reglas entre campos está `clean()`."
+
+[[preguntas]]
+texto = "Un POST con datos inválidos en la vista de un formulario. ¿Qué es lo idiomático?"
+opciones = [
+  "Redirigir a la misma página",
+  "Volver a renderizar el mismo form (ligado a los datos), que ya trae los valores y los errores",
+  "Devolver un JSON con los errores",
+  "Levantar `Http404`",
+]
+correcta = 1
+explicacion = "El form ligado conserva lo cargado y expone `errors`. El redirect se usa solo cuando el POST fue exitoso (PRG)."
+
+[[preguntas]]
+texto = "¿Qué pasa con un POST sin `{% csrf_token %}` cuando está activo `CsrfViewMiddleware`?"
+opciones = ["Se procesa normalmente", "Django responde 403", "Responde 400", "Se ignora el body"]
+correcta = 1
+explicacion = "El middleware exige el token en los métodos que modifican (POST, PUT, DELETE…). Sin él, rechaza con 403 Forbidden."
+
+[[preguntas]]
+texto = "¿Qué hace `{% empty %}` dentro de un `{% for %}` en una plantilla de Django?"
+opciones = [
+  "Vacía la lista",
+  "Define qué mostrar cuando la lista está vacía",
+  "Corta el bucle",
+  "Es un error",
+]
+correcta = 1
+explicacion = "Es el equivalente al `{% else %}` del `for` de Jinja2."
+
+[[preguntas]]
+texto = "¿Por qué no podés escribir `{{ producto.precio_con_descuento(10) }}` en una plantilla de Django?"
+opciones = [
+  "Por un bug",
+  "Porque el lenguaje de plantillas no permite llamar funciones con argumentos: esa lógica va en la vista o en un filtro",
+  "Porque falta `|safe`",
+  "Sí se puede",
+]
+correcta = 1
+explicacion = "Es una restricción deliberada: las plantillas se mantienen simples. Se calcula en la vista o se escribe un filtro o template tag."

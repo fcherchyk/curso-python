@@ -1,0 +1,49 @@
+[[preguntas]]
+texto = "¿Cuándo consulta la base `qs = Producto.objects.filter(activo=True).order_by(\"precio\")`?"
+opciones = [
+  "Inmediatamente, al llamar a `filter`",
+  "Recién cuando se evalúa: al iterarlo, convertirlo a lista, llamar a `len()`, etc.",
+  "Al llamar a `order_by`",
+  "Nunca, hasta llamar a `.execute()`",
+]
+correcta = 1
+explicacion = "Los QuerySets son perezosos: encadenar filtros solo arma la consulta, que se ejecuta cuando se necesitan los datos."
+
+[[preguntas]]
+texto = "¿Qué hace `Producto.objects.filter(categoria__nombre=\"Almacén\")`?"
+opciones = [
+  "Busca un campo llamado `categoria__nombre`",
+  "Cruza la FK hacia Categoria y filtra por su nombre (JOIN)",
+  "Levanta un error de sintaxis",
+  "Filtra productos cuyo nombre es Almacén",
+]
+correcta = 1
+explicacion = "El doble guion bajo atraviesa relaciones y también separa los lookups (`precio__lte`)."
+
+[[preguntas]]
+texto = "¿Por qué `update(precio=F(\"precio\") * 1.1)` es mejor que recorrer los objetos y hacer `save()`?"
+opciones = [
+  "Porque `save()` no funciona con decimales",
+  "Porque se hace en una sola consulta SQL, en la base, sin condiciones de carrera",
+  "Porque `F` valida los precios",
+  "No hay diferencia",
+]
+correcta = 1
+explicacion = "`F` referencia el valor actual de la columna, así que el cálculo ocurre en SQL. Traer, modificar y guardar es lento y puede pisar cambios concurrentes."
+
+[[preguntas]]
+texto = "Recorrés 100 productos y accedés a `p.categoria.nombre`. ¿Qué conviene?"
+opciones = [
+  "`prefetch_related(\"categoria\")`",
+  "`select_related(\"categoria\")` (un JOIN para la FK)",
+  "Nada, Django ya lo optimiza",
+  "`values()`",
+]
+correcta = 1
+explicacion = "`select_related` resuelve FKs y one-to-one con un JOIN. `prefetch_related` es para relaciones de \"muchos\" (FK inversa y many-to-many)."
+
+[[preguntas]]
+texto = "¿Qué levanta `Producto.objects.get(nombre=\"inexistente\")`?"
+opciones = ["Devuelve `None`", "`Producto.DoesNotExist`", "`KeyError`", "`Http404`"]
+correcta = 1
+explicacion = "`get` espera exactamente un resultado. Para \"el primero o None\" está `.filter(...).first()`, y en vistas, `get_object_or_404`."

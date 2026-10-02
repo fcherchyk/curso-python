@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block titulo %}Gracias{% endblock %}
+{% block contenido %}
+<h1>¡Gracias, {{ nombre|default:"visitante" }}!</h1>
+<p>Recibimos {{ total }} mensaje{{ total|pluralize }}.</p>
+{% endblock %}

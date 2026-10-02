@@ -1,0 +1,54 @@
+[[preguntas]]
+texto = "Después de `User.objects.create_user(\"ana\", password=\"secreta\")`, ¿qué hay en `u.password`?"
+opciones = [
+  "`\"secreta\"`",
+  "Un hash como `pbkdf2_sha256$...` (con salt e iteraciones)",
+  "`None`",
+  "La contraseña cifrada de forma reversible",
+]
+correcta = 1
+explicacion = "Django guarda solo el hash. Se verifica con `check_password`; la contraseña original no se puede recuperar."
+
+[[preguntas]]
+texto = "¿Qué hace `@login_required` con un usuario anónimo?"
+opciones = [
+  "Responde 403",
+  "Redirige a `LOGIN_URL` con `?next=` apuntando a la página pedida",
+  "Responde 401",
+  "Muestra la vista igual",
+]
+correcta = 1
+explicacion = "Redirige al login y, con `next`, después del login vuelve a donde quería ir. Para APIs suele preferirse un 401 o 403."
+
+[[preguntas]]
+texto = "¿Por qué conviene `get_user_model()` en lugar de importar `django.contrib.auth.models.User`?"
+opciones = [
+  "Por rendimiento",
+  "Porque el proyecto puede usar un modelo de usuario propio (`AUTH_USER_MODEL`)",
+  "Porque `User` está deprecado",
+  "No hay diferencia",
+]
+correcta = 1
+explicacion = "Si el proyecto define su propio usuario, importar `User` directamente apunta al modelo equivocado."
+
+[[preguntas]]
+texto = "Un usuario logueado intenta borrar una nota que no es suya. ¿Qué es lo correcto?"
+opciones = [
+  "Redirigir al login",
+  "403 (`PermissionDenied`), o filtrar por dueño y responder 404",
+  "Borrarla igual",
+  "500",
+]
+correcta = 1
+explicacion = "Está autenticado pero no autorizado sobre ese objeto. Filtrar el queryset por `request.user` evita además revelar que la nota existe."
+
+[[preguntas]]
+texto = "¿Qué hace `client.force_login(usuario)` en un test?"
+opciones = [
+  "Cambia la contraseña del usuario",
+  "Inicia sesión con ese usuario sin pasar por el formulario de login",
+  "Crea un superusuario",
+  "Desactiva la autenticación",
+]
+correcta = 1
+explicacion = "Arma la sesión directamente. Ahorra tiempo y evita depender de la vista de login en cada test."

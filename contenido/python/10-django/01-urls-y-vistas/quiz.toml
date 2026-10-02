@@ -1,0 +1,44 @@
+[[preguntas]]
+texto = "¿Qué recibe una vista de función de Django como primer argumento?"
+opciones = ["Nada: el request es global", "El objeto `request`", "Los parámetros del query string", "La app"]
+correcta = 1
+explicacion = "A diferencia de Flask, en Django el request se pasa explícitamente a la vista. Los parámetros de la ruta vienen después."
+
+[[preguntas]]
+texto = "¿Para qué sirve `name=\"detalle\"` en `path(\"productos/<int:id>/\", views.detalle, name=\"detalle\")`?"
+opciones = [
+  "Para nombrar la función",
+  "Para poder generar la URL con `reverse(\"detalle\", args=[id])` o `{% url %}` sin escribirla a mano",
+  "Para el título de la página",
+  "Es obligatorio, sin otro efecto",
+]
+correcta = 1
+explicacion = "Las URLs con nombre se invierten. Si cambia la ruta, todos los links se actualizan."
+
+[[preguntas]]
+texto = "¿Por qué `JsonResponse([1, 2, 3])` levanta un error?"
+opciones = [
+  "Porque JSON no soporta listas",
+  "Porque por defecto exige un dict; para otros tipos hay que pasar `safe=False`",
+  "Porque falta el status",
+  "Porque las listas se devuelven con `HttpResponse`",
+]
+correcta = 1
+explicacion = "Es una protección histórica contra el JSON hijacking. Con `safe=False` acepta cualquier valor serializable."
+
+[[preguntas]]
+texto = "¿Cuál es la diferencia entre un proyecto y una app en Django?"
+opciones = [
+  "Son lo mismo",
+  "El proyecto tiene la configuración global y las URLs raíz; las apps agrupan modelos, vistas y URLs de cada área",
+  "La app es el servidor y el proyecto el código",
+  "El proyecto solo existe en producción",
+]
+correcta = 1
+explicacion = "Un proyecto contiene varias apps activadas en `INSTALLED_APPS`. Cada app puede reutilizarse en otros proyectos."
+
+[[preguntas]]
+texto = "Una vista decorada con `@require_http_methods([\"GET\"])` recibe un POST. ¿Qué responde?"
+opciones = ["404", "405 Method Not Allowed", "400", "200"]
+correcta = 1
+explicacion = "El decorador rechaza los métodos no permitidos con 405 sin ejecutar la vista."
