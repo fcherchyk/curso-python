@@ -1,0 +1,49 @@
+[[preguntas]]
+texto = "En una matriz de ventas con días en las filas y productos en las columnas, ¿qué da `ventas.sum(axis=0)`?"
+opciones = [
+  "El total por día",
+  "El total por producto",
+  "El total general",
+  "La suma acumulada",
+]
+correcta = 1
+explicacion = "`axis=0` colapsa las filas (los días): queda un resultado por columna, es decir, por producto."
+
+[[preguntas]]
+texto = "¿Qué devuelve `np.array([1.0, np.nan, 3.0]).mean()`?"
+opciones = ["`2.0`", "`nan`", "`1.33`", "Levanta un error"]
+correcta = 1
+explicacion = "Un `nan` contamina el resultado. Para ignorarlo: `np.nanmean`."
+
+[[preguntas]]
+texto = "¿Por qué se recomienda `np.random.default_rng(semilla)` en lugar de `np.random.seed(semilla)`?"
+opciones = [
+  "Porque es más rápido",
+  "Porque crea un generador independiente que se puede pasar como parámetro, sin estado global compartido",
+  "Porque `seed` no existe",
+  "Porque genera números más aleatorios",
+]
+correcta = 1
+explicacion = "El estado global puede ser alterado por cualquier código. Un generador propio hace las funciones reproducibles y testeables."
+
+[[preguntas]]
+texto = "¿Cuál es la diferencia entre `v.std()` y `v.std(ddof=1)`?"
+opciones = [
+  "Ninguna",
+  "El primero es el desvío poblacional (divide por n) y el segundo, el muestral (divide por n-1)",
+  "El segundo ignora los nan",
+  "El primero redondea",
+]
+correcta = 1
+explicacion = "NumPy usa `ddof=0` por defecto y pandas, `ddof=1`. Con muestras chicas la diferencia es notable."
+
+[[preguntas]]
+texto = "¿Qué calcula `(rng.integers(1, 7, size=(100_000, 2)).sum(axis=1) == 7).mean()`?"
+opciones = [
+  "El promedio de los dados",
+  "Una estimación por Monte Carlo de la probabilidad de que dos dados sumen 7",
+  "La cantidad de sietes",
+  "Un error: `integers` no incluye el 6",
+]
+correcta = 1
+explicacion = "Simula 100.000 tiradas de dos dados, suma por fila y calcula la proporción de sietes (≈ 1/6). El 7 del `integers` está excluido: los valores van del 1 al 6."
