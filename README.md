@@ -27,10 +27,12 @@ uv run uvicorn app.main:app --reload     # abrí http://localhost:8000
 - `uv run pytest tests` valida la app y **todo** el contenido de los dos cursos: cada solución
   pasa sus tests, cada ejercicio inicial no pasa y cada quiz está bien formado.
 
-**Python** (55 capítulos): fundamentos, idiomático, iteradores, funciones avanzadas, modelado,
+**Python** (75 capítulos): fundamentos, idiomático, iteradores, funciones avanzadas, modelado,
 Python moderno, herramientas y los frameworks web **Flask**, **FastAPI** (con Pydantic, async y
-SQLAlchemy 2.0) y **Django** (ORM, formularios, vistas genéricas, admin, DRF y auth). Siguen
-stdlib, algoritmos, concurrencia y pandas.
+SQLAlchemy 2.0) y **Django** (ORM, formularios, vistas genéricas, admin, DRF y auth). Después,
+datos con **NumPy**, **pandas** y **matplotlib**, y **Python para finanzas** (retornos, riesgo,
+Sharpe/beta, portafolios, frontera eficiente y backtesting, con precios sintéticos
+reproducibles). Siguen stdlib, algoritmos, concurrencia y un proyecto integrador.
 
 **Go** (12 capítulos): fundamentos rápidos y Go idiomático. Siguen tipos y métodos,
 interfaces, errores, genéricos, concurrencia, testing, stdlib, HTTP (net/http, chi/Gin),
