@@ -2,7 +2,13 @@ import csv
 
 import pandas as pd
 import pytest
-from ejercicio import con_descuento, consulta, de_productos, top_y_primera_etiqueta, ventas_grandes_de
+from ejercicio import (
+    con_descuento,
+    consulta,
+    de_productos,
+    top_y_primera_etiqueta,
+    ventas_grandes_de,
+)
 
 with open("ventas.csv", newline="", encoding="utf-8") as f:
     FILAS = [

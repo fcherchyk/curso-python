@@ -1,0 +1,49 @@
+[[preguntas]]
+texto = "¿Por qué se recomienda `fig, ax = plt.subplots()` y `ax.plot(...)` en lugar de `plt.plot(...)`?"
+opciones = [
+  "Porque `plt.plot` está deprecado",
+  "Porque la API OO trabaja con objetos explícitos, sin depender del estado global de \"la figura actual\"",
+  "Porque es más rápido",
+  "Porque `plt.plot` no admite títulos",
+]
+correcta = 1
+explicacion = "Con varios gráficos o dentro de funciones, el estado implícito de pyplot genera confusión. Con `ax` sabés exactamente a qué gráfico le hablás."
+
+[[preguntas]]
+texto = "¿Qué es un `Axes` en matplotlib?"
+opciones = [
+  "El eje X o Y",
+  "Un gráfico individual dentro de la figura (con su área de dibujo, sus ejes, título y leyenda)",
+  "La ventana",
+  "Un tipo de línea",
+]
+correcta = 1
+explicacion = "Una Figure puede contener varios Axes. Cada eje X o Y es un *axis*, que es otra cosa."
+
+[[preguntas]]
+texto = "¿Qué necesita `ax.legend()` para mostrar nombres?"
+opciones = [
+  "Nada",
+  "Que las series se hayan dibujado con `label=\"...\"`",
+  "Que exista un título",
+  "Que se llame antes de `plot`",
+]
+correcta = 1
+explicacion = "La leyenda toma los `label` de cada línea o barra. Sin labels, queda vacía (y matplotlib avisa)."
+
+[[preguntas]]
+texto = "En un servidor sin pantalla (o en tests), ¿qué backend se usa?"
+opciones = ["`\"TkAgg\"`", "`\"Agg\"`", "`\"Qt5Agg\"`", "Ninguno: no se puede graficar"]
+correcta = 1
+explicacion = "`Agg` renderiza a imagen sin necesitar ventanas. Se activa con `matplotlib.use(\"Agg\")` o con `MPLBACKEND=Agg`."
+
+[[preguntas]]
+texto = "¿Por qué conviene `plt.close(fig)` después de guardar?"
+opciones = [
+  "Para borrar el archivo",
+  "Para liberar la memoria: las figuras abiertas se acumulan (importante en bucles y servidores)",
+  "Para que el gráfico se guarde",
+  "No tiene efecto",
+]
+correcta = 1
+explicacion = "pyplot mantiene una referencia a cada figura creada. Sin cerrarlas, un proceso que genera muchos gráficos consume cada vez más memoria."

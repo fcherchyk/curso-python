@@ -1,0 +1,49 @@
+[[preguntas]]
+texto = "Querés comparar la facturación de 8 sucursales. ¿Qué gráfico conviene?"
+opciones = [
+  "Líneas",
+  "Barras ordenadas por valor",
+  "Torta",
+  "Dispersión",
+]
+correcta = 1
+explicacion = "Para comparar categorías sin orden natural, barras ordenadas. Una línea sugiere una continuidad inexistente y una torta con 8 porciones es ilegible."
+
+[[preguntas]]
+texto = "¿Por qué el eje Y de un gráfico de barras debería empezar en 0?"
+opciones = [
+  "Por estética",
+  "Porque el largo de la barra representa el valor: cortar el eje exagera las diferencias",
+  "Porque matplotlib lo exige",
+  "No importa",
+]
+correcta = 1
+explicacion = "Con el eje cortado, una diferencia del 2 % puede verse como el doble. En los gráficos de líneas no es tan crítico."
+
+[[preguntas]]
+texto = "¿Para qué sirve `alpha=0.5` en un scatter con miles de puntos?"
+opciones = [
+  "Para achicar los puntos",
+  "Para hacerlos semitransparentes y ver dónde se concentran",
+  "Para cambiar el color",
+  "Para ordenarlos",
+]
+correcta = 1
+explicacion = "Con transparencia, las zonas densas se ven más oscuras: así se evita que los puntos se tapen entre sí."
+
+[[preguntas]]
+texto = "¿Qué muestra un histograma?"
+opciones = [
+  "La evolución en el tiempo",
+  "Cuántos valores caen en cada rango: la distribución",
+  "La relación entre dos variables",
+  "La proporción de cada categoría",
+]
+correcta = 1
+explicacion = "Agrupa los valores en intervalos (`bins`) y cuenta. La cantidad de bins cambia mucho la lectura."
+
+[[preguntas]]
+texto = "¿Dónde quedan las barras dibujadas con `ax.bar(...)` para inspeccionarlas?"
+opciones = ["En `ax.get_lines()`", "En `ax.patches` (y en el BarContainer devuelto)", "En `ax.texts`", "No se pueden inspeccionar"]
+correcta = 1
+explicacion = "Cada barra es un `Rectangle` en `ax.patches`. `get_height()` da su valor."

@@ -52,6 +52,8 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 "contenido/**" = ["E501"]
 # En los tests de Django, los imports van después de configurar settings.
 "contenido/python/10-django/**/test_ejercicio.py" = ["E402"]
+# matplotlib.use("Agg") tiene que ir antes de importar pyplot.
+"contenido/python/1[34]-*/**/test_ejercicio.py" = ["E402"]
 
 [tool.mypy]
 python_version = "3.12"

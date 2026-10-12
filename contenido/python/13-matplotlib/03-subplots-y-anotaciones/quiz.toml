@@ -1,0 +1,49 @@
+[[preguntas]]
+texto = "¿Qué devuelve `plt.subplots(2, 3)`?"
+opciones = [
+  "Una figura y un único Axes",
+  "Una figura y un array 2x3 de Axes",
+  "Una lista de 6 figuras",
+  "Seis tuplas (fig, ax)",
+]
+correcta = 1
+explicacion = "`fig, axs = plt.subplots(2, 3)`: `axs[f, c]` accede a cada panel y `axs.flat` los recorre."
+
+[[preguntas]]
+texto = "Comparás las ventas de 3 sucursales en 3 paneles. ¿Por qué usar `sharey=True`?"
+opciones = [
+  "Para que se dibuje más rápido",
+  "Para que todos tengan la misma escala Y y la comparación de magnitudes sea honesta",
+  "Para que compartan colores",
+  "Para poner una sola leyenda",
+]
+correcta = 1
+explicacion = "Con escalas independientes, un panel que vale 10 veces más puede verse igual que otro."
+
+[[preguntas]]
+texto = "Un precio que crece a una tasa constante del 10 % anual, ¿cómo se ve en escala logarítmica?"
+opciones = ["Como una curva exponencial", "Como una recta", "Como una parábola", "No se puede graficar"]
+correcta = 1
+explicacion = "En escala log, multiplicaciones iguales ocupan distancias iguales, y un crecimiento compuesto constante queda como una recta."
+
+[[preguntas]]
+texto = "¿Qué hace `ax.text(0.02, 0.95, 'nota', transform=ax.transAxes)`?"
+opciones = [
+  "Pone el texto en el dato x=0.02, y=0.95",
+  "Pone el texto arriba a la izquierda del panel, sin importar la escala de los datos",
+  "Pone el texto fuera de la figura",
+  "Da error",
+]
+correcta = 1
+explicacion = "Con `transAxes`, las coordenadas son relativas al panel: (0, 0) es abajo a la izquierda y (1, 1) arriba a la derecha."
+
+[[preguntas]]
+texto = "¿Por qué se desaconseja el doble eje Y (`twinx`)?"
+opciones = [
+  "Porque no existe en matplotlib",
+  "Porque, moviendo los rangos de cada eje, se puede sugerir cualquier correlación",
+  "Porque es lento",
+  "Porque no admite leyendas",
+]
+correcta = 1
+explicacion = "Dos escalas arbitrarias en el mismo panel engañan con facilidad. Es mejor usar dos subplots con `sharex=True`."
