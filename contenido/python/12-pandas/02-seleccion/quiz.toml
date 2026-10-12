@@ -1,0 +1,39 @@
+[[preguntas]]
+texto = "Con un índice 0, 1, 2…, ¿cuántas filas devuelve `df.loc[0:3]`?"
+opciones = ["3", "4", "2", "Depende del orden"]
+correcta = 1
+explicacion = "Los slices de `loc` son por etiqueta e inclusivos: 0, 1, 2 y 3. `df.iloc[0:3]` devolvería 3 filas."
+
+[[preguntas]]
+texto = "Después de `o = df.sort_values(\"total\", ascending=False)`, ¿qué es `o.iloc[0]`?"
+opciones = [
+  "La fila con etiqueta 0",
+  "La primera fila del resultado ordenado: la de mayor total",
+  "La columna 0",
+  "Un error",
+]
+correcta = 1
+explicacion = "`iloc` usa posiciones del DataFrame actual. `o.loc[0]` sería la fila cuya etiqueta es 0, esté donde esté."
+
+[[preguntas]]
+texto = "En pandas 3, ¿qué pasa con `df[\"total\"][df[\"cantidad\"] > 5] = 0`?"
+opciones = [
+  "Modifica `df`",
+  "No modifica `df`: es asignación encadenada y pandas avisa con `ChainedAssignmentError`",
+  "Borra las filas",
+  "Modifica solo la primera fila",
+]
+correcta = 1
+explicacion = "Con copy-on-write, el resultado intermedio es una copia. La forma correcta es `df.loc[df[\"cantidad\"] > 5, \"total\"] = 0`."
+
+[[preguntas]]
+texto = "¿Cómo se usa una variable de Python `minimo` dentro de `df.query(...)`?"
+opciones = ["`\"cantidad >= minimo\"`", "`\"cantidad >= @minimo\"`", "`\"cantidad >= {minimo}\"`", "No se puede"]
+correcta = 1
+explicacion = "El `@` referencia variables del entorno de Python. Sin él, `query` busca una columna con ese nombre."
+
+[[preguntas]]
+texto = "`centro = df[df[\"sucursal\"] == \"Centro\"]; centro[\"total\"] = 0`. ¿Cambia `df`?"
+opciones = ["Sí", "No: con copy-on-write la selección se comporta como una copia", "A veces", "Levanta un error"]
+correcta = 1
+explicacion = "En pandas 3, las selecciones nunca modifican el original. Si querés cambiar `df`, usá `loc` sobre `df` mismo."

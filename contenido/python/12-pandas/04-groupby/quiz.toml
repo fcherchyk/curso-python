@@ -1,0 +1,54 @@
+[[preguntas]]
+texto = "¿Qué diferencia hay entre `groupby(...).agg(\"sum\")` y `groupby(...).transform(\"sum\")`?"
+opciones = [
+  "Ninguna",
+  "`agg` reduce a una fila por grupo; `transform` devuelve el resultado del grupo repetido en cada fila original",
+  "`transform` es más rápido",
+  "`agg` solo funciona con una columna",
+]
+correcta = 1
+explicacion = "`transform` mantiene la forma original, ideal para calcular la participación de cada fila en su grupo."
+
+[[preguntas]]
+texto = "¿Qué produce `ventas.groupby(\"categoria\").agg(facturacion=(\"total\", \"sum\"))`?"
+opciones = [
+  "Una Series",
+  "Un DataFrame indexado por categoría con una columna `facturacion`",
+  "Un MultiIndex de columnas",
+  "Un error de sintaxis",
+]
+correcta = 1
+explicacion = "Las agregaciones con nombre (`salida=(columna, función)`) dan columnas con nombres claros."
+
+[[preguntas]]
+texto = "¿Cuál es la diferencia entre `size()` y `count()` en un groupby?"
+opciones = [
+  "Son iguales",
+  "`size` cuenta filas (incluidos los nulos); `count` cuenta valores no nulos por columna",
+  "`count` es más rápido",
+  "`size` solo funciona con números",
+]
+correcta = 1
+explicacion = "Con valores faltantes los resultados difieren: `count` los excluye."
+
+[[preguntas]]
+texto = "¿Qué hace `pd.pivot_table(df, values=\"total\", index=\"sucursal\", columns=\"categoria\", aggfunc=\"sum\")`?"
+opciones = [
+  "Ordena por sucursal",
+  "Arma una tabla con sucursales en las filas, categorías en las columnas y la suma de `total` en cada celda",
+  "Une dos DataFrames",
+  "Filtra las categorías",
+]
+correcta = 1
+explicacion = "Es la tabla dinámica de las planillas de cálculo. Con `fill_value=0` completa las combinaciones sin datos."
+
+[[preguntas]]
+texto = "¿Cuándo conviene `groupby(...).apply(func)`?"
+opciones = [
+  "Siempre, es lo más rápido",
+  "Solo cuando no se puede resolver con `agg`, `transform` o `filter`: es flexible pero mucho más lento",
+  "Para sumar",
+  "Nunca existe",
+]
+correcta = 1
+explicacion = "Las agregaciones con nombre (`\"sum\"`, `\"mean\"`) están optimizadas. `apply` ejecuta Python por cada grupo."
