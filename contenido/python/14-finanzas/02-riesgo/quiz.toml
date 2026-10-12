@@ -1,0 +1,44 @@
+[[preguntas]]
+texto = "La volatilidad diaria es 1 %. ¿Cuál es la anualizada (aprox.)?"
+opciones = ["252 %", "1 % × √252 ≈ 15.9 %", "12 %", "1 %"]
+correcta = 1
+explicacion = "Con retornos independientes, las varianzas se suman y el desvío escala con la raíz del tiempo."
+
+[[preguntas]]
+texto = "Un activo cae 50 % desde su máximo. ¿Cuánto tiene que subir para recuperarlo?"
+opciones = ["50 %", "75 %", "100 %", "150 %"]
+correcta = 2
+explicacion = "De 100 a 50 y de 50 a 100: hace falta duplicar el precio. 1 / (1 − 0.5) − 1 = 1."
+
+[[preguntas]]
+texto = "El VaR diario al 95 % de una posición es $10 000. ¿Qué significa?"
+opciones = [
+  "La pérdida máxima posible es $10 000",
+  "En 95 de cada 100 días, la pérdida no supera los $10 000",
+  "Se pierden $10 000 el 95 % de los días",
+  "La ganancia esperada es $10 000",
+]
+correcta = 1
+explicacion = "El VaR es un percentil, no un máximo: en el 5 % de los días restantes la pérdida puede ser mucho mayor."
+
+[[preguntas]]
+texto = "¿Qué agrega el CVaR (Expected Shortfall) respecto del VaR?"
+opciones = [
+  "Nada: son lo mismo",
+  "El promedio de las pérdidas en los días que superan el VaR",
+  "La ganancia máxima",
+  "La volatilidad anual",
+]
+correcta = 1
+explicacion = "El VaR dice dónde empieza la cola. El CVaR dice cuán mala es la cola en promedio."
+
+[[preguntas]]
+texto = "¿Qué calcula `precios / precios.cummax() - 1`?"
+opciones = [
+  "El retorno diario",
+  "El drawdown: cuánto está cada día por debajo del máximo anterior",
+  "La volatilidad",
+  "El retorno acumulado",
+]
+correcta = 1
+explicacion = "`cummax` lleva el máximo hasta cada fecha. El cociente da 0 en los máximos y es negativo en las caídas."
