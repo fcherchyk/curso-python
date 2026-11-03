@@ -1,97 +1,115 @@
-# Curso de refresco de Python
+# curso-python
 
-Para quien ya programa (y programó en Python) y quiere ponerse al día con sintaxis moderna,
-código idiomático y el ecosistema actual. **Formato:** cada día tiene una lección corta y
-ejercicios con tests que tenés que hacer pasar.
+A local web app for learning **Python** and **Go**, in the spirit of [coddy.tech](https://coddy.tech/)
+but without XP, streaks or animations. Every chapter has three steps:
 
-## App web
+**reading → quiz → coding exercise**, where the exercise is checked by real tests (pytest or
+`go test`) running on your machine.
 
-Una app web local con **dos cursos en solapas: Python y Go**. Cada capítulo tiene
-**lectura → cuestionario → ejercicio de código** que tiene que pasar los tests, que corren en
-tu máquina con pytest o con `go test`.
+The course content is written in Spanish; the code identifiers and file names are Spanish too
+(`contenido` = content, `leccion` = lesson, `ejercicio` = exercise, `solucion` = solution,
+`progreso` = progress).
 
-```bash
-uv sync
-brew install go                          # solo para el curso de Go
-uv run uvicorn app.main:app --reload     # abrí http://localhost:8000
-```
+## Courses
 
-- El progreso de los dos cursos (lecturas, quizzes, tests y tu código) se guarda en
-  `progreso.db` (SQLite, ignorado por git). Borralo para empezar de cero.
-- Cada paso tiene **Marcar como resuelto** para saltearlo.
-- El contenido vive en `contenido/<curso>/NN-modulo/NN-capitulo/`:
-  - `leccion.md` y `quiz.toml`;
-  - Python: `ejercicio.py`, `test_ejercicio.py` y `solucion.py`;
-  - Go: `ejercicio.go`, `ejercicio_test.go` y `solucion.go`.
-  Cada curso tiene su `curso.toml` (título, lenguaje, orden).
-- `uv run pytest tests` valida la app y **todo** el contenido de los dos cursos: cada solución
-  pasa sus tests, cada ejercicio inicial no pasa y cada quiz está bien formado.
+**Python**: 75 chapters in 14 modules, aimed at people who already program. It covers
+fundamentals, idiomatic Python, iterators and generators, advanced functions, data modeling,
+modern Python, and tooling (uv, ruff, mypy, pytest, mutation testing). Then come the web
+frameworks **Flask**, **FastAPI** (with Pydantic, async and SQLAlchemy 2.0) and **Django** (ORM,
+forms, generic views, admin, DRF, auth). After those, data work with **NumPy**, **pandas** and
+**matplotlib**, and **Python for finance** (returns, risk, Sharpe/beta, portfolios, efficient
+frontier, backtesting) on reproducible synthetic prices. Coming next: stdlib, algorithms,
+concurrency and a capstone project.
 
-**Python** (75 capítulos): fundamentos, idiomático, iteradores, funciones avanzadas, modelado,
-Python moderno, herramientas y los frameworks web **Flask**, **FastAPI** (con Pydantic, async y
-SQLAlchemy 2.0) y **Django** (ORM, formularios, vistas genéricas, admin, DRF y auth). Después,
-datos con **NumPy**, **pandas** y **matplotlib**, y **Python para finanzas** (retornos, riesgo,
-Sharpe/beta, portafolios, frontera eficiente y backtesting, con precios sintéticos
-reproducibles). Siguen stdlib, algoritmos, concurrencia y un proyecto integrador.
+**Go**: 12 chapters in 2 modules (fundamentals and idiomatic Go). Coming next: types and
+methods, interfaces, errors, generics, concurrency, testing, stdlib, HTTP (net/http, chi/Gin),
+data access (database/sql, pgx, sqlc), GORM and a capstone project.
 
-**Go** (12 capítulos): fundamentos rápidos y Go idiomático. Siguen tipos y métodos,
-interfaces, errores, genéricos, concurrencia, testing, stdlib, HTTP (net/http, chi/Gin),
-datos (database/sql, pgx, sqlc), GORM y un proyecto integrador.
+## Features
 
-## Puesta en marcha (una sola vez)
+- Lessons written in Markdown, with syntax highlighting.
+- 5-question multiple-choice quizzes with explanations; passing is ≥ 80 %.
+- In-browser code editor (CodeMirror) whose contents are autosaved.
+- Tests run locally in a temporary directory, with a timeout, and results are shown per test.
+- **Mark as solved** on every step, to skip something and keep going; it counts as passed.
+- The reference solution unlocks once the exercise's tests pass.
+- Progress is stored per course in a local SQLite file.
 
-Necesitás [uv](https://docs.astral.sh/uv/). En Mac: `brew install uv`, o
-`curl -LsSf https://astral.sh/uv/install.sh | sh`.
+## Getting started
+
+Requirements: [uv](https://docs.astral.sh/uv/) (`brew install uv` or
+`curl -LsSf https://astral.sh/uv/install.sh | sh`). [Go](https://go.dev/) is only needed for the
+Go course (`brew install go`).
 
 ```bash
-cd curso-python
-uv sync                 # descarga Python 3.13 si hace falta, crea .venv e instala pytest/ruff/mypy
-uv run pytest           # vas a ver todo en rojo: es el punto de partida
+uv sync                                   # installs Python 3.13 if needed and all dependencies
+uv run uvicorn app.main:app --reload      # then open http://localhost:8000
 ```
 
-En PyCharm o VS Code, elegí como intérprete `curso-python/.venv/bin/python`.
+Progress (read lessons, quiz scores, passed exercises and your code) is saved in `progreso.db`,
+which git ignores. Delete it to start over, or point `CURSO_DB=/path/to/file.db` at another file.
 
-## Cómo se trabaja cada día
-
-1. Leé `semana1/diaN_.../leccion.md` (15–20 min).
-2. Abrí `ejercicios.py`: cada función tiene docstring con la consigna, ejemplos y una pista.
-   Reemplazá el `raise NotImplementedError("TODO")`.
-3. Corré los tests de ese día hasta que estén en verde:
+## Running the tests
 
 ```bash
-uv run pytest semana1/dia1_idiomatico          # un día
-uv run pytest semana1/dia1_idiomatico -x       # parar en el primer fallo
-uv run pytest -k construir_url                 # un ejercicio
-uv run pytest --lf                             # solo los que fallaron la última vez
+uv run pytest tests                        # the app and ALL course content
+uv run ruff check app tests contenido      # lint
 ```
 
-4. Recién cuando pasen, compará con `soluciones/`. Muchas veces hay más de una forma
-   idiomática; lo importante es entender por qué la solución de referencia elige esa.
-5. Si te queda tiempo, hacé el **Reto extra** al final de cada lección.
+`tests/` checks the web app, the test runners and quiz grading. It also validates every chapter
+of both courses: all files are present, the lesson renders, the quiz is well formed, **the
+reference solution passes** its tests and **the starter code fails** every one of them.
 
-## Plan general
-
-| Semana | Tema                                                     | Estado     |
-|--------|----------------------------------------------------------|------------|
-| 1      | Sintaxis moderna e idiomática + herramientas (uv, ruff, mypy) | ✅ lista |
-| 2      | Estructuras de datos y algoritmos (collections, heapq, bisect, patrones NeetCode) | pendiente |
-| 3      | Desarrollo serio: OOP avanzada, pytest a fondo, asyncio, empaquetado | pendiente |
-| 4      | Frameworks: FastAPI + Pydantic, SQLAlchemy 2.0, pandas, httpx + proyecto final | pendiente |
-
-Detalle y checklist de la semana 1: [semana1/README.md](semana1/README.md).
-
-## Estructura
+## Project layout
 
 ```
 curso-python/
-├── pyproject.toml          # config de pytest, ruff y mypy
-├── semana1/
-│   ├── README.md           # checklist
-│   └── diaN_tema/
-│       ├── leccion.md
-│       ├── ejercicios.py   # ← acá trabajás
-│       └── test_ejercicios.py
-└── soluciones/semana1/     # no espiar antes de tiempo 🙂
+├── app/                      # FastAPI web app
+│   ├── main.py               # app factory (crear_app) and HTTP routes
+│   ├── contenido.py          # loads courses/modules/chapters from contenido/
+│   ├── lenguajes.py          # per-language settings (Python, Go)
+│   ├── runner.py             # runs exercise tests (pytest / go test) in a temp dir
+│   ├── progreso.py           # progress store (SQLite)
+│   ├── quiz.py               # quiz grading
+│   ├── render.py             # Markdown → HTML with Pygments
+│   ├── templates/            # Jinja2 pages and HTMX fragments (_*.html)
+│   └── static/               # app.css, app.js
+├── contenido/                # course content (see below)
+│   ├── python/
+│   └── go/
+├── tests/                    # tests for the app and the content
+├── docs/ARCHITECTURE.md      # how it all fits together
+├── semana1/, soluciones/     # legacy terminal-based exercises
+└── pyproject.toml            # dependencies, pytest, ruff and mypy config
 ```
 
-**Tip:** hacé `git init` y un commit por día. Así ves tu progreso y podés volver atrás.
+## Adding content
+
+Content is just files; the app picks up changes on the next request.
+
+```
+contenido/<course>/
+  curso.toml                  # titulo, lenguaje (python | go), orden, descripcion
+  NN-module/
+    modulo.toml               # titulo, descripcion
+    NN-chapter/
+      leccion.md              # first line "# Title" is the chapter title
+      quiz.toml               # [[preguntas]] texto, opciones, correcta (0-based), explicacion
+      ejercicio.py | .go      # starter code shown in the editor
+      test_ejercicio.py | ejercicio_test.go
+      solucion.py | .go       # reference solution
+      ...                     # optional support files or folders needed by the tests
+```
+
+Then run `uv run pytest tests -k <chapter>`: the solution must pass and the starter code must
+fail. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#content-model) for the conventions.
+
+## Legacy material
+
+`semana1/` (with solutions in `soluciones/`) is the original format: daily lessons and
+exercises solved in your editor and checked from the terminal, e.g.
+`uv run pytest semana1/dia1_idiomatico`. It is still runnable, but the web app supersedes it.
+
+## License
+
+[MIT](LICENSE) © 2026 Federico Cherchyk
