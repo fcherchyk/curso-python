@@ -4,12 +4,13 @@
 {% block titulo %}{{ cap.titulo }} · {{ curso.titulo }}{% endblock %}
 
 {% block cabecera %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/{{ cap.lenguaje.modo_editor }}/{{ cap.lenguaje.modo_editor }}.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/edit/matchbrackets.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/edit/closebrackets.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/selection/active-line.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/comment/comment.min.js" defer></script>
+<script src="{{ url_for('static', path='vendor/codemirror/codemirror.min.js') }}" defer></script>
+{% set modo = cap.lenguaje.modo_editor %}
+<script src="{{ url_for('static', path='vendor/codemirror/mode/' ~ modo ~ '/' ~ modo ~ '.min.js') }}" defer></script>
+<script src="{{ url_for('static', path='vendor/codemirror/addon/edit/matchbrackets.min.js') }}" defer></script>
+<script src="{{ url_for('static', path='vendor/codemirror/addon/edit/closebrackets.min.js') }}" defer></script>
+<script src="{{ url_for('static', path='vendor/codemirror/addon/selection/active-line.min.js') }}" defer></script>
+<script src="{{ url_for('static', path='vendor/codemirror/addon/comment/comment.min.js') }}" defer></script>
 {% endblock %}
 
 {% block barra %}

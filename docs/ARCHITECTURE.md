@@ -38,8 +38,10 @@ Identifiers in the code are in Spanish. The ones that come up most often are `cu
  └─ progreso.py ── reads/writes ──▶ progreso.db (SQLite)
 ```
 
-Front-end libraries (HTMX, CodeMirror) are loaded from CDNs; the only local static files are
-`app/static/app.css` and `app/static/app.js`.
+Front-end libraries (HTMX 2.0.4 and CodeMirror 5.65.18) are vendored in `app/static/vendor/`
+(pinned versions and licenses; see its README), next to the app's own `app.css` and `app.js`.
+The only external resource is the Google Fonts stylesheet, and the CSS falls back to system
+fonts without it, so the app works offline.
 
 ## Modules
 
@@ -231,4 +233,3 @@ Conventions that the content tests enforce or rely on:
 - Single user: progress is global to the database file.
 - Content is re-read from disk on every request. That is convenient while writing content and
   fine at this scale; `crear_app(recargar_contenido=False)` caches it instead.
-- Pages need internet access to load HTMX and CodeMirror from their CDNs.

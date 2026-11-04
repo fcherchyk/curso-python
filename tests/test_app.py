@@ -1,5 +1,7 @@
+import re
 import sqlite3
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pytest
 from fastapi.testclient import TestClient
@@ -175,3 +177,21 @@ def test_progreso_separado_por_curso(cliente_dos_cursos):
     cliente_dos_cursos.post(f"{url}/tests/resuelto")
     assert "capitulo-fila completo" in cliente_dos_cursos.get("/python").text
     assert "capitulo-fila completo" not in cliente_dos_cursos.get("/otro").text
+
+
+FUENTES = {"fonts.googleapis.com", "fonts.gstatic.com"}  # con respaldo local en el CSS
+
+
+def test_sin_dependencias_de_cdn(cliente):
+    """HTMX y CodeMirror se sirven desde /static/vendor/: la app anda sin internet."""
+    for url in ("/python", URL):
+        html = cliente.get(url).text
+        recursos = re.findall(r'<(?:script|link)\b[^>]*\b(?:src|href)="([^"]+)"', html)
+        externos = {
+            urlparse(r).netloc for r in recursos if urlparse(r).netloc not in {"", "testserver"}
+        }
+        assert externos <= FUENTES, f"{url} carga recursos de afuera: {externos - FUENTES}"
+        vendor = [urlparse(r).path for r in recursos if "/static/vendor/" in r]
+        assert vendor, "se esperaban recursos de /static/vendor/"
+        for ruta in vendor:
+            assert cliente.get(ruta).status_code == 200, ruta
