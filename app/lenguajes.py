@@ -6,7 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from app.runner import ResultadoEjecucion, correr_tests, correr_tests_go
+from app.runner import ResultadoEjecucion, correr_tests
 
 
 @dataclass(frozen=True)
@@ -41,16 +41,4 @@ PYTHON = Lenguaje(
     correr=correr_tests,
 )
 
-GO = Lenguaje(
-    nombre="go",
-    archivo_ejercicio="ejercicio.go",
-    archivo_tests="ejercicio_test.go",
-    archivo_solucion="solucion.go",
-    modo_editor="go",
-    lexer="go",
-    indentar_con_tabs=True,
-    donde_estan_las_consignas="los comentarios de cada función",
-    correr=correr_tests_go,
-)
-
-LENGUAJES = {lenguaje.nombre: lenguaje for lenguaje in (PYTHON, GO)}
+LENGUAJES = {lenguaje.nombre: lenguaje for lenguaje in (PYTHON,)}

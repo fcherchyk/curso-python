@@ -4,15 +4,15 @@ Estructura esperada:
 
     contenido/
       <curso>/
-        curso.toml               # titulo, lenguaje (python | go), orden, descripcion
+        curso.toml               # titulo, lenguaje (python), orden, descripcion
         NN-modulo/
           modulo.toml            # titulo, descripcion
           NN-capitulo/
             leccion.md           # la primera línea `# Título` es el título del capítulo
             quiz.toml            # [[preguntas]] texto, opciones, correcta (0-based), explicacion
-            <ejercicio>          # código inicial      (ejercicio.py | ejercicio.go)
-            <tests>              # tests               (test_ejercicio.py | ejercicio_test.go)
-            <solucion>           # solución de referencia (solucion.py | solucion.go)
+            <ejercicio>          # código inicial      (ejercicio.py)
+            <tests>              # tests               (test_ejercicio.py)
+            <solucion>           # solución de referencia (solucion.py)
             ...                  # archivos de soporte que necesitan los tests
 """
 

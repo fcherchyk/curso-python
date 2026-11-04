@@ -11,7 +11,7 @@ CAPITULOS = [c for curso in CURSOS for c in curso.capitulos()]
 
 def test_hay_contenido():
     assert CAPITULOS
-    assert {c.slug for c in CURSOS} >= {"python", "go"}
+    assert "python" in {c.slug for c in CURSOS}
 
 
 @pytest.mark.parametrize("cap", CAPITULOS, ids=lambda c: c.id)
@@ -57,10 +57,6 @@ def test_solucion_pasa_los_tests(cap):
 def test_ejercicio_inicial_no_pasa(cap):
     resultado = cap.lenguaje.correr(cap.codigo_inicial(), cap.archivos_de_soporte())
     assert resultado.error is None, f"el código inicial tiene que compilar: {resultado.error}"
-    # Cada test (en Go, cada función de test con sus subtests) tiene que fallar sin resolver.
-    por_test: dict[str, list[bool]] = {}
-    for t in resultado.tests:
-        clave = t.nombre.split("/", 1)[0] if cap.lenguaje.nombre == "go" else t.nombre
-        por_test.setdefault(clave, []).append(t.ok)
-    aprobados = [nombre for nombre, oks in por_test.items() if all(oks)]
+    # Cada test tiene que fallar sin resolver el ejercicio.
+    aprobados = [t.nombre for t in resultado.tests if t.ok]
     assert not aprobados, f"estos tests pasan sin resolver el ejercicio: {aprobados}"

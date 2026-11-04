@@ -16,7 +16,7 @@
 <body>
   <header class="barra">
     <a class="marca" href="/{{ curso.slug if curso else '' }}"><span class="marca-logo">{{ '{ }' }}</span> Cursos</a>
-    {% if cursos %}
+    {% if cursos | length > 1 %}
     <nav class="solapas" aria-label="Cursos">
       {% for c in cursos %}
       <a href="/{{ c.slug }}" class="solapa {{ 'activa' if curso and c.slug == curso.slug }}"

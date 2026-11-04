@@ -1,7 +1,7 @@
 [project]
 name = "curso-python"
 version = "0.1.0"
-description = "Local web app for learning Python and Go: lessons, quizzes and coding exercises checked by tests"
+description = "Local web app for learning Python: lessons, quizzes and coding exercises checked by tests"
 license = "MIT"
 requires-python = ">=3.12"
 dependencies = [

@@ -6,14 +6,12 @@ se ejecuta pytest en un subproceso (con el mismo intérprete del venv) y un time
 
 from __future__ import annotations
 
-import json
 import os
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
-import textwrap
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -160,145 +158,3 @@ def correr_tests(
         if not resultado.tests and resultado.error is None:
             resultado.error = "No se encontraron tests para correr."
         return resultado
-
-
-# ---------------------------------------------------------------------------
-# Go
-# ---------------------------------------------------------------------------
-
-TIMEOUT_GO_SEGUNDOS = 45  # incluye compilar; la primera vez sin build cache tarda más
-GO_MOD = "module ejercicio\n\ngo 1.23\n"
-
-
-_CORTE_TRAZA = re.compile(r"(?m)^(?:panic:|goroutine \d+|.*test timed out)")
-
-
-def _limpiar_salida_go(lineas: list[str], dir_trabajo: Path) -> str:
-    """Saca los marcos de `go test` (=== RUN, --- FAIL) y las rutas temporales."""
-    utiles = []
-    for linea in lineas:
-        for prefijo in (f"/private{dir_trabajo}/", f"{dir_trabajo}/", "./"):
-            linea = linea.replace(prefijo, "")
-        if linea.lstrip().startswith(("=== ", "--- ")) or not linea.strip():
-            continue
-        utiles.append(linea.rstrip())
-    return textwrap.dedent("\n".join(utiles)).strip()
-
-
-def _parsear_go_json(salida: str, dir_trabajo: Path) -> ResultadoEjecucion:
-    resultado = ResultadoEjecucion()
-    salidas: dict[str, list[str]] = {}
-    estados: dict[str, bool | None] = {}  # None: arrancó pero no terminó (panic)
-    compilacion: list[str] = []
-    salida_paquete: list[str] = []
-
-    for linea in salida.splitlines():
-        try:
-            ev = json.loads(linea)
-        except json.JSONDecodeError:
-            compilacion.append(linea)
-            continue
-        accion, test = ev.get("Action"), ev.get("Test")
-        if accion == "build-output":
-            compilacion.append(ev.get("Output", ""))
-        elif test is None:
-            if accion == "output":
-                salida_paquete.append(ev.get("Output", ""))
-        elif accion == "run":
-            estados.setdefault(test, None)
-            salidas.setdefault(test, [])
-        elif accion == "output":
-            salidas.setdefault(test, []).append(ev.get("Output", ""))
-        elif accion in ("pass", "fail"):
-            estados[test] = accion == "pass"
-
-    if compilacion and not estados:
-        texto = _limpiar_salida_go("".join(compilacion).splitlines(), dir_trabajo)
-        resultado.error = _recortar(texto or "No compila.")
-        return resultado
-
-    # Si un test tiene subtests, se muestran los subtests y no el padre.
-    padres = {t.rsplit("/", 1)[0] for t in estados if "/" in t}
-    for test, ok in estados.items():
-        if test in padres:
-            continue
-        mensaje = ""
-        if not ok:
-            propias = _limpiar_salida_go(salidas.get(test, []), dir_trabajo)
-            # La traza cruda (goroutines) se resume aparte en `traza`.
-            propias = _CORTE_TRAZA.split(propias)[0].strip()
-            # Un panic o un timeout deja la traza en el test padre o en el paquete.
-            ancestros = list(salidas.get(test, []))
-            partes = test.split("/")
-            for i in range(len(partes) - 1, 0, -1):
-                ancestros += salidas.get("/".join(partes[:i]), [])
-            traza = _resumir_panic(ancestros + salida_paquete, dir_trabajo)
-            mensaje = _recortar("\n\n".join(t for t in (propias, traza) if t))
-        resultado.tests.append(ResultadoTest(nombre=test, ok=bool(ok), mensaje=mensaje))
-
-    if not resultado.tests:
-        texto = _limpiar_salida_go(salida_paquete, dir_trabajo)
-        resultado.error = _recortar(texto or "No se encontraron tests para correr.")
-    return resultado
-
-
-def _resumir_panic(lineas: list[str], dir_trabajo: Path) -> str:
-    """Primera línea del panic/timeout y las líneas de tu código involucradas."""
-    texto = "".join(lineas)
-    inicio = next(
-        (i for i in (texto.find("panic:"), texto.find("test timed out")) if i >= 0), -1
-    )
-    if inicio < 0:
-        return ""
-    cabecera = texto[inicio:].split("\ngoroutine ", 1)[0].strip()
-    tuyas = [
-        _limpiar_salida_go([linea], dir_trabajo)
-        for linea in texto[inicio:].splitlines()
-        if "ejercicio.go:" in linea
-    ]
-    partes = [cabecera, *(f"en {t}" for t in dict.fromkeys(tuyas))]
-    partes.append("(un panic o un timeout corta la ejecución del resto de los tests)")
-    return "\n".join(partes)
-
-
-def correr_tests_go(
-    codigo: str,
-    archivos: list[Path],
-    timeout: float = TIMEOUT_GO_SEGUNDOS,
-) -> ResultadoEjecucion:
-    """Corre `go test` con `codigo` como `ejercicio.go` y los `archivos` de soporte."""
-    with tempfile.TemporaryDirectory(prefix="curso-go-") as tmp:
-        dir_trabajo = Path(tmp)
-        (dir_trabajo / "go.mod").write_text(GO_MOD, encoding="utf-8")
-        (dir_trabajo / "ejercicio.go").write_text(codigo, encoding="utf-8")
-        for archivo in archivos:
-            _copiar(archivo, dir_trabajo)
-
-        entorno = os.environ | {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=mod"}
-        comando = [_binario_go(), "test", "-json", "-count=1", "-timeout=10s", "./..."]
-        try:
-            proc = subprocess.run(
-                comando,
-                cwd=dir_trabajo,
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-                env=entorno,
-            )
-        except subprocess.TimeoutExpired:
-            return ResultadoEjecucion(
-                error=f"Se cortó la ejecución después de {timeout:g} s. ¿Hay un bucle infinito?"
-            )
-        except FileNotFoundError:
-            return ResultadoEjecucion(error="No se encontró el comando `go`. Instalalo con brew.")
-
-        resultado = _parsear_go_json(proc.stdout + proc.stderr, dir_trabajo)
-        resultado.salida = _recortar(proc.stderr, 80)
-        return resultado
-
-
-def _binario_go() -> str:
-    # El servidor puede arrancar con un PATH reducido: buscamos también en Homebrew.
-    return shutil.which("go") or next(
-        (p for p in ("/opt/homebrew/bin/go", "/usr/local/go/bin/go") if Path(p).exists()), "go"
-    )

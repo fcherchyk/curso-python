@@ -16,8 +16,8 @@ Identifiers in the code are in Spanish. The ones that come up most often are `cu
   interactive parts. There is no SPA and no frontend build step.
 - **Content as files.** Courses live in `contenido/` as Markdown, TOML and source files.
   Content is versioned with git and validated by the test suite; it never lives in the database.
-- **Real tests.** Exercises are graded by running the chapter's actual pytest or `go test` suite
-  against the learner's code.
+- **Real tests.** Exercises are graded by running the chapter's actual pytest suite against the
+  learner's code.
 
 ## Components
 
@@ -25,7 +25,7 @@ Identifiers in the code are in Spanish. The ones that come up most often are `cu
  Browser
  ├─ Jinja2 pages (base.html, index.html, capitulo.html)
  ├─ HTMX 2 (hx-post / hx-get, out-of-band swaps)
- ├─ CodeMirror 5 editor (python / go mode)
+ ├─ CodeMirror 5 editor (python mode)
  └─ app.js (tabs, autosave, "reset to starter code")
         │  HTTP (form posts, HTML fragments)
         ▼
@@ -34,7 +34,7 @@ Identifiers in the code are in Spanish. The ones that come up most often are `cu
  ├─ render.py       Markdown → HTML (markdown-it-py + Pygments)
  ├─ quiz.py         grades quiz answers
  ├─ lenguajes.py    per-language config, including which runner to use
- ├─ runner.py   ── spawns ──▶ pytest / go test in a temporary directory
+ ├─ runner.py   ── spawns ──▶ pytest in a temporary directory
  └─ progreso.py ── reads/writes ──▶ progreso.db (SQLite)
 ```
 
@@ -55,7 +55,8 @@ parameters exist so tests can inject a content folder and a temporary database. 
 - reloads the content on every request when `recargar_contenido=True` (the default), so edits
   show up immediately.
 - defines the routes (see [HTTP routes](#http-routes)). Every full page sets a `curso` cookie
-  that remembers the last course viewed.
+  that remembers the last course viewed. The course tabs in `base.html` only render when there
+  is more than one course.
 
 The module-level `app = crear_app()` is what uvicorn serves.
 
@@ -80,28 +81,20 @@ A frozen `Lenguaje` dataclass holds what differs between languages:
 - `correr`: the runner function
 
 `archivos_privados` lists the files that are **never** copied next to the tests: the lesson,
-the quiz, the starter code and the solution. Two instances exist, `PYTHON` and `GO`, registered
-in `LENGUAJES`.
+the quiz, the starter code and the solution. Today there is a single instance, `PYTHON`,
+registered in `LENGUAJES`.
 
 ### `app/runner.py`: running exercise tests
-Both runners take the learner's code and the chapter's support files and return a
+`correr_tests` takes the learner's code and the chapter's support files and returns a
 `ResultadoEjecucion` (a list of `ResultadoTest`, plus an optional global error and the raw
-output).
+output):
 
-- **Python, `correr_tests`**:
-  1. Write the code as `ejercicio.py` in a fresh temp dir and copy the support files there.
-  2. Add an empty `pytest.ini` so the project's own config is ignored.
-  3. Run `python -m pytest --junitxml=…` as a subprocess, using the same interpreter, with
-     colors disabled and a **15 s** timeout.
-  4. Parse the JUnit XML per test and clean the tracebacks, keeping the learner's frames.
-     `NotImplementedError("TODO")` is reported as *pending* rather than as a failure.
-- **Go, `correr_tests_go`**:
-  1. Write `ejercicio.go`, a minimal `go.mod` and the support files.
-  2. Run `go test -json -count=1 -timeout=10s ./...` with `GOTOOLCHAIN=local` and a **45 s**
-     overall timeout (that includes compiling).
-  3. Parse the JSON event stream. Subtests are shown and their parents hidden; compile errors
-     are summarized; a panic or timeout is reduced to its first line plus the frames in the
-     learner's code.
+1. Write the code as `ejercicio.py` in a fresh temp dir and copy the support files there.
+2. Add an empty `pytest.ini` so the project's own config is ignored.
+3. Run `python -m pytest --junitxml=…` as a subprocess, using the same interpreter, with
+   colors disabled and a **15 s** timeout.
+4. Parse the JUnit XML per test and clean the tracebacks, keeping the learner's frames.
+   `NotImplementedError("TODO")` is reported as *pending* rather than as a failure.
 
 ### `app/progreso.py`: progress store
 `Progreso` wraps SQLite with short-lived connections. `Estado` is an immutable view of one
@@ -188,7 +181,7 @@ CREATE TABLE capitulos (
 ## Content model
 
 ```
-contenido/<course>/curso.toml          titulo, lenguaje = "python" | "go", orden, descripcion
+contenido/<course>/curso.toml          titulo, lenguaje = "python", orden, descripcion
 contenido/<course>/NN-module/modulo.toml   titulo, descripcion
 contenido/<course>/NN-module/NN-chapter/
     leccion.md        first line "# Title"; the rest is the lesson body
@@ -200,11 +193,8 @@ contenido/<course>/NN-module/NN-chapter/
 Conventions that the content tests enforce or rely on:
 
 - **The starter code must fail every test, and the solution must pass them all.**
-  `tests/test_contenido.py` runs both through the real runner. For Go, the check is per
-  top-level test.
+  `tests/test_contenido.py` runs both through the real runner.
 - Python starters raise `NotImplementedError("TODO")`, which the UI shows as *pending*.
-- Go starters return zero values and carry a `// TODO` comment. They never panic, because a
-  panic aborts the remaining tests. They also have no unused imports, so they compile.
 - Tests must not depend on the network. For example, the finance chapters ship a synthetic
   `precios.csv`, and matplotlib tests select the `Agg` backend before importing `pyplot`.
 - Where it matters, tests compute their reference values independently of the library being
@@ -216,8 +206,8 @@ Conventions that the content tests enforce or rely on:
 - **New chapter**: add a numbered folder with the files above, then run
   `uv run pytest tests -k <chapter-slug>`.
 - **New module**: add a numbered folder with `modulo.toml`.
-- **New course**: add `contenido/<slug>/curso.toml` with an existing `lenguaje`; it shows up as
-  a new tab.
+- **New course**: add `contenido/<slug>/curso.toml` with an existing `lenguaje`; with two or
+  more courses, each one shows up as a tab.
 - **New language**:
   1. Write a runner in `runner.py` returning `ResultadoEjecucion`.
   2. Add a `Lenguaje` instance to `LENGUAJES`.
@@ -229,7 +219,7 @@ Conventions that the content tests enforce or rely on:
 | File | Covers |
 |---|---|
 | `tests/test_app.py` | Routes via FastAPI's `TestClient`: course tabs, cookie redirect, legacy 301s, id migration, per-course progress, mark as solved, solution gate |
-| `tests/test_runner.py` | Python and Go runners: pass/fail, pending, cleaned tracebacks, timeouts, panics, compile errors, support files and folders |
+| `tests/test_runner.py` | The pytest runner: pass/fail, pending, syntax errors, cleaned tracebacks, timeouts, support files and folders |
 | `tests/test_quiz.py` | Quiz grading and the pass threshold |
 | `tests/test_contenido.py` | Every chapter of every course: files present, lesson renders, quiz valid, solution passes, starter fails |
 
