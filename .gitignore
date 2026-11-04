@@ -6,3 +6,8 @@ __pycache__/
 *.pyc
 progreso.db
 .idea/
+
+# Local: scripts ajenos, config del entorno y reportes
+data.py
+.claude/
+.coverage
