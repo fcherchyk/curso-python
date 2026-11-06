@@ -1,165 +1,162 @@
-# Formularios, redirecciones y sesiones
+# Forms, redirects and sessions
 
-Las apps web clásicas (las que devuelven HTML, no una SPA) funcionan con un ciclo simple: el
-navegador envía un **formulario** con POST, el servidor valida y guarda y después **redirige**
-a otra página. En el medio aparecen tres herramientas: los mensajes **flash**, la **sesión**
-del usuario y `abort` para los errores HTTP.
+Classic web apps (the ones that return HTML, not an SPA) run on a simple cycle: the browser
+submits a **form** with POST, the server validates and saves, and then **redirects** to another
+page. Three tools show up along the way: **flash** messages, the user's **session** and `abort`
+for HTTP errors.
 
-## Leer un formulario
+## Reading a form
 
 ```html
-<form method="post" action="/tareas">
-  <input name="titulo">
-  <button>Agregar</button>
+<form method="post" action="/tasks">
+  <input name="title">
+  <button>Add</button>
 </form>
 ```
 
 ```python
 from flask import request
 
-@app.post("/tareas")
-def crear():
-    titulo = request.form.get("titulo", "").strip()
+@app.post("/tasks")
+def create():
+    title = request.form.get("title", "").strip()
     ...
 ```
 
-- `request.form` es un dict de los campos enviados con `application/x-www-form-urlencoded` o
+- `request.form` is a dict of the fields sent as `application/x-www-form-urlencoded` or
   `multipart/form-data`.
-- `request.form["x"]` levanta un error 400 si falta el campo; `.get("x", default)` no.
-- `request.form.getlist("tags")` para campos repetidos (checkboxes).
-- Los archivos subidos llegan en `request.files`.
+- `request.form["x"]` raises a 400 error if the field is missing; `.get("x", default)` doesn't.
+- `request.form.getlist("tags")` for repeated fields (checkboxes).
+- Uploaded files arrive in `request.files`.
 
-## Validar: nunca confíes en el cliente
+## Validating: never trust the client
 
-La validación del navegador (`required`, `maxlength`) es para la experiencia de uso. **La
-validación real va en el servidor**, porque cualquiera puede mandar un POST con `curl`.
+Browser validation (`required`, `maxlength`) is for the user experience. **Real validation
+happens on the server**, because anyone can send a POST with `curl`.
 
-Si los datos son inválidos, lo habitual es **volver a mostrar el formulario** con los errores y
-los valores que el usuario ya cargó, con status **400** (o 422):
+If the data is invalid, the usual move is to **show the form again** with the errors and the
+values the user already typed, with status **400** (or 422):
 
 ```python
-errores = []
-if not titulo:
-    errores.append("El título es obligatorio")
-if errores:
-    return render_template("tareas.html", errores=errores, titulo=titulo), 400
+errors = []
+if not title:
+    errors.append("Title is required")
+if errors:
+    return render_template("tasks.html", errors=errors, title=title), 400
 ```
 
-Para formularios grandes existen extensiones que declaran los campos y sus reglas, como
-**Flask-WTF** (WTForms), que además agrega protección **CSRF**. Django trae lo mismo
-incorporado con sus `Form`.
+For big forms there are extensions that declare the fields and their rules, like **Flask-WTF**
+(WTForms), which also adds **CSRF** protection. Django has the same built in with its `Form`.
 
-## El patrón Post/Redirect/Get (PRG)
+## The Post/Redirect/Get (PRG) pattern
 
 ```python
 from flask import redirect, url_for
 
-@app.post("/tareas")
-def crear():
-    ...                                   # validar y guardar
-    return redirect(url_for("lista"), code=303)
+@app.post("/tasks")
+def create():
+    ...                                   # validate and save
+    return redirect(url_for("task_list"), code=303)
 ```
 
-Si después de un POST exitoso devolvieras HTML directamente, al apretar F5 el navegador
-**reenviaría el formulario** (el famoso "¿Confirmar reenvío?"), y crearías la tarea dos veces.
-Redirigiendo, la página final es un GET, que se puede recargar sin riesgo.
+If you returned HTML directly after a successful POST, pressing F5 would make the browser
+**resubmit the form** (the infamous "Confirm form resubmission?"), and you'd create the task
+twice. With a redirect, the final page is a GET, which is safe to reload.
 
-- **302/303**: redirección después de un POST. 303 deja explícito que el siguiente request es un
-  GET.
-- **301/308**: redirección permanente (la URL cambió para siempre).
+- **302/303**: redirect after a POST. 303 makes it explicit that the next request is a GET.
+- **301/308**: permanent redirect (the URL changed for good).
 
-## Mensajes flash: avisar después del redirect
+## Flash messages: notifying after the redirect
 
-¿Cómo mostrás "Tarea creada" si después del POST redirigís? Con un **flash**: un mensaje que se
-guarda en la sesión y se consume **una sola vez**, en el próximo request.
+How do you show "Task created" if you redirect after the POST? With a **flash**: a message stored
+in the session and consumed **only once**, on the next request.
 
 ```python
 from flask import flash, get_flashed_messages
 
-flash("Tarea creada")                 # en la vista del POST
-flash("No se pudo borrar", "error")   # con categoría
+flash("Task created")                 # in the POST view
+flash("Couldn't delete", "error")     # with a category
 ```
 ```jinja
-{% for mensaje in get_flashed_messages() %}
-  <p class="aviso">{{ mensaje }}</p>
+{% for message in get_flashed_messages() %}
+  <p class="notice">{{ message }}</p>
 {% endfor %}
 ```
 
-## La sesión
+## The session
 
-`session` es un dict por usuario que **persiste entre requests**:
+`session` is a per-user dict that **persists across requests**:
 
 ```python
 from flask import session
 
-app.secret_key = "cambiar-en-produccion"     # obligatoria para usar session y flash
+app.secret_key = "change-in-production"      # required to use session and flash
 
-session["tema"] = "oscuro"
-tema = session.get("tema", "claro")
-session.pop("carrito", None)
+session["theme"] = "dark"
+theme = session.get("theme", "light")
+session.pop("cart", None)
 session.clear()                               # logout
 ```
 
-Por defecto, Flask guarda la sesión **en una cookie firmada**:
+By default, Flask stores the session **in a signed cookie**:
 
-- **Firmada no es cifrada**: el usuario puede *leer* su contenido (está en base64), pero no
-  modificarlo sin que la firma falle. **No guardes secretos ahí.**
-- La firma depende de `secret_key`: si se filtra, cualquiera puede fabricar sesiones válidas.
-  En producción viene de una variable de entorno y es larga y aleatoria.
-- Para sesiones grandes o del lado del servidor, la extensión Flask-Session.
+- **Signed is not encrypted**: users can *read* its contents (it's base64), but they can't change
+  it without breaking the signature. **Don't store secrets there.**
+- The signature depends on `secret_key`: if it leaks, anyone can forge valid sessions. In
+  production it comes from an environment variable and is long and random.
+- For large or server-side sessions, use the Flask-Session extension.
 
-## `abort`: cortar con un error HTTP
+## `abort`: bailing out with an HTTP error
 
 ```python
 from flask import abort
 
-tarea = buscar(id)
-if tarea is None:
+task = find(id)
+if task is None:
     abort(404)
-if tarea.dueño != usuario_actual:
+if task.owner != current_user:
     abort(403)
 ```
 
-`abort` levanta una excepción HTTP que Flask convierte en la respuesta de error. Se puede
-personalizar con `@app.errorhandler(404)` (próximos capítulos).
+`abort` raises an HTTP exception that Flask turns into the error response. You can customize it
+with `@app.errorhandler(404)` (upcoming chapters).
 
-## Probarlo
+## Testing it
 
 ```python
-def test_crear_redirige_y_avisa(cliente):
-    r = cliente.post("/tareas", data={"titulo": "comprar yerba"})
+def test_create_redirects_and_notifies(client):
+    r = client.post("/tasks", data={"title": "buy coffee"})
     assert r.status_code == 303
-    r = cliente.get(r.headers["Location"])        # o follow_redirects=True
-    assert "Tarea creada" in r.text
+    r = client.get(r.headers["Location"])         # or follow_redirects=True
+    assert "Task created" in r.text
 ```
 
-`data=` envía un formulario (y `json=` envía JSON). El cliente de testing **guarda las
-cookies** entre requests, así que la sesión y los flash funcionan como en un navegador.
+`data=` sends a form (and `json=` sends JSON). The test client **keeps cookies** between
+requests, so the session and flash messages work just like in a browser.
 
-## En los otros frameworks
+## In the other frameworks
 
 | Flask                       | Django                                 | FastAPI                               |
 |-----------------------------|----------------------------------------|---------------------------------------|
-| `request.form`              | `request.POST` + `forms.Form`           | `Form(...)` en los parámetros         |
-| `flash()`                   | `messages.success(request, ...)`        | no trae: se arma con cookies          |
-| `session` (cookie firmada)  | `request.session` (base de datos por defecto) | `SessionMiddleware` de Starlette |
-| `redirect(url_for(...))`    | `redirect("nombre-de-url")`             | `RedirectResponse(...)`               |
-| CSRF con Flask-WTF          | CSRF incorporado                        | a mano o con una librería             |
+| `request.form`              | `request.POST` + `forms.Form`           | `Form(...)` in the parameters         |
+| `flash()`                   | `messages.success(request, ...)`        | not built in: roll your own with cookies |
+| `session` (signed cookie)   | `request.session` (database by default) | Starlette's `SessionMiddleware`       |
+| `redirect(url_for(...))`    | `redirect("url-name")`                  | `RedirectResponse(...)`               |
+| CSRF with Flask-WTF         | built-in CSRF                           | by hand or with a library             |
 
-## Resumen
+## Summary
 
-- `request.form` para leer formularios; validá siempre en el servidor y devolvé 400 con los errores.
-- Post/Redirect/Get: después de un POST exitoso, `redirect(..., code=303)`.
-- `flash` para mensajes de un solo uso; `session` para estado por usuario (cookie firmada, no
-  cifrada).
-- `secret_key` obligatoria, secreta y fuera del código.
-- `abort(404)` o `abort(403)` para cortar con un error.
+- `request.form` to read forms; always validate on the server and return 400 with the errors.
+- Post/Redirect/Get: after a successful POST, `redirect(..., code=303)`.
+- `flash` for one-time messages; `session` for per-user state (signed cookie, not encrypted).
+- `secret_key` is required, secret and kept out of the code.
+- `abort(404)` or `abort(403)` to bail out with an error.
 
-## Ejercicio
+## Exercise
 
-Una lista de tareas con alta validada, PRG con flash, borrado con 404 y preferencias guardadas
-en la sesión. Las plantillas vienen como strings en el código inicial.
+A task list with validated creation, PRG with flash, deletion with 404 and preferences stored in
+the session. The templates come as strings in the starter code.
 
-**Para profundizar:** [Flask: Sessions](https://flask.palletsprojects.com/en/stable/quickstart/#sessions),
+**Further reading:** [Flask: Sessions](https://flask.palletsprojects.com/en/stable/quickstart/#sessions),
 [Message Flashing](https://flask.palletsprojects.com/en/stable/patterns/flashing/),
 [Post/Redirect/Get](https://en.wikipedia.org/wiki/Post/Redirect/Get).

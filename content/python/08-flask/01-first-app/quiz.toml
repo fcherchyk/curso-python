@@ -1,54 +1,54 @@
 [[questions]]
-text = "Con `@app.get(\"/productos/<int:id>\")`, ¿qué pasa con un request a `/productos/abc`?"
+text = "With `@app.get(\"/products/<int:id>\")`, what happens to a request to `/products/abc`?"
 options = [
-  "La vista recibe `id = \"abc\"`",
-  "Flask responde 404 sin llamar a la vista",
-  "Levanta `ValueError` dentro de la vista",
-  "Responde 400",
+  "The view receives `id = \"abc\"`",
+  "Flask responds 404 without calling the view",
+  "It raises `ValueError` inside the view",
+  "It responds 400",
 ]
 correct = 1
-explanation = "Los converters forman parte del matcheo de la ruta: si `abc` no es un int, la ruta no coincide y Flask devuelve 404."
+explanation = "Converters are part of route matching: if `abc` isn't an int, the route doesn't match and Flask returns 404."
 
 [[questions]]
-text = "¿Qué devuelve Flask si una vista hace `return {\"ok\": True}, 201`?"
+text = "What does Flask return if a view does `return {\"ok\": True}, 201`?"
 options = [
-  "Un error: no se puede devolver una tupla",
-  "Una respuesta JSON con status 201",
-  "El texto `({'ok': True}, 201)`",
-  "Un 200 con el dict como texto",
+  "An error: you can't return a tuple",
+  "A JSON response with status 201",
+  "The text `({'ok': True}, 201)`",
+  "A 200 with the dict as text",
 ]
 correct = 1
-explanation = "Un dict se serializa a JSON automáticamente y el segundo elemento de la tupla es el código de estado."
+explanation = "A dict is serialized to JSON automatically, and the tuple's second element is the status code."
 
 [[questions]]
-text = "¿Cómo leés `?pagina=2` como entero, con default 1 si falta o es inválido?"
+text = "How do you read `?page=2` as an integer, defaulting to 1 if it's missing or invalid?"
 options = [
-  "`int(request.args[\"pagina\"])`",
-  "`request.args.get(\"pagina\", 1, type=int)`",
-  "`request.query.pagina`",
-  "`request.get_json()[\"pagina\"]`",
+  "`int(request.args[\"page\"])`",
+  "`request.args.get(\"page\", 1, type=int)`",
+  "`request.query.page`",
+  "`request.get_json()[\"page\"]`",
 ]
 correct = 1
-explanation = "Con `type=int`, si la conversión falla se devuelve el default en lugar de levantar una excepción."
+explanation = "With `type=int`, if the conversion fails you get the default instead of an exception."
 
 [[questions]]
-text = "¿Para qué sirve `app.test_client()`?"
+text = "What is `app.test_client()` for?"
 options = [
-  "Para levantar un servidor de desarrollo",
-  "Para hacer requests a la app en los tests sin levantar un servidor",
-  "Para generar documentación",
-  "Para medir el rendimiento",
+  "Starting a development server",
+  "Making requests to the app in tests without starting a server",
+  "Generating documentation",
+  "Measuring performance",
 ]
 correct = 1
-explanation = "El cliente de testing llama a la app directamente (WSGI) y devuelve respuestas que se pueden inspeccionar con `status_code`, `get_json()`, etc."
+explanation = "The test client calls the app directly (WSGI) and returns responses you can inspect with `status_code`, `get_json()`, etc."
 
 [[questions]]
-text = "¿Por qué nunca hay que usar `--debug` en producción?"
+text = "Why should you never use `--debug` in production?"
 options = [
-  "Porque es más lento",
-  "Porque el debugger interactivo permite ejecutar código arbitrario desde el navegador",
-  "Porque desactiva el logging",
-  "Porque no soporta HTTPS",
+  "Because it's slower",
+  "Because the interactive debugger lets anyone run arbitrary code from the browser",
+  "Because it disables logging",
+  "Because it doesn't support HTTPS",
 ]
 correct = 1
-explanation = "El debugger de Werkzeug abre una consola Python en la página de error. En un servidor público, es una puerta de entrada."
+explanation = "The Werkzeug debugger opens a Python console on the error page. On a public server, that's an open door."

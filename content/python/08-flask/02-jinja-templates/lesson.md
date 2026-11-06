@@ -1,164 +1,164 @@
-# Plantillas con Jinja2
+# Templates with Jinja2
 
-Cuando una app devuelve páginas HTML (y no solo JSON), mezclar HTML con código Python en
-strings se vuelve inmanejable enseguida. Flask usa **Jinja2**, el motor de plantillas que
-también usan Ansible, dbt y esta misma app del curso. Separa la presentación de la lógica,
-**escapa el HTML automáticamente** y permite herencia de plantillas.
+When an app returns HTML pages (not just JSON), mixing HTML and Python code in strings quickly
+becomes unmanageable. Flask uses **Jinja2**, the template engine also used by Ansible, dbt and
+this very course app. It separates presentation from logic, **escapes HTML automatically** and
+supports template inheritance.
 
-## Renderizar una plantilla
+## Rendering a template
 
 ```
-mi_app/
+my_app/
 ├── app.py
-└── templates/          ← Flask busca acá por defecto
+└── templates/          ← Flask looks here by default
     ├── base.html
-    └── lista.html
+    └── list.html
 ```
 
 ```python
 from flask import render_template
 
-@app.get("/productos")
-def lista():
-    productos = buscar_productos()
-    return render_template("lista.html", productos=productos, titulo="Catálogo")
+@app.get("/products")
+def product_list():
+    products = find_products()
+    return render_template("list.html", products=products, title="Catalog")
 ```
 
-Los argumentos con nombre son las **variables de contexto** que ve la plantilla. Además,
-Flask inyecta `request`, `session`, `g` y la función `url_for`.
+The keyword arguments are the **context variables** the template sees. Flask also injects
+`request`, `session`, `g` and the `url_for` function.
 
-## La sintaxis
+## The syntax
 
 ```jinja
-{{ expresion }}                 → imprime (escapado)
-{% sentencia %}                 → lógica: if, for, block, extends, set…
-{# comentario #}
+{{ expression }}                → prints (escaped)
+{% statement %}                 → logic: if, for, block, extends, set…
+{# comment #}
 
-{{ producto.nombre }}           → atributo O clave de dict: funciona con los dos
-{{ productos | length }}        → filtros con |
-{{ nombre | default("anónimo") | upper }}
+{{ product.name }}              → attribute OR dict key: works with both
+{{ products | length }}         → filters with |
+{{ name | default("anonymous") | upper }}
 
-{% if usuario %}Hola, {{ usuario.nombre }}{% else %}Iniciá sesión{% endif %}
+{% if user %}Hello, {{ user.name }}{% else %}Log in{% endif %}
 
-{% for p in productos %}
-  {{ loop.index }}. {{ p.nombre }}
+{% for p in products %}
+  {{ loop.index }}. {{ p.name }}
 {% else %}
-  No hay productos          ← corre si la lista está vacía
+  No products               ← runs if the list is empty
 {% endfor %}
 ```
 
-`loop.index`, `loop.first`, `loop.last` y `loop.length` están disponibles dentro de un `for`.
+`loop.index`, `loop.first`, `loop.last` and `loop.length` are available inside a `for`.
 
-## Herencia: una plantilla base
+## Inheritance: a base template
 
 ```jinja
 {# base.html #}
 <html>
-<head><title>{% block titulo %}Tienda{% endblock %}</title></head>
+<head><title>{% block title %}Store{% endblock %}</title></head>
 <body>
   <nav>...</nav>
-  <main>{% block contenido %}{% endblock %}</main>
+  <main>{% block content %}{% endblock %}</main>
 </body>
 </html>
 ```
 
 ```jinja
-{# lista.html #}
+{# list.html #}
 {% extends "base.html" %}
-{% block titulo %}Productos{% endblock %}
-{% block contenido %}
-  <h1>Productos</h1>
+{% block title %}Products{% endblock %}
+{% block content %}
+  <h1>Products</h1>
   ...
 {% endblock %}
 ```
 
-La hija **reemplaza** los bloques que define y hereda el resto. Así el layout se escribe una
-sola vez. Para incluir fragmentos, `{% include "parcial.html" %}`; para componentes con
-parámetros, `{% macro %}`.
+The child **replaces** the blocks it defines and inherits the rest. That way you write the layout
+only once. To include fragments, use `{% include "partial.html" %}`; for components with
+parameters, `{% macro %}`.
 
-## Autoescape: la defensa contra XSS
+## Autoescaping: the defense against XSS
 
-Flask activa el **autoescape** para las plantillas `.html`: todo lo que imprimís con `{{ }}` se
-escapa.
+Flask turns on **autoescaping** for `.html` templates: everything you print with `{{ }}` gets
+escaped.
 
 ```python
-nombre = '<script>alert("hack")</script>'
+name = '<script>alert("hack")</script>'
 ```
 ```jinja
-<p>{{ nombre }}</p>
+<p>{{ name }}</p>
 → <p>&lt;script&gt;alert(&#34;hack&#34;)&lt;/script&gt;</p>
 ```
 
-Si un usuario carga un nombre con HTML malicioso, se muestra como texto y no se ejecuta. Solo
-desactivás el escape (`{{ html | safe }}` o `Markup(...)`) para HTML que **vos** generaste y
-sabés que es seguro.
+If a user submits a name with malicious HTML, it shows up as text and doesn't run. Only turn
+escaping off (`{{ html | safe }}` or `Markup(...)`) for HTML that **you** generated and know is
+safe.
 
-## `url_for`: nunca escribas URLs a mano
+## `url_for`: never write URLs by hand
 
 ```jinja
-<a href="{{ url_for('detalle', id=p.id) }}">{{ p.nombre }}</a>
+<a href="{{ url_for('product_detail', id=p.id) }}">{{ p.name }}</a>
 ```
 ```python
-redirect(url_for("lista"))
+redirect(url_for("product_list"))
 ```
 
-`url_for` recibe el **nombre del endpoint** (por defecto, el nombre de la función de la vista)
-y arma la URL. Si cambiás la ruta, los links se actualizan solos. Los parámetros que no son
-parte de la ruta se agregan como query string.
+`url_for` takes the **endpoint name** (by default, the name of the view function) and builds the
+URL. If you change the route, the links update themselves. Parameters that aren't part of the
+route are added as a query string.
 
-## Filtros propios
+## Custom filters
 
 ```python
-@app.template_filter("pesos")
-def formatear_pesos(monto: float) -> str:
-    return "$ " + f"{monto:,.2f}".translate(str.maketrans(",.", ".,"))
+@app.template_filter("money")
+def format_money(amount: float) -> str:
+    return "$ " + f"{amount:,.2f}".translate(str.maketrans(",.", ".,"))
 ```
 ```jinja
-{{ producto.precio | pesos }}     → $ 3.500,00
+{{ product.price | money }}       → $ 3.500,00
 ```
 
-También `@app.context_processor`, para inyectar variables en todas las plantillas (por
-ejemplo, el usuario actual o el año).
+There's also `@app.context_processor`, to inject variables into every template (for example, the
+current user or the year).
 
-## Plantillas en strings
+## Templates in strings
 
-Para algo chico, `render_template_string("<p>Hola {{ nombre }}</p>", nombre=n)`. También
-autoescapa. Nunca construyas una plantilla concatenando datos del usuario en el **texto de la
-plantilla**: eso es *server-side template injection*. Los datos siempre van como variables.
+For something small, `render_template_string("<p>Hello {{ name }}</p>", name=n)`. It autoescapes
+too. Never build a template by concatenating user data into the **template text**: that's
+*server-side template injection*. Data always goes in as variables.
 
-## En los otros frameworks
+## In the other frameworks
 
-- **Django** tiene su propio lenguaje de plantillas, muy parecido pero más restringido
-  (no permite llamar funciones con argumentos), y también autoescapa.
-- **FastAPI** está pensado para APIs, pero puede usar Jinja2 con
-  `fastapi.templating.Jinja2Templates`, como esta app.
+- **Django** has its own template language, very similar but more restricted (it doesn't let you
+  call functions with arguments), and it autoescapes too.
+- **FastAPI** is designed for APIs, but it can use Jinja2 via
+  `fastapi.templating.Jinja2Templates`, like this app does.
 
-## Resumen
+## Summary
 
-- `render_template("x.html", var=valor)` busca en `templates/`.
-- `{{ }}` imprime escapado, `{% %}` para la lógica y `|` para los filtros.
-- La herencia con `extends` y `block` evita repetir el layout.
-- El autoescape previene XSS; `| safe` solo para HTML de confianza.
-- `url_for("endpoint", ...)` para todos los links; `@app.template_filter` para tus filtros.
+- `render_template("x.html", var=value)` looks in `templates/`.
+- `{{ }}` prints escaped, `{% %}` is for logic and `|` is for filters.
+- Inheritance with `extends` and `block` keeps you from repeating the layout.
+- Autoescaping prevents XSS; `| safe` only for trusted HTML.
+- `url_for("endpoint", ...)` for every link; `@app.template_filter` for your own filters.
 
-## Ejercicio
+## Exercise
 
-Las plantillas ya están en `templates/` (`base.html`, `lista.html` y `detalle.html`, cuyo
-contenido está más abajo). Vos escribís las vistas que las renderizan, el filtro `pesos` que
-usan y un saludo con `render_template_string` que tiene que escapar el HTML.
+The templates are already in `templates/` (`base.html`, `list.html` and `detail.html`, shown
+below). You write the views that render them, the `money` filter they use (dot for thousands,
+comma for decimals) and a greeting with `render_template_string` that must escape HTML.
 
 ```jinja
-{# lista.html #}
-{% for p in productos %}
-  <li><a href="{{ url_for('detalle', id=p.id) }}">{{ p.nombre }}</a> · {{ p.precio | pesos }}</li>
+{# list.html #}
+{% for p in products %}
+  <li><a href="{{ url_for('product_detail', id=p.id) }}">{{ p.name }}</a> · {{ p.price | money }}</li>
 {% else %}
-  <li>No hay productos</li>
+  <li>No products</li>
 {% endfor %}
 
-{# detalle.html #}
-<h1>{{ producto.nombre }}</h1>
-<p class="precio">{{ producto.precio | pesos }}</p>
+{# detail.html #}
+<h1>{{ product.name }}</h1>
+<p class="price">{{ product.price | money }}</p>
 ```
 
-**Para profundizar:** [Jinja Template Designer Documentation](https://jinja.palletsprojects.com/en/stable/templates/),
+**Further reading:** [Jinja Template Designer Documentation](https://jinja.palletsprojects.com/en/stable/templates/),
 [Flask: Templates](https://flask.palletsprojects.com/en/stable/templating/).

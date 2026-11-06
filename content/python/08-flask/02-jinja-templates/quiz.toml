@@ -1,54 +1,54 @@
 [[questions]]
-text = "Si `nombre = \"<b>Ana</b>\"`, ¿qué genera `{{ nombre }}` en una plantilla `.html` de Flask?"
+text = "If `name = \"<b>Alice</b>\"`, what does `{{ name }}` produce in a Flask `.html` template?"
 options = [
-  "`<b>Ana</b>` (Ana en negrita)",
-  "`&lt;b&gt;Ana&lt;/b&gt;` (el texto escapado)",
-  "Un error",
-  "`Ana`",
+  "`<b>Alice</b>` (Alice in bold)",
+  "`&lt;b&gt;Alice&lt;/b&gt;` (the escaped text)",
+  "An error",
+  "`Alice`",
 ]
 correct = 1
-explanation = "El autoescape convierte los caracteres especiales en entidades HTML. Es la defensa principal contra XSS."
+explanation = "Autoescaping turns special characters into HTML entities. It's the main defense against XSS."
 
 [[questions]]
-text = "¿Qué hace `{% extends \"base.html\" %}` en una plantilla?"
+text = "What does `{% extends \"base.html\" %}` do in a template?"
 options = [
-  "Incluye base.html al principio",
-  "Hereda el layout de base.html y reemplaza solo los bloques que define",
-  "Copia base.html al final",
-  "Importa las macros de base.html",
+  "Includes base.html at the top",
+  "Inherits the layout from base.html and replaces only the blocks it defines",
+  "Copies base.html at the end",
+  "Imports the macros from base.html",
 ]
 correct = 1
-explanation = "La plantilla hija define bloques (`{% block x %}`) que reemplazan a los de la base. El resto se hereda tal cual."
+explanation = "The child template defines blocks (`{% block x %}`) that replace the base's. Everything else is inherited as is."
 
 [[questions]]
-text = "¿Qué recibe `url_for` como primer argumento?"
+text = "What does `url_for` take as its first argument?"
 options = [
-  "La URL literal, como `\"/productos\"`",
-  "El nombre del endpoint (por defecto, el nombre de la función de la vista)",
-  "El nombre de la plantilla",
-  "El método HTTP",
+  "The literal URL, like `\"/products\"`",
+  "The endpoint name (by default, the name of the view function)",
+  "The template name",
+  "The HTTP method",
 ]
 correct = 1
-explanation = "`url_for(\"detalle\", id=3)` arma `/productos/3`. Si la ruta cambia, los links generados se actualizan solos."
+explanation = "`url_for(\"product_detail\", id=3)` builds `/products/3`. If the route changes, the generated links update themselves."
 
 [[questions]]
-text = "¿Cuándo es aceptable usar el filtro `| safe`?"
+text = "When is it acceptable to use the `| safe` filter?"
 options = [
-  "Siempre que el texto tenga HTML",
-  "Solo con HTML generado por vos, que sabés que es seguro; nunca con datos del usuario",
-  "Para que la página cargue más rápido",
-  "Para mostrar acentos correctamente",
+  "Whenever the text contains HTML",
+  "Only with HTML you generated yourself and know is safe; never with user data",
+  "To make the page load faster",
+  "To display accented characters correctly",
 ]
 correct = 1
-explanation = "`safe` desactiva el escape. Con datos del usuario, abre la puerta a un XSS."
+explanation = "`safe` turns escaping off. With user data, it opens the door to XSS."
 
 [[questions]]
-text = "En un `{% for %}` de Jinja, ¿cuándo se ejecuta el bloque `{% else %}`?"
+text = "In a Jinja `{% for %}`, when does the `{% else %}` block run?"
 options = [
-  "Después de la última iteración",
-  "Cuando la secuencia está vacía",
-  "Cuando hubo un `break`",
-  "Nunca: no existe",
+  "After the last iteration",
+  "When the sequence is empty",
+  "When there was a `break`",
+  "Never: it doesn't exist",
 ]
 correct = 1
-explanation = "En Jinja, el `else` de un `for` corre si no hubo ninguna iteración. Es distinto del `for/else` de Python, que corre si no hubo `break`."
+explanation = "In Jinja, a `for`'s `else` runs if there were no iterations at all. That's different from Python's `for/else`, which runs if there was no `break`."

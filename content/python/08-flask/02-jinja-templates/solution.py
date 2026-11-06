@@ -2,36 +2,36 @@ from flask import Flask, abort, render_template, render_template_string, request
 
 app = Flask(__name__)
 
-PRODUCTOS = [
-    {"id": 1, "nombre": "yerba", "precio": 3500},
-    {"id": 2, "nombre": "café", "precio": 9800},
-    {"id": 3, "nombre": "azúcar", "precio": 1200},
+PRODUCTS = [
+    {"id": 1, "name": "tea", "price": 3500},
+    {"id": 2, "name": "coffee", "price": 9800},
+    {"id": 3, "name": "sugar", "price": 1200},
 ]
 
-_A_FORMATO_AR = str.maketrans({",": ".", ".": ","})
+_SWAP_SEPARATORS = str.maketrans({",": ".", ".": ","})
 
 
-@app.template_filter("pesos")
-def pesos(monto: float) -> str:
-    return "$ " + f"{monto:,.2f}".translate(_A_FORMATO_AR)
+@app.template_filter("money")
+def money(amount: float) -> str:
+    return "$ " + f"{amount:,.2f}".translate(_SWAP_SEPARATORS)
 
 
-@app.get("/productos")
-def lista():
-    maximo = request.args.get("max", type=int)
-    productos = [p for p in PRODUCTOS if maximo is None or p["precio"] <= maximo]
-    return render_template("lista.html", productos=sorted(productos, key=lambda p: p["nombre"]))
+@app.get("/products")
+def product_list():
+    maximum = request.args.get("max", type=int)
+    products = [p for p in PRODUCTS if maximum is None or p["price"] <= maximum]
+    return render_template("list.html", products=sorted(products, key=lambda p: p["name"]))
 
 
-@app.get("/productos/<int:id>")
-def detalle(id: int):
-    producto = next((p for p in PRODUCTOS if p["id"] == id), None)
-    if producto is None:
+@app.get("/products/<int:id>")
+def product_detail(id: int):
+    product = next((p for p in PRODUCTS if p["id"] == id), None)
+    if product is None:
         abort(404)
-    return render_template("detalle.html", producto=producto)
+    return render_template("detail.html", product=product)
 
 
-@app.get("/saludo/<nombre>")
-def saludo(nombre: str):
-    # El dato va como variable, nunca concatenado en el texto de la plantilla.
-    return render_template_string("<p>Hola, {{ nombre }}!</p>", nombre=nombre)
+@app.get("/greet/<name>")
+def greet(name: str):
+    # The data goes in as a variable, never concatenated into the template text.
+    return render_template_string("<p>Hello, {{ name }}!</p>", name=name)

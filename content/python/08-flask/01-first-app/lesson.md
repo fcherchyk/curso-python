@@ -1,11 +1,11 @@
-# Flask: tu primera app
+# Flask: your first app
 
-Flask es un **microframework**: trae lo mínimo para atender requests HTTP (ruteo, request y
-response, plantillas) y deja todo lo demás (base de datos, formularios, auth) a extensiones
-que elegís vos. Es simple, explícito y muy fácil de leer, y por eso sirve tanto para APIs chicas
-como para entender qué hacen por dentro frameworks más grandes.
+Flask is a **microframework**: it ships the bare minimum for handling HTTP requests (routing,
+request and response, templates) and leaves everything else (database, forms, auth) to extensions
+you pick yourself. It's simple, explicit and very easy to read, which makes it great both for small
+APIs and for understanding what bigger frameworks do under the hood.
 
-## La app mínima
+## The minimal app
 
 ```python
 from flask import Flask
@@ -13,8 +13,8 @@ from flask import Flask
 app = Flask(__name__)
 
 @app.get("/")
-def inicio():
-    return "Hola, Flask!"
+def index():
+    return "Hello, Flask!"
 ```
 
 ```bash
@@ -22,127 +22,127 @@ uv add flask
 uv run flask --app app run --debug     # http://127.0.0.1:5000
 ```
 
-- `Flask(__name__)` crea la aplicación. `__name__` le sirve para encontrar plantillas y archivos
-  estáticos relativos al módulo.
-- `@app.get("/")` registra la función como **vista** de esa ruta para el método GET. Es un
-  decorador de registro, como los que viste en el módulo de funciones.
-- Lo que devuelve la vista se convierte en la respuesta.
-- `--debug` activa la recarga automática y el debugger en el navegador. **Nunca en
-  producción**: permite ejecutar código.
+- `Flask(__name__)` creates the application. It uses `__name__` to find templates and static
+  files relative to the module.
+- `@app.get("/")` registers the function as the **view** for that route and the GET method. It's a
+  registration decorator, like the ones you saw in the functions module.
+- Whatever the view returns becomes the response.
+- `--debug` turns on auto-reload and the in-browser debugger. **Never in production**: it lets
+  people run code.
 
-## Rutas y métodos
-
-```python
-@app.get("/productos")                 # atajos: get, post, put, patch, delete
-def listar(): ...
-
-@app.post("/productos")
-def crear(): ...
-
-@app.route("/contacto", methods=["GET", "POST"])   # forma general
-def contacto(): ...
-```
-
-### Variables de ruta y converters
+## Routes and methods
 
 ```python
-@app.get("/usuarios/<nombre>")             # string (sin "/")
-def perfil(nombre): ...
+@app.get("/products")                  # shortcuts: get, post, put, patch, delete
+def list_products(): ...
 
-@app.get("/productos/<int:id>")            # convierte a int; si no es número → 404
-def detalle(id): ...
+@app.post("/products")
+def create(): ...
 
-@app.get("/archivos/<path:ruta>")          # acepta "/" adentro
-def archivo(ruta): ...
+@app.route("/contact", methods=["GET", "POST"])   # general form
+def contact(): ...
 ```
 
-Converters: `string` (por defecto), `int`, `float`, `path` y `uuid`. Si el valor no matchea,
-Flask responde **404** sin llegar a tu función.
+### Route variables and converters
 
-## El request: `flask.request`
+```python
+@app.get("/users/<name>")                  # string (no "/")
+def profile(name): ...
+
+@app.get("/products/<int:id>")             # converts to int; if it's not a number → 404
+def detail(id): ...
+
+@app.get("/files/<path:filepath>")         # allows "/" inside
+def file(filepath): ...
+```
+
+Converters: `string` (the default), `int`, `float`, `path` and `uuid`. If the value doesn't match,
+Flask responds **404** without ever reaching your function.
+
+## The request: `flask.request`
 
 ```python
 from flask import request
 
-@app.get("/buscar")
-def buscar():
+@app.get("/search")
+def search():
     q = request.args.get("q", "")               # query string ?q=...
-    pagina = request.args.get("pagina", 1, type=int)
+    page = request.args.get("page", 1, type=int)
     ...
 
-@app.post("/productos")
-def crear():
-    datos = request.get_json(silent=True)        # body JSON (None si no es JSON válido)
-    nombre = request.form.get("nombre")          # body de un formulario
+@app.post("/products")
+def create():
+    data = request.get_json(silent=True)         # JSON body (None if it isn't valid JSON)
+    name = request.form.get("name")              # form body
     token = request.headers.get("Authorization")
     ...
 ```
 
-`request` es un objeto **global por request**: Flask usa variables de contexto (*context
-locals*) para que cada request vea el suyo, aunque haya varios en paralelo. Es cómodo, pero
-"mágico". FastAPI, en cambio, te pasa los datos como parámetros de la función.
+`request` is a **per-request global** object: Flask uses context variables (*context locals*) so
+each request sees its own, even when several run in parallel. It's convenient, but "magic".
+FastAPI, by contrast, passes you the data as function parameters.
 
-`request.args.get(..., type=int)` devuelve el default si la conversión falla, en lugar de
-levantar una excepción.
+`request.args.get(..., type=int)` returns the default if the conversion fails, instead of raising
+an exception.
 
-## La respuesta
+## The response
 
-Una vista puede devolver:
+A view can return:
 
 ```python
-return "texto"                                  # 200, text/html
-return {"id": 1, "nombre": "yerba"}             # un dict → JSON automáticamente
-return jsonify([1, 2, 3])                       # JSON explícito (sirve para listas)
-return {"error": "no existe"}, 404              # (cuerpo, status)
-return {"id": 7}, 201, {"Location": "/productos/7"}   # (cuerpo, status, headers)
-return redirect(url_for("listar"))              # 302
-abort(404)                                      # corta la vista con un error HTTP
+return "text"                                   # 200, text/html
+return {"id": 1, "name": "tea"}                 # a dict → JSON automatically
+return jsonify([1, 2, 3])                       # explicit JSON (works for lists)
+return {"error": "not found"}, 404              # (body, status)
+return {"id": 7}, 201, {"Location": "/products/7"}   # (body, status, headers)
+return redirect(url_for("list_products"))       # 302
+abort(404)                                      # stops the view with an HTTP error
 ```
 
-Los códigos de estado importan: **200** OK, **201** creado, **204** sin contenido, **400**
-request inválido, **401** sin autenticar, **403** sin permiso, **404** no existe, **422**
-datos inválidos y **500** error del servidor.
+Status codes matter: **200** OK, **201** created, **204** no content, **400** bad request, **401**
+unauthenticated, **403** forbidden, **404** not found, **422** invalid data and **500** server
+error.
 
-## Testear con `test_client`
+## Testing with `test_client`
 
-Flask trae un cliente que hace requests **sin levantar un servidor**:
+Flask ships a client that makes requests **without starting a server**:
 
 ```python
-def test_crear():
-    cliente = app.test_client()
-    r = cliente.post("/productos", json={"nombre": "yerba", "precio": 3500})
+def test_create():
+    client = app.test_client()
+    r = client.post("/products", json={"name": "tea", "price": 3500})
     assert r.status_code == 201
-    assert r.get_json()["nombre"] == "yerba"
+    assert r.get_json()["name"] == "tea"
 
-    r = cliente.get("/buscar", query_string={"q": "yer"})
+    r = client.get("/search", query_string={"q": "te"})
     assert r.status_code == 200
 ```
 
-`r.get_json()` parsea el cuerpo y `r.text` lo da como string. Es la forma estándar de testear
-apps Flask, y la que usan los tests de este módulo.
+`r.get_json()` parses the body and `r.text` gives it to you as a string. This is the standard way to
+test Flask apps, and the one this module's tests use.
 
-## Comparación rápida de los tres frameworks
+## Quick comparison of the three frameworks
 
-| Concepto          | Flask                        | FastAPI                         | Django                      |
+| Concept           | Flask                        | FastAPI                         | Django                      |
 |-------------------|------------------------------|---------------------------------|-----------------------------|
-| Ruta              | `@app.get("/x/<int:id>")`    | `@app.get("/x/{id}")` + `id: int` | `path("x/<int:id>/", vista)` |
-| Datos del request | `request` global             | parámetros con type hints        | `request` como argumento    |
-| JSON              | devolver un dict             | devolver un dict o un modelo     | `JsonResponse(...)`          |
-| Validación        | manual o con extensiones     | automática (Pydantic)            | Forms / serializers         |
-| Filosofía         | mínimo, elegís las piezas    | APIs modernas y tipadas          | baterías incluidas          |
+| Route             | `@app.get("/x/<int:id>")`    | `@app.get("/x/{id}")` + `id: int` | `path("x/<int:id>/", view)` |
+| Request data      | global `request`             | parameters with type hints      | `request` as an argument    |
+| JSON              | return a dict                | return a dict or a model        | `JsonResponse(...)`         |
+| Validation        | manual or via extensions     | automatic (Pydantic)            | Forms / serializers         |
+| Philosophy        | minimal, you pick the pieces | modern, typed APIs              | batteries included          |
 
-## Resumen
+## Summary
 
-- `app = Flask(__name__)` y vistas registradas con `@app.get`/`@app.post`.
-- Variables de ruta con converters (`<int:id>`); si no matchea, 404.
-- `request.args`, `request.get_json()`, `request.form` y `request.headers`.
-- Devolver un dict da JSON; `(cuerpo, status)` para elegir el código; `abort()` para cortar.
-- `app.test_client()` para testear sin servidor.
+- `app = Flask(__name__)` and views registered with `@app.get`/`@app.post`.
+- Route variables with converters (`<int:id>`); no match means 404.
+- `request.args`, `request.get_json()`, `request.form` and `request.headers`.
+- Returning a dict gives you JSON; `(body, status)` to pick the code; `abort()` to bail out.
+- `app.test_client()` to test without a server.
 
-## Ejercicio
+## Exercise
 
-Una API chica de productos en memoria: texto, ruta con variable, query string con validación,
-detalle con 404 y alta con 201.
+A small in-memory products API: plain text, a route with a variable, a validated query string, a
+detail view with 404 and a create endpoint with 201.
 
-**Para profundizar:** [Flask Quickstart](https://flask.palletsprojects.com/en/stable/quickstart/),
+**Further reading:** [Flask Quickstart](https://flask.palletsprojects.com/en/stable/quickstart/),
 [Testing Flask Applications](https://flask.palletsprojects.com/en/stable/testing/).

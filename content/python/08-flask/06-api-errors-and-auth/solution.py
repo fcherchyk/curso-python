@@ -4,56 +4,56 @@ from flask import Flask, abort, current_app, g, request
 from werkzeug.exceptions import HTTPException
 
 
-class NotaInvalida(Exception):
+class InvalidNote(Exception):
     pass
 
 
-def requiere_token(vista):  # type: ignore[no-untyped-def]
-    @functools.wraps(vista)
-    def envoltura(*args, **kwargs):  # type: ignore[no-untyped-def]
-        esquema, _, token = request.headers.get("Authorization", "").partition(" ")
-        if esquema != "Bearer" or not token:
-            abort(401, description="falta el token")
-        usuario = current_app.config["TOKENS"].get(token)
-        if usuario is None:
-            abort(401, description="token inválido")
-        g.usuario = usuario
-        return vista(*args, **kwargs)
+def require_token(view):  # type: ignore[no-untyped-def]
+    @functools.wraps(view)
+    def wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
+        scheme, _, token = request.headers.get("Authorization", "").partition(" ")
+        if scheme != "Bearer" or not token:
+            abort(401, description="missing token")
+        user = current_app.config["TOKENS"].get(token)
+        if user is None:
+            abort(401, description="invalid token")
+        g.user = user
+        return view(*args, **kwargs)
 
-    return envoltura
+    return wrapper
 
 
 def create_app(config: dict[str, object] | None = None) -> Flask:
     app = Flask(__name__)
     app.config["TOKENS"] = {}
     app.config.update(config or {})
-    notas: list[dict[str, object]] = []
+    notes: list[dict[str, object]] = []
 
     @app.errorhandler(HTTPException)
-    def error_http(e: HTTPException):  # type: ignore[no-untyped-def]
-        return {"error": e.name, "detalle": e.description}, e.code
+    def http_error(e: HTTPException):  # type: ignore[no-untyped-def]
+        return {"error": e.name, "detail": e.description}, e.code
 
-    @app.errorhandler(NotaInvalida)
-    def nota_invalida(e: NotaInvalida):  # type: ignore[no-untyped-def]
-        return {"error": "Bad Request", "detalle": str(e)}, 400
+    @app.errorhandler(InvalidNote)
+    def invalid_note(e: InvalidNote):  # type: ignore[no-untyped-def]
+        return {"error": "Bad Request", "detail": str(e)}, 400
 
-    @app.get("/api/notas")
-    def listar_notas():  # type: ignore[no-untyped-def]
-        return notas
+    @app.get("/api/notes")
+    def list_notes():  # type: ignore[no-untyped-def]
+        return notes
 
-    @app.get("/api/yo")
-    @requiere_token
-    def yo():  # type: ignore[no-untyped-def]
-        return {"usuario": g.usuario}
+    @app.get("/api/me")
+    @require_token
+    def me():  # type: ignore[no-untyped-def]
+        return {"user": g.user}
 
-    @app.post("/api/notas")
-    @requiere_token
-    def crear_nota():  # type: ignore[no-untyped-def]
-        texto = (request.get_json(silent=True) or {}).get("texto", "")
-        if not texto:
-            raise NotaInvalida("texto vacío")
-        nota = {"id": len(notas) + 1, "autor": g.usuario, "texto": texto}
-        notas.append(nota)
-        return nota, 201
+    @app.post("/api/notes")
+    @require_token
+    def create_note():  # type: ignore[no-untyped-def]
+        text = (request.get_json(silent=True) or {}).get("text", "")
+        if not text:
+            raise InvalidNote("empty text")
+        note = {"id": len(notes) + 1, "author": g.user, "text": text}
+        notes.append(note)
+        return note, 201
 
     return app

@@ -4,53 +4,53 @@ from exercise import app
 
 
 @pytest.fixture
-def cliente():
-    exercise.TAREAS.clear()
+def client():
+    exercise.TASKS.clear()
     return app.test_client()
 
 
-def test_lista_vacia(cliente):
-    r = cliente.get("/tareas")
+def test_empty_list(client):
+    r = client.get("/tasks")
     assert r.status_code == 200
     assert "<ul></ul>" in r.text
 
 
-def test_crear_redirige_con_flash(cliente):
-    r = cliente.post("/tareas", data={"titulo": "  comprar yerba  "})
+def test_create_redirects_with_flash(client):
+    r = client.post("/tasks", data={"title": "  buy coffee  "})
     assert r.status_code == 303
-    assert r.headers["Location"].endswith("/tareas")
-    r = cliente.get("/tareas")
-    assert '<li id="t1">comprar yerba</li>' in r.text
-    assert '<p class="flash">Tarea creada</p>' in r.text
-    # el flash se consume una sola vez
-    assert "Tarea creada" not in cliente.get("/tareas").text
+    assert r.headers["Location"].endswith("/tasks")
+    r = client.get("/tasks")
+    assert '<li id="t1">buy coffee</li>' in r.text
+    assert '<p class="flash">Task created</p>' in r.text
+    # the flash is consumed only once
+    assert "Task created" not in client.get("/tasks").text
 
 
-def test_crear_invalido_muestra_errores(cliente):
-    r = cliente.post("/tareas", data={"titulo": "   "})
+def test_create_invalid_shows_errors(client):
+    r = client.post("/tasks", data={"title": "   "})
     assert r.status_code == 400
-    assert '<p class="error">El título es obligatorio</p>' in r.text
-    r = cliente.post("/tareas", data={"titulo": "x" * 51})
+    assert '<p class="error">Title is required</p>' in r.text
+    r = client.post("/tasks", data={"title": "x" * 51})
     assert r.status_code == 400
-    assert "Máximo 50 caracteres" in r.text
-    assert 'value="' + "x" * 51 + '"' in r.text, "tiene que conservar lo que cargó el usuario"
-    assert exercise.TAREAS == []
+    assert "50 characters max" in r.text
+    assert 'value="' + "x" * 51 + '"' in r.text, "it must keep what the user typed"
+    assert exercise.TASKS == []
 
 
-def test_borrar(cliente):
-    cliente.post("/tareas", data={"titulo": "a"})
-    cliente.post("/tareas", data={"titulo": "b"})
-    r = cliente.post("/tareas/1/borrar", follow_redirects=True)
+def test_delete(client):
+    client.post("/tasks", data={"title": "a"})
+    client.post("/tasks", data={"title": "b"})
+    r = client.post("/tasks/1/delete", follow_redirects=True)
     assert r.status_code == 200
     assert 'id="t1"' not in r.text and 'id="t2"' in r.text
-    assert "Tarea borrada" in r.text
-    assert cliente.post("/tareas/99/borrar").status_code == 404
+    assert "Task deleted" in r.text
+    assert client.post("/tasks/99/delete").status_code == 404
 
 
-def test_preferencias_en_sesion(cliente):
-    assert cliente.get("/preferencias").get_json() == {"tema": "claro"}
-    assert cliente.post("/preferencias", data={"tema": "oscuro"}).status_code == 204
-    assert cliente.get("/preferencias").get_json() == {"tema": "oscuro"}
-    assert cliente.post("/preferencias", data={"tema": "rosa"}).status_code == 400
-    otro = app.test_client()
-    assert otro.get("/preferencias").get_json() == {"tema": "claro"}, "la sesión es por cliente"
+def test_preferences_in_session(client):
+    assert client.get("/preferences").get_json() == {"theme": "light"}
+    assert client.post("/preferences", data={"theme": "dark"}).status_code == 204
+    assert client.get("/preferences").get_json() == {"theme": "dark"}
+    assert client.post("/preferences", data={"theme": "pink"}).status_code == 400
+    other = app.test_client()
+    assert other.get("/preferences").get_json() == {"theme": "light"}, "the session is per client"

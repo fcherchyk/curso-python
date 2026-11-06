@@ -1,16 +1,16 @@
-"""Base de datos con Flask-SQLAlchemy.
+"""Databases with Flask-SQLAlchemy.
 
-Los modelos y create_app ya están. Escribí:
+The models and create_app are already done. Write:
 
-- obtener_o_crear_autor(nombre) → el Autor con ese nombre (lo crea si no existe, sin commit).
-- POST   /libros               JSON {"titulo", "autor", "anio"?} → 201 {"id", "titulo", "autor", "anio"}
-                               sin titulo o autor → 400 {"error": "titulo y autor son obligatorios"}
-- GET    /libros               → lista de libros [{"id", "titulo", "autor", "anio"}] ordenada por título;
-                               con ?autor=Nombre, solo los de ese autor
-- GET    /autores/<int:id>     → {"nombre", "libros": [títulos ordenados]} o 404 (db.get_or_404)
-- DELETE /libros/<int:id>      → 204 o 404
+- get_or_create_author(name) → the Author with that name (creates it if missing, no commit).
+- POST   /books                JSON {"title", "author", "year"?} → 201 {"id", "title", "author", "year"}
+                               no title or author → 400 {"error": "title and author are required"}
+- GET    /books                → list of books [{"id", "title", "author", "year"}] sorted by title;
+                               with ?author=Name, only that author's books
+- GET    /authors/<int:id>     → {"name", "books": [sorted titles]} or 404 (db.get_or_404)
+- DELETE /books/<int:id>       → 204 or 404
 
-Registrá las rutas en el blueprint `bp` (ya se registra en create_app).
+Register the routes on the `bp` blueprint (create_app already registers it).
 """
 
 from flask import Blueprint, Flask, request  # noqa: F401
@@ -26,24 +26,24 @@ class Base(DeclarativeBase):
 db = SQLAlchemy(model_class=Base)
 
 
-class Autor(db.Model):
+class Author(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    nombre: Mapped[str] = mapped_column(String(100), unique=True)
-    libros: Mapped[list["Libro"]] = relationship(back_populates="autor")
+    name: Mapped[str] = mapped_column(String(100), unique=True)
+    books: Mapped[list["Book"]] = relationship(back_populates="author")
 
 
-class Libro(db.Model):
+class Book(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    titulo: Mapped[str] = mapped_column(String(200))
-    anio: Mapped[int | None]
-    autor_id: Mapped[int] = mapped_column(ForeignKey("autor.id"))
-    autor: Mapped[Autor] = relationship(back_populates="libros")
+    title: Mapped[str] = mapped_column(String(200))
+    year: Mapped[int | None]
+    author_id: Mapped[int] = mapped_column(ForeignKey("author.id"))
+    author: Mapped[Author] = relationship(back_populates="books")
 
 
-bp = Blueprint("biblioteca", __name__)
+bp = Blueprint("library", __name__)
 
 
-def obtener_o_crear_autor(nombre: str) -> Autor:
+def get_or_create_author(name: str) -> Author:
     raise NotImplementedError("TODO")
 
 

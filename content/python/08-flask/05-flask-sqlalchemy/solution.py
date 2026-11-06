@@ -11,68 +11,68 @@ class Base(DeclarativeBase):
 db = SQLAlchemy(model_class=Base)
 
 
-class Autor(db.Model):
+class Author(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    nombre: Mapped[str] = mapped_column(String(100), unique=True)
-    libros: Mapped[list["Libro"]] = relationship(back_populates="autor")
+    name: Mapped[str] = mapped_column(String(100), unique=True)
+    books: Mapped[list["Book"]] = relationship(back_populates="author")
 
 
-class Libro(db.Model):
+class Book(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    titulo: Mapped[str] = mapped_column(String(200))
-    anio: Mapped[int | None]
-    autor_id: Mapped[int] = mapped_column(ForeignKey("autor.id"))
-    autor: Mapped[Autor] = relationship(back_populates="libros")
+    title: Mapped[str] = mapped_column(String(200))
+    year: Mapped[int | None]
+    author_id: Mapped[int] = mapped_column(ForeignKey("author.id"))
+    author: Mapped[Author] = relationship(back_populates="books")
 
 
-bp = Blueprint("biblioteca", __name__)
+bp = Blueprint("library", __name__)
 
 
-def a_dict(libro: Libro) -> dict[str, object]:
-    return {"id": libro.id, "titulo": libro.titulo, "autor": libro.autor.nombre, "anio": libro.anio}
+def to_dict(book: Book) -> dict[str, object]:
+    return {"id": book.id, "title": book.title, "author": book.author.name, "year": book.year}
 
 
-def obtener_o_crear_autor(nombre: str) -> Autor:
-    autor = db.session.scalars(select(Autor).where(Autor.nombre == nombre)).first()
-    if autor is None:
-        autor = Autor(nombre=nombre)
-        db.session.add(autor)
-    return autor
+def get_or_create_author(name: str) -> Author:
+    author = db.session.scalars(select(Author).where(Author.name == name)).first()
+    if author is None:
+        author = Author(name=name)
+        db.session.add(author)
+    return author
 
 
-@bp.post("/libros")
-def crear_libro():
-    datos = request.get_json(silent=True) or {}
-    if not datos.get("titulo") or not datos.get("autor"):
-        return {"error": "titulo y autor son obligatorios"}, 400
-    libro = Libro(
-        titulo=datos["titulo"],
-        anio=datos.get("anio"),
-        autor=obtener_o_crear_autor(datos["autor"]),
+@bp.post("/books")
+def create_book():
+    data = request.get_json(silent=True) or {}
+    if not data.get("title") or not data.get("author"):
+        return {"error": "title and author are required"}, 400
+    book = Book(
+        title=data["title"],
+        year=data.get("year"),
+        author=get_or_create_author(data["author"]),
     )
-    db.session.add(libro)
+    db.session.add(book)
     db.session.commit()
-    return a_dict(libro), 201
+    return to_dict(book), 201
 
 
-@bp.get("/libros")
-def listar_libros():
-    stmt = select(Libro).join(Libro.autor).order_by(Libro.titulo)
-    if autor := request.args.get("autor"):
-        stmt = stmt.where(Autor.nombre == autor)
-    return [a_dict(libro) for libro in db.session.scalars(stmt)]
+@bp.get("/books")
+def list_books():
+    stmt = select(Book).join(Book.author).order_by(Book.title)
+    if author := request.args.get("author"):
+        stmt = stmt.where(Author.name == author)
+    return [to_dict(book) for book in db.session.scalars(stmt)]
 
 
-@bp.get("/autores/<int:id>")
-def detalle_autor(id: int):
-    autor = db.get_or_404(Autor, id)
-    return {"nombre": autor.nombre, "libros": sorted(libro.titulo for libro in autor.libros)}
+@bp.get("/authors/<int:id>")
+def author_detail(id: int):
+    author = db.get_or_404(Author, id)
+    return {"name": author.name, "books": sorted(book.title for book in author.books)}
 
 
-@bp.delete("/libros/<int:id>")
-def borrar_libro(id: int):
-    libro = db.get_or_404(Libro, id)
-    db.session.delete(libro)
+@bp.delete("/books/<int:id>")
+def delete_book(id: int):
+    book = db.get_or_404(Book, id)
+    db.session.delete(book)
     db.session.commit()
     return "", 204
 

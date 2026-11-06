@@ -1,164 +1,163 @@
-# App factory y blueprints
+# App factory and blueprints
 
-En los capítulos anteriores la app era una variable global: `app = Flask(__name__)`. Sirve para
-empezar, pero tiene problemas reales. No podés crear dos apps con configuraciones distintas
-(una para tests y otra para producción), los imports se vuelven circulares cuando el proyecto
-crece y todas las rutas terminan en un solo archivo. La solución estándar en Flask combina dos
-patrones: la **app factory** y los **blueprints**.
+In the previous chapters the app was a global variable: `app = Flask(__name__)`. That's fine for
+getting started, but it has real problems. You can't create two apps with different
+configurations (one for tests and another for production), imports become circular as the project
+grows, and every route ends up in a single file. The standard Flask solution combines two
+patterns: the **app factory** and **blueprints**.
 
-## App factory: una función que crea la app
+## App factory: a function that creates the app
 
 ```python
-# tienda/__init__.py
+# store/__init__.py
 from flask import Flask
 
 def create_app(config: dict | None = None) -> Flask:
     app = Flask(__name__)
     app.config.from_mapping(
         SECRET_KEY="dev",
-        ENTORNO="desarrollo",
-        DATABASE_URL="sqlite:///tienda.db",
+        ENVIRONMENT="development",
+        DATABASE_URL="sqlite:///store.db",
     )
     if config:
-        app.config.update(config)          # lo que pasás pisa los defaults
+        app.config.update(config)          # whatever you pass overrides the defaults
 
-    from tienda import api, web            # imports adentro: evita ciclos
+    from store import api, web             # imports inside: avoids cycles
     app.register_blueprint(api.bp, url_prefix="/api")
     app.register_blueprint(web.bp)
 
-    db.init_app(app)                       # extensiones
+    db.init_app(app)                       # extensions
     return app
 ```
 
 ```bash
-uv run flask --app "tienda:create_app()" run
+uv run flask --app "store:create_app()" run
 ```
 
-Ventajas:
+Advantages:
 
-- **Tests aislados**: cada test crea su propia app con `create_app({"TESTING": True, ...})`.
-- **Varias configuraciones** (desarrollo, tests, producción) sin tocar el código.
-- **Sin estado global** compartido entre apps.
+- **Isolated tests**: each test creates its own app with `create_app({"TESTING": True, ...})`.
+- **Multiple configurations** (development, tests, production) without touching the code.
+- **No global state** shared between apps.
 
-### Configuración
+### Configuration
 
 ```python
-app.config["SECRET_KEY"]                         # es un dict
-app.config.from_mapping(CLAVE=valor)
-app.config.from_prefixed_env()                   # lee FLASK_* del entorno: FLASK_SECRET_KEY → SECRET_KEY
-app.config.from_object("tienda.config.Produccion")
+app.config["SECRET_KEY"]                         # it's a dict
+app.config.from_mapping(KEY=value)
+app.config.from_prefixed_env()                   # reads FLASK_* from the environment: FLASK_SECRET_KEY → SECRET_KEY
+app.config.from_object("store.config.Production")
 ```
 
-Las claves van en MAYÚSCULAS. Los secretos vienen **del entorno**, nunca del repositorio.
+Keys are UPPERCASE. Secrets come **from the environment**, never from the repository.
 
-## `current_app`: la app "actual"
+## `current_app`: the "current" app
 
-Si la app se crea en una función, ¿cómo accede una vista a la configuración? Con `current_app`,
-un proxy a la app que está atendiendo el request:
+If the app is created inside a function, how does a view access the configuration? With
+`current_app`, a proxy to the app handling the request:
 
 ```python
 from flask import current_app
 
-@bp.get("/estado")
-def estado():
-    return {"entorno": current_app.config["ENTORNO"]}
+@bp.get("/status")
+def status():
+    return {"environment": current_app.config["ENVIRONMENT"]}
 ```
 
-Junto con `request`, `session` y `g`, forma parte de los **contextos** de Flask. Fuera de un
-request (en un script o en un test), hace falta abrir un contexto: `with app.app_context(): ...`.
+Along with `request`, `session` and `g`, it's part of Flask's **contexts**. Outside a request (in
+a script or a test), you need to push a context: `with app.app_context(): ...`.
 
-## Blueprints: agrupar rutas
+## Blueprints: grouping routes
 
-Un blueprint es un "módulo de rutas" que se registra en la app más tarde:
+A blueprint is a "module of routes" that gets registered on the app later:
 
 ```python
-# tienda/api.py
+# store/api.py
 from flask import Blueprint
 
 bp = Blueprint("api", __name__)
 
-@bp.get("/productos")
-def productos():
+@bp.get("/products")
+def products():
     ...
 ```
 
 ```python
-app.register_blueprint(bp, url_prefix="/api")    # → GET /api/productos
+app.register_blueprint(bp, url_prefix="/api")    # → GET /api/products
 ```
 
-- Cada blueprint tiene un **nombre**, que se usa como prefijo de sus endpoints en `url_for`:
-  `url_for("api.productos")`. Dentro del mismo blueprint, `url_for(".productos")`.
-- Puede tener sus propias plantillas, archivos estáticos, error handlers y hooks
-  (`@bp.before_request`).
-- Lo habitual es un blueprint por área: `auth`, `api`, `admin`, `web`.
+- Each blueprint has a **name**, used as the prefix of its endpoints in `url_for`:
+  `url_for("api.products")`. Inside the same blueprint, `url_for(".products")`.
+- It can have its own templates, static files, error handlers and hooks (`@bp.before_request`).
+- The usual approach is one blueprint per area: `auth`, `api`, `admin`, `web`.
 
-## Extensiones: el patrón `init_app`
+## Extensions: the `init_app` pattern
 
-Las extensiones (Flask-SQLAlchemy, Flask-Login, Flask-Migrate…) se crean **sin app** y se
-conectan después, dentro de la factory:
+Extensions (Flask-SQLAlchemy, Flask-Login, Flask-Migrate…) are created **without an app** and
+attached later, inside the factory:
 
 ```python
-# tienda/extensiones.py
+# store/extensions.py
 from flask_sqlalchemy import SQLAlchemy
-db = SQLAlchemy()            # sin app: se puede importar desde cualquier lado
+db = SQLAlchemy()            # no app: can be imported from anywhere
 
-# en create_app
+# in create_app
 db.init_app(app)
 ```
 
-Si escribís tu propia extensión, seguís el mismo patrón: guardás el estado en
-`app.extensions["nombre"]`, nunca en el objeto de la extensión, porque puede haber varias apps.
+If you write your own extension, follow the same pattern: store the state in
+`app.extensions["name"]`, never on the extension object, because there may be several apps.
 
 ```python
-class Contador:
+class Counter:
     def init_app(self, app):
-        app.extensions["contador"] = {"visitas": 0}
+        app.extensions["counter"] = {"visits": 0}
 
         @app.before_request
-        def contar():
-            app.extensions["contador"]["visitas"] += 1
+        def count():
+            app.extensions["counter"]["visits"] += 1
 ```
 
-## Testear con la factory
+## Testing with the factory
 
 ```python
 import pytest
-from tienda import create_app
+from store import create_app
 
 @pytest.fixture
 def app():
     return create_app({"TESTING": True, "DATABASE_URL": "sqlite://"})
 
 @pytest.fixture
-def cliente(app):
+def client(app):
     return app.test_client()
 
-def test_estado(cliente):
-    assert cliente.get("/api/estado").get_json()["entorno"] == "desarrollo"
+def test_status(client):
+    assert client.get("/api/status").get_json()["environment"] == "development"
 ```
 
-`TESTING=True` hace que las excepciones se propaguen al test en lugar de convertirse en un 500.
+`TESTING=True` makes exceptions propagate to the test instead of becoming a 500.
 
-## En los otros frameworks
+## In the other frameworks
 
-- **FastAPI**: `APIRouter` cumple el rol de los blueprints (`app.include_router(router,
-  prefix="/api")`), y también se puede usar una función factory.
-- **Django** viene organizado así de fábrica: un proyecto con varias **apps**, cada una con sus
-  `urls.py`, que se incluyen con `include()`; la configuración vive en `settings.py`.
+- **FastAPI**: `APIRouter` plays the role of blueprints (`app.include_router(router,
+  prefix="/api")`), and you can also use a factory function.
+- **Django** comes organized this way out of the box: a project with several **apps**, each with
+  its own `urls.py`, wired in with `include()`; configuration lives in `settings.py`.
 
-## Resumen
+## Summary
 
-- `create_app(config)` crea y configura la app; nada de `app` global en proyectos reales.
-- `app.config` en mayúsculas, con los secretos desde el entorno.
-- `current_app` para acceder a la app actual desde las vistas.
-- Blueprints para agrupar rutas por área; `url_for("blueprint.vista")`.
-- Extensiones sin app + `init_app(app)` en la factory; el estado va en `app.extensions`.
+- `create_app(config)` creates and configures the app; no global `app` in real projects.
+- `app.config` in uppercase, with secrets from the environment.
+- `current_app` to reach the current app from views.
+- Blueprints to group routes by area; `url_for("blueprint.view")`.
+- Extensions without an app + `init_app(app)` in the factory; state goes in `app.extensions`.
 
-## Ejercicio
+## Exercise
 
-Una factory con configuración por defecto y overrides, dos blueprints (`api` con prefijo y `web`)
-y una extensión mínima con `init_app`.
+A factory with default configuration and overrides, two blueprints (`api` with a prefix and `web`)
+and a minimal extension with `init_app`.
 
-**Para profundizar:** [Application Factories](https://flask.palletsprojects.com/en/stable/patterns/appfactories/),
+**Further reading:** [Application Factories](https://flask.palletsprojects.com/en/stable/patterns/appfactories/),
 [Blueprints](https://flask.palletsprojects.com/en/stable/blueprints/),
 [Flask Extension Development](https://flask.palletsprojects.com/en/stable/extensiondev/).

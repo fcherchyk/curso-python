@@ -1,20 +1,20 @@
-"""Formularios, redirecciones y sesiones.
+"""Forms, redirects and sessions.
 
-Rutas a implementar:
+Routes to implement:
 
-GET  /tareas                  → render de PLANTILLA con las tareas (y los flash).
-POST /tareas                  → campo de formulario "titulo" (sin espacios alrededor):
-                                - vacío → 400, re-render con errores=["El título es obligatorio"]
-                                - más de 50 caracteres → 400, errores=["Máximo 50 caracteres"]
-                                - ok → se agrega {"id": siguiente id, "titulo": ...},
-                                  flash("Tarea creada") y redirect 303 a /tareas
-POST /tareas/<int:id>/borrar  → si no existe, 404 (abort); si existe, se borra,
-                                flash("Tarea borrada") y redirect 303 a /tareas
-POST /preferencias            → campo "tema": "claro" u "oscuro" (otro valor → 400);
-                                lo guarda en session["tema"] y responde 204
-GET  /preferencias            → JSON {"tema": <session o "claro">}
+GET  /tasks                   → render TEMPLATE with the tasks (and the flashed messages).
+POST /tasks                   → form field "title" (with surrounding whitespace stripped):
+                                - empty → 400, re-render with errors=["Title is required"]
+                                - more than 50 characters → 400, errors=["50 characters max"]
+                                - ok → append {"id": next id, "title": ...},
+                                  flash("Task created") and redirect 303 to /tasks
+POST /tasks/<int:id>/delete   → if it doesn't exist, 404 (abort); if it does, delete it,
+                                flash("Task deleted") and redirect 303 to /tasks
+POST /preferences             → field "theme": "light" or "dark" (any other value → 400);
+                                store it in session["theme"] and respond 204
+GET  /preferences             → JSON {"theme": <session value or "light">}
 
-Usá url_for("lista") para el redirect (la vista de GET /tareas se tiene que llamar `lista`).
+Use url_for("task_list") for the redirect (the GET /tasks view must be called `task_list`).
 """
 
 from flask import (  # noqa: F401
@@ -29,20 +29,20 @@ from flask import (  # noqa: F401
 )
 
 app = Flask(__name__)
-app.secret_key = "solo-para-el-curso"
+app.secret_key = "course-only"
 
-TAREAS: list[dict[str, object]] = []
+TASKS: list[dict[str, object]] = []
 
-PLANTILLA = """
+TEMPLATE = """
 {% for m in get_flashed_messages() %}<p class="flash">{{ m }}</p>{% endfor %}
-{% for e in errores %}<p class="error">{{ e }}</p>{% endfor %}
-<ul>{% for t in tareas %}<li id="t{{ t.id }}">{{ t.titulo }}</li>{% endfor %}</ul>
-<form method="post"><input name="titulo" value="{{ titulo }}"></form>
+{% for e in errors %}<p class="error">{{ e }}</p>{% endfor %}
+<ul>{% for t in tasks %}<li id="t{{ t.id }}">{{ t.title }}</li>{% endfor %}</ul>
+<form method="post"><input name="title" value="{{ title }}"></form>
 """
 
 
-def render(errores: list[str] | None = None, titulo: str = "") -> str:
-    """Helper: renderiza PLANTILLA con las tareas actuales."""
+def render(errors: list[str] | None = None, title: str = "") -> str:
+    """Helper: renders TEMPLATE with the current tasks."""
     return render_template_string(
-        PLANTILLA, tareas=TAREAS, errores=errores or [], titulo=titulo
+        TEMPLATE, tasks=TASKS, errors=errors or [], title=title
     )

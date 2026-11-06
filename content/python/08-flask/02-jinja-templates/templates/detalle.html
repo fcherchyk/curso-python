@@ -1,7 +1,0 @@
-{% extends "base.html" %}
-{% block titulo %}{{ producto.nombre }}{% endblock %}
-{% block contenido %}
-<h1>{{ producto.nombre }}</h1>
-<p class="precio">{{ producto.precio | pesos }}</p>
-{% if producto.precio > 5000 %}<p class="premium">Producto premium</p>{% endif %}
-{% endblock %}

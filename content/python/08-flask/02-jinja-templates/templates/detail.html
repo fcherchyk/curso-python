@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+<h1>{{ product.name }}</h1>
+<p class="price">{{ product.price | money }}</p>
+{% if product.price > 5000 %}<p class="premium">Premium product</p>{% endif %}
+{% endblock %}

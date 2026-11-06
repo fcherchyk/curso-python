@@ -1,24 +1,24 @@
-"""Flask: tu primera app.
+"""Flask: your first app.
 
-Agregá las rutas pedidas a `app`. PRODUCTOS es la "base de datos" en memoria.
+Add the requested routes to `app`. PRODUCTS is the in-memory "database".
 """
 
 from flask import Flask, request  # noqa: F401
 
 app = Flask(__name__)
 
-PRODUCTOS: dict[int, dict[str, object]] = {
-    1: {"id": 1, "nombre": "yerba", "precio": 3500},
-    2: {"id": 2, "nombre": "café", "precio": 9800},
+PRODUCTS: dict[int, dict[str, object]] = {
+    1: {"id": 1, "name": "tea", "price": 3500},
+    2: {"id": 2, "name": "coffee", "price": 9800},
 }
 
-# Rutas a implementar:
+# Routes to implement:
 #
-# GET  /                     → texto "Hola, Flask!"
-# GET  /saludo/<nombre>      → texto "Hola, <nombre>!"
-# GET  /sumar?a=1&b=2        → JSON {"resultado": 3}
-#                              si falta a o b, o no son enteros → 400 {"error": "a y b tienen que ser enteros"}
-# GET  /productos/<int:id>   → JSON del producto, o 404 {"error": "producto inexistente"}
-# POST /productos            → body JSON {"nombre": str, "precio": int}
-#                              crea el producto con id = máximo id + 1 y responde 201 con el producto
-#                              si falta nombre o precio → 400 {"error": "nombre y precio son obligatorios"}
+# GET  /                     → text "Hello, Flask!"
+# GET  /greet/<name>         → text "Hello, <name>!"
+# GET  /add?a=1&b=2          → JSON {"result": 3}
+#                              if a or b is missing or not an integer → 400 {"error": "a and b must be integers"}
+# GET  /products/<int:id>    → the product as JSON, or 404 {"error": "product not found"}
+# POST /products             → JSON body {"name": str, "price": int}
+#                              creates the product with id = highest id + 1 and responds 201 with the product
+#                              if name or price is missing → 400 {"error": "name and price are required"}

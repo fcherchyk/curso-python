@@ -1,157 +1,152 @@
-# APIs REST: errores, autenticación y testing
+# REST APIs: errors, authentication and testing
 
-Una API seria tiene que responder **siempre en JSON**, incluso cuando algo sale mal. También
-tiene que proteger sus endpoints y estar cubierta por tests confiables. En este capítulo
-armamos las tres piezas con Flask: error handlers globales, un decorador de autenticación por
-token y el contexto `g`, y fixtures de pytest bien organizadas.
+A serious API has to respond **in JSON every time**, even when something goes wrong. It also has
+to protect its endpoints and be covered by reliable tests. In this chapter we build all three
+pieces with Flask: global error handlers, a token authentication decorator plus the `g` context,
+and well-organized pytest fixtures.
 
-## Errores en JSON: `errorhandler`
+## Errors in JSON: `errorhandler`
 
-Por defecto, `abort(404)` devuelve una página HTML. Para una API, se registra un handler:
+By default, `abort(404)` returns an HTML page. For an API, you register a handler:
 
 ```python
 from werkzeug.exceptions import HTTPException
 
 @app.errorhandler(HTTPException)
-def error_http(e: HTTPException):
-    return {"error": e.name, "detalle": e.description}, e.code
+def http_error(e: HTTPException):
+    return {"error": e.name, "detail": e.description}, e.code
 ```
 
-Como todas las excepciones HTTP de Werkzeug heredan de `HTTPException`, con un solo handler
-cubrís 400, 401, 403, 404, 405, etc., incluidas las rutas inexistentes y los métodos no
-permitidos.
+Since every Werkzeug HTTP exception inherits from `HTTPException`, a single handler covers 400,
+401, 403, 404, 405, etc., including unknown routes and disallowed methods.
 
-También se pueden mapear **excepciones de tu dominio** a códigos HTTP:
+You can also map **your domain exceptions** to HTTP codes:
 
 ```python
-class NoEncontrado(Exception): ...
+class NotFoundError(Exception): ...
 
-@app.errorhandler(NoEncontrado)
-def no_encontrado(e):
-    return {"error": "Not Found", "detalle": str(e)}, 404
+@app.errorhandler(NotFoundError)
+def not_found(e):
+    return {"error": "Not Found", "detail": str(e)}, 404
 
 @app.errorhandler(ValueError)
-def valor_invalido(e):
-    return {"error": "Bad Request", "detalle": str(e)}, 400
+def invalid_value(e):
+    return {"error": "Bad Request", "detail": str(e)}, 400
 ```
 
-Así la lógica de negocio levanta excepciones normales de Python y la capa HTTP decide cómo
-responder. Es la misma idea que los `exception_handler` de FastAPI.
+That way the business logic raises ordinary Python exceptions and the HTTP layer decides how to
+respond. It's the same idea as FastAPI's `exception_handler`.
 
-Para los errores 500, `@app.errorhandler(Exception)` atrapa todo lo demás: **logueá el
-traceback** y devolvé un mensaje genérico, sin detalles internos. Con `TESTING=True`, Flask
-deja que las excepciones lleguen al test para que veas el error real.
+For 500 errors, `@app.errorhandler(Exception)` catches everything else: **log the traceback** and
+return a generic message, with no internal details. With `TESTING=True`, Flask lets exceptions
+reach the test so you see the real error.
 
-## Autenticación por token con un decorador
+## Token authentication with a decorator
 
-El patrón más simple para una API es un **token** en el header
-`Authorization: Bearer <token>`:
+The simplest pattern for an API is a **token** in the `Authorization: Bearer <token>` header:
 
 ```python
 import functools
 from flask import abort, current_app, g, request
 
-def requiere_token(vista):
-    @functools.wraps(vista)
-    def envoltura(*args, **kwargs):
-        encabezado = request.headers.get("Authorization", "")
-        esquema, _, token = encabezado.partition(" ")
-        if esquema != "Bearer" or not token:
-            abort(401, description="falta el token")
-        usuario = current_app.config["TOKENS"].get(token)
-        if usuario is None:
-            abort(401, description="token inválido")
-        g.usuario = usuario                  # disponible durante este request
-        return vista(*args, **kwargs)
-    return envoltura
+def require_token(view):
+    @functools.wraps(view)
+    def wrapper(*args, **kwargs):
+        header = request.headers.get("Authorization", "")
+        scheme, _, token = header.partition(" ")
+        if scheme != "Bearer" or not token:
+            abort(401, description="missing token")
+        user = current_app.config["TOKENS"].get(token)
+        if user is None:
+            abort(401, description="invalid token")
+        g.user = user                        # available for the rest of this request
+        return view(*args, **kwargs)
+    return wrapper
 
-@app.get("/api/yo")
-@requiere_token
-def yo():
-    return {"usuario": g.usuario}
+@app.get("/api/me")
+@require_token
+def me():
+    return {"user": g.user}
 ```
 
-- Es un **decorador** como los del módulo 04, y `functools.wraps` es imprescindible: Flask
-  usa el nombre de la función como endpoint, y sin `wraps` dos vistas protegidas chocarían.
-- El orden importa: `@app.get` va **arriba** (se aplica último), así se registra la versión ya
-  protegida.
-- `g` es un objeto "global" **por request**, para guardar datos que comparten las funciones de
-  ese request, como el usuario autenticado o la conexión a la base.
-- **401** significa "no sé quién sos" (falta la credencial o es inválida); **403**, "sé quién
-  sos, pero no podés".
+- It's a **decorator** like the ones in module 04, and `functools.wraps` is essential: Flask uses
+  the function name as the endpoint, and without `wraps` two protected views would clash.
+- Order matters: `@app.get` goes **on top** (it's applied last), so the protected version is
+  what gets registered.
+- `g` is a **per-request** "global" object for data shared by the functions in that request, like
+  the authenticated user or the database connection.
+- **401** means "I don't know who you are" (the credential is missing or invalid); **403** means
+  "I know who you are, but you can't do that".
 
-En producción, los tokens suelen ser **JWT** (firmados, con expiración) o tokens opacos
-guardados en la base, y se comparan con `secrets.compare_digest` para evitar ataques de timing.
-Para sesiones con login, **Flask-Login**.
+In production, tokens are usually **JWTs** (signed, with expiration) or opaque tokens stored in
+the database, and they're compared with `secrets.compare_digest` to prevent timing attacks. For
+login-based sessions, use **Flask-Login**.
 
-## Fixtures de pytest para Flask
+## pytest fixtures for Flask
 
 ```python
 # conftest.py
 import pytest
-from tienda import create_app
+from store import create_app
 
 @pytest.fixture
 def app():
-    return create_app({"TESTING": True, "TOKENS": {"t-ana": "ana"}})
+    return create_app({"TESTING": True, "TOKENS": {"t-alice": "alice"}})
 
 @pytest.fixture
-def cliente(app):
+def client(app):
     return app.test_client()
 
 @pytest.fixture
 def auth():
-    return {"Authorization": "Bearer t-ana"}
+    return {"Authorization": "Bearer t-alice"}
 ```
 
 ```python
-def test_yo(cliente, auth):
-    assert cliente.get("/api/yo", headers=auth).get_json() == {"usuario": "ana"}
+def test_me(client, auth):
+    assert client.get("/api/me", headers=auth).get_json() == {"user": "alice"}
 
-def test_yo_sin_token(cliente):
-    r = cliente.get("/api/yo")
+def test_me_without_token(client):
+    r = client.get("/api/me")
     assert r.status_code == 401
-    assert r.get_json()["detalle"] == "falta el token"
+    assert r.get_json()["detail"] == "missing token"
 ```
 
-Las fixtures se componen (`cliente` depende de `app`) y cada test recibe instancias nuevas.
-Testeá **los casos de error con el mismo cuidado que el camino feliz**: son los que más se
-rompen.
+Fixtures compose (`client` depends on `app`) and each test gets fresh instances. Test **the error
+cases as carefully as the happy path**: they're the ones that break most often.
 
-## Diseño REST en dos minutos
+## REST design in two minutes
 
-| Acción               | Método y ruta            | Respuesta típica         |
+| Action               | Method and route         | Typical response         |
 |----------------------|--------------------------|--------------------------|
-| listar               | `GET /notas`             | 200 + lista              |
-| detalle              | `GET /notas/7`           | 200 o 404                |
-| crear                | `POST /notas`            | 201 + recurso creado     |
-| reemplazar/modificar | `PUT`/`PATCH /notas/7`   | 200 o 204                |
-| borrar               | `DELETE /notas/7`        | 204                      |
+| list                 | `GET /notes`             | 200 + list               |
+| detail               | `GET /notes/7`           | 200 or 404               |
+| create               | `POST /notes`            | 201 + created resource   |
+| replace/update       | `PUT`/`PATCH /notes/7`   | 200 or 204               |
+| delete               | `DELETE /notes/7`        | 204                      |
 
-Las rutas son **sustantivos en plural**; la acción la da el método. Los errores tienen siempre
-la misma forma (por ejemplo `{"error", "detalle"}`), así quien consume la API los maneja de
-manera uniforme.
+Routes are **plural nouns**; the method supplies the action. Errors always have the same shape
+(for example `{"error", "detail"}`), so API consumers can handle them uniformly.
 
-## En los otros frameworks
+## In the other frameworks
 
-- **FastAPI** resuelve la autenticación con **dependencias** (`Depends(usuario_actual)`) en lugar
-  de decoradores y valida el body automáticamente con Pydantic.
-- **Django REST Framework** trae clases de autenticación y permisos (`IsAuthenticated`) y un
-  formato de errores estándar.
+- **FastAPI** handles authentication with **dependencies** (`Depends(current_user)`) instead of
+  decorators, and validates the body automatically with Pydantic.
+- **Django REST Framework** ships authentication and permission classes (`IsAuthenticated`) and a
+  standard error format.
 
-## Resumen
+## Summary
 
-- `@app.errorhandler(HTTPException)` para que todos los errores HTTP salgan en JSON.
-- Mapeá excepciones de dominio a códigos HTTP con handlers propios.
-- Autenticación con un decorador que lee `Authorization: Bearer ...`, guarda el usuario en `g` y
-  usa `functools.wraps`.
-- 401 = no autenticado; 403 = sin permiso.
-- Fixtures `app` → `cliente` → `auth` en `conftest.py`; testeá también los errores.
+- `@app.errorhandler(HTTPException)` so every HTTP error comes out as JSON.
+- Map domain exceptions to HTTP codes with your own handlers.
+- Authentication with a decorator that reads `Authorization: Bearer ...`, stores the user in `g`
+  and uses `functools.wraps`.
+- 401 = not authenticated; 403 = not allowed.
+- `app` → `client` → `auth` fixtures in `conftest.py`; test the errors too.
 
-## Ejercicio
+## Exercise
 
-Una API de notas con errores en JSON, un decorador de token y una excepción de dominio
-mapeada a 400.
+A notes API with JSON errors, a token decorator and a domain exception mapped to 400.
 
-**Para profundizar:** [Handling Application Errors](https://flask.palletsprojects.com/en/stable/errorhandling/),
+**Further reading:** [Handling Application Errors](https://flask.palletsprojects.com/en/stable/errorhandling/),
 [View Decorators](https://flask.palletsprojects.com/en/stable/patterns/viewdecorators/).

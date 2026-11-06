@@ -4,59 +4,59 @@ import exercise
 import pytest
 from exercise import app
 
-ORIGINAL = copy.deepcopy(exercise.PRODUCTOS)
+ORIGINAL = copy.deepcopy(exercise.PRODUCTS)
 
 
 @pytest.fixture
-def cliente():
-    exercise.PRODUCTOS.clear()
-    exercise.PRODUCTOS.update(copy.deepcopy(ORIGINAL))
+def client():
+    exercise.PRODUCTS.clear()
+    exercise.PRODUCTS.update(copy.deepcopy(ORIGINAL))
     return app.test_client()
 
 
-def test_inicio(cliente):
-    r = cliente.get("/")
+def test_index(client):
+    r = client.get("/")
     assert r.status_code == 200
-    assert r.text == "Hola, Flask!"
+    assert r.text == "Hello, Flask!"
 
 
-def test_saludo(cliente):
-    assert cliente.get("/saludo/Ana").text == "Hola, Ana!"
+def test_greet(client):
+    assert client.get("/greet/Alice").text == "Hello, Alice!"
 
 
-def test_sumar(cliente):
-    r = cliente.get("/sumar", query_string={"a": 2, "b": 40})
+def test_add(client):
+    r = client.get("/add", query_string={"a": 2, "b": 40})
     assert r.status_code == 200
-    assert r.get_json() == {"resultado": 42}
+    assert r.get_json() == {"result": 42}
 
 
-def test_sumar_invalido(cliente):
+def test_add_invalid(client):
     for params in ({"a": 1}, {"a": "x", "b": 2}, {}):
-        r = cliente.get("/sumar", query_string=params)
+        r = client.get("/add", query_string=params)
         assert r.status_code == 400, params
-        assert r.get_json() == {"error": "a y b tienen que ser enteros"}
+        assert r.get_json() == {"error": "a and b must be integers"}
 
 
-def test_detalle(cliente):
-    r = cliente.get("/productos/2")
+def test_detail(client):
+    r = client.get("/products/2")
     assert r.status_code == 200
-    assert r.get_json() == {"id": 2, "nombre": "café", "precio": 9800}
+    assert r.get_json() == {"id": 2, "name": "coffee", "price": 9800}
 
 
-def test_detalle_inexistente(cliente):
-    r = cliente.get("/productos/99")
+def test_detail_not_found(client):
+    r = client.get("/products/99")
     assert r.status_code == 404
-    assert r.get_json() == {"error": "producto inexistente"}
+    assert r.get_json() == {"error": "product not found"}
 
 
-def test_crear(cliente):
-    r = cliente.post("/productos", json={"nombre": "té", "precio": 1200})
+def test_create(client):
+    r = client.post("/products", json={"name": "juice", "price": 1200})
     assert r.status_code == 201
-    assert r.get_json() == {"id": 3, "nombre": "té", "precio": 1200}
-    assert cliente.get("/productos/3").status_code == 200
+    assert r.get_json() == {"id": 3, "name": "juice", "price": 1200}
+    assert client.get("/products/3").status_code == 200
 
 
-def test_crear_invalido(cliente):
-    r = cliente.post("/productos", json={"nombre": "té"})
+def test_create_invalid(client):
+    r = client.post("/products", json={"name": "juice"})
     assert r.status_code == 400
-    assert r.get_json() == {"error": "nombre y precio son obligatorios"}
+    assert r.get_json() == {"error": "name and price are required"}

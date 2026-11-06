@@ -1,44 +1,44 @@
 [[questions]]
-text = "¿Cuál es la principal ventaja de una app factory (`create_app`)?"
+text = "What is the main advantage of an app factory (`create_app`)?"
 options = [
-  "Que la app arranca más rápido",
-  "Poder crear apps independientes con configuraciones distintas (por ejemplo, una por test)",
-  "Que no hace falta `secret_key`",
-  "Que reemplaza a los blueprints",
+  "The app starts faster",
+  "You can create independent apps with different configurations (for example, one per test)",
+  "You don't need a `secret_key`",
+  "It replaces blueprints",
 ]
 correct = 1
-explanation = "Sin una app global, cada test o entorno crea la suya con su configuración y no hay estado compartido."
+explanation = "Without a global app, each test or environment creates its own with its own configuration, and there's no shared state."
 
 [[questions]]
-text = "Con `app.register_blueprint(bp, url_prefix=\"/api\")` y `@bp.get(\"/estado\")`, ¿cuál es la URL?"
-options = ["`/estado`", "`/api/estado`", "`/bp/estado`", "`/api/bp/estado`"]
+text = "With `app.register_blueprint(bp, url_prefix=\"/api\")` and `@bp.get(\"/status\")`, what's the URL?"
+options = ["`/status`", "`/api/status`", "`/bp/status`", "`/api/bp/status`"]
 correct = 1
-explanation = "El `url_prefix` se antepone a todas las rutas del blueprint."
+explanation = "The `url_prefix` is prepended to every route in the blueprint."
 
 [[questions]]
-text = "Una vista de un blueprint llamado `\"api\"` se llama `productos`. ¿Qué se le pasa a `url_for`?"
-options = ["`\"productos\"`", "`\"api.productos\"`", "`\"/api/productos\"`", "`\"bp.productos\"`"]
+text = "A view in a blueprint named `\"api\"` is called `products`. What do you pass to `url_for`?"
+options = ["`\"products\"`", "`\"api.products\"`", "`\"/api/products\"`", "`\"bp.products\"`"]
 correct = 1
-explanation = "Los endpoints de un blueprint llevan su nombre como prefijo. Dentro del mismo blueprint también vale `\".productos\"`."
+explanation = "A blueprint's endpoints are prefixed with its name. Inside the same blueprint, `\".products\"` works too."
 
 [[questions]]
-text = "¿Para qué sirve `current_app`?"
+text = "What is `current_app` for?"
 options = [
-  "Para crear una app nueva",
-  "Para acceder a la app que atiende el request actual (por ejemplo, a su config) sin importarla",
-  "Para reiniciar la app",
-  "Para obtener el blueprint actual",
+  "Creating a new app",
+  "Accessing the app handling the current request (for example, its config) without importing it",
+  "Restarting the app",
+  "Getting the current blueprint",
 ]
 correct = 1
-explanation = "Con factories no hay una variable `app` global que importar. `current_app` apunta a la app del contexto actual."
+explanation = "With factories there's no global `app` variable to import. `current_app` points to the app of the current context."
 
 [[questions]]
-text = "¿Por qué las extensiones usan `ext = Extension()` y después `ext.init_app(app)`?"
+text = "Why do extensions use `ext = Extension()` and later `ext.init_app(app)`?"
 options = [
-  "Por compatibilidad con Python 2",
-  "Para poder crear la extensión a nivel de módulo (importable) y conectarla a una o varias apps creadas por la factory",
-  "Porque es más rápido",
-  "Para que la extensión no tenga configuración",
+  "For Python 2 compatibility",
+  "So you can create the extension at module level (importable) and attach it to one or more apps built by the factory",
+  "Because it's faster",
+  "So the extension has no configuration",
 ]
 correct = 1
-explanation = "La extensión no depende de una app global. El estado por app se guarda en `app.extensions`."
+explanation = "The extension doesn't depend on a global app. Per-app state is stored in `app.extensions`."

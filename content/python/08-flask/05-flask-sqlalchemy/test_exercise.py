@@ -1,5 +1,5 @@
 import pytest
-from exercise import Autor, create_app, db, obtener_o_crear_autor
+from exercise import Author, create_app, db, get_or_create_author
 from sqlalchemy import func, select
 
 
@@ -9,59 +9,59 @@ def app():
 
 
 @pytest.fixture
-def cliente(app):
+def client(app):
     return app.test_client()
 
 
-def cargar(cliente):
-    for titulo, autor, anio in [
-        ("Rayuela", "Cortázar", 1963),
-        ("Ficciones", "Borges", 1944),
-        ("Bestiario", "Cortázar", 1951),
+def load(client):
+    for title, author, year in [
+        ("Persuasion", "Austen", 1817),
+        ("Dubliners", "Joyce", 1914),
+        ("Emma", "Austen", 1815),
     ]:
-        cliente.post("/libros", json={"titulo": titulo, "autor": autor, "anio": anio})
+        client.post("/books", json={"title": title, "author": author, "year": year})
 
 
-def test_obtener_o_crear_autor(app):
+def test_get_or_create_author(app):
     with app.app_context():
-        a = obtener_o_crear_autor("Borges")
+        a = get_or_create_author("Joyce")
         db.session.commit()
-        b = obtener_o_crear_autor("Borges")
+        b = get_or_create_author("Joyce")
         assert a.id == b.id
-        assert db.session.scalar(select(func.count()).select_from(Autor)) == 1
+        assert db.session.scalar(select(func.count()).select_from(Author)) == 1
 
 
-def test_crear_libro(cliente):
-    r = cliente.post("/libros", json={"titulo": "Ficciones", "autor": "Borges", "anio": 1944})
+def test_create_book(client):
+    r = client.post("/books", json={"title": "Dubliners", "author": "Joyce", "year": 1914})
     assert r.status_code == 201
-    assert r.get_json() == {"id": 1, "titulo": "Ficciones", "autor": "Borges", "anio": 1944}
+    assert r.get_json() == {"id": 1, "title": "Dubliners", "author": "Joyce", "year": 1914}
 
 
-def test_crear_libro_invalido(cliente):
-    r = cliente.post("/libros", json={"titulo": "Sin autor"})
+def test_create_book_invalid(client):
+    r = client.post("/books", json={"title": "No author"})
     assert r.status_code == 400
-    assert r.get_json() == {"error": "titulo y autor son obligatorios"}
+    assert r.get_json() == {"error": "title and author are required"}
 
 
-def test_listar_ordenado_y_filtrado(cliente):
-    cargar(cliente)
-    titulos = [libro["titulo"] for libro in cliente.get("/libros").get_json()]
-    assert titulos == ["Bestiario", "Ficciones", "Rayuela"]
-    de_cortazar = cliente.get("/libros", query_string={"autor": "Cortázar"}).get_json()
-    assert [libro["titulo"] for libro in de_cortazar] == ["Bestiario", "Rayuela"]
-    assert all(libro["autor"] == "Cortázar" for libro in de_cortazar)
+def test_list_sorted_and_filtered(client):
+    load(client)
+    titles = [book["title"] for book in client.get("/books").get_json()]
+    assert titles == ["Dubliners", "Emma", "Persuasion"]
+    by_austen = client.get("/books", query_string={"author": "Austen"}).get_json()
+    assert [book["title"] for book in by_austen] == ["Emma", "Persuasion"]
+    assert all(book["author"] == "Austen" for book in by_austen)
 
 
-def test_autor_con_libros(cliente):
-    cargar(cliente)
-    r = cliente.get("/autores/1")
+def test_author_with_books(client):
+    load(client)
+    r = client.get("/authors/1")
     assert r.status_code == 200
-    assert r.get_json() == {"nombre": "Cortázar", "libros": ["Bestiario", "Rayuela"]}
-    assert cliente.get("/autores/99").status_code == 404
+    assert r.get_json() == {"name": "Austen", "books": ["Emma", "Persuasion"]}
+    assert client.get("/authors/99").status_code == 404
 
 
-def test_borrar(cliente):
-    cargar(cliente)
-    assert cliente.delete("/libros/2").status_code == 204
-    assert [libro["titulo"] for libro in cliente.get("/libros").get_json()] == ["Bestiario", "Rayuela"]
-    assert cliente.delete("/libros/2").status_code == 404
+def test_delete(client):
+    load(client)
+    assert client.delete("/books/2").status_code == 204
+    assert [book["title"] for book in client.get("/books").get_json()] == ["Emma", "Persuasion"]
+    assert client.delete("/books/2").status_code == 404

@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="es">
-<head><title>{% block titulo %}Tienda{% endblock %}</title></head>
+<html lang="en">
+<head><title>{% block title %}Store{% endblock %}</title></head>
 <body>
-  <nav><a href="{{ url_for('lista') }}">Productos</a></nav>
-  <main>{% block contenido %}{% endblock %}</main>
+  <nav><a href="{{ url_for('product_list') }}">Products</a></nav>
+  <main>{% block content %}{% endblock %}</main>
 </body>
 </html>

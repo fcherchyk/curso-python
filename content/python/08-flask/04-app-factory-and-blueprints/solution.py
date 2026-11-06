@@ -4,45 +4,45 @@ api = Blueprint("api", __name__)
 web = Blueprint("web", __name__)
 
 
-@api.get("/estado")
-def estado():
-    return {"estado": "ok", "entorno": current_app.config["ENTORNO"]}
+@api.get("/status")
+def status():
+    return {"status": "ok", "environment": current_app.config["ENVIRONMENT"]}
 
 
-@api.get("/visitas")
-def visitas():
-    return {"visitas": current_app.extensions["contador"]["visitas"]}
+@api.get("/visits")
+def visits():
+    return {"visits": current_app.extensions["counter"]["visits"]}
 
 
 @web.get("/")
-def inicio():
-    return f"{current_app.config['SALUDO']}, visitante"
+def index():
+    return f"{current_app.config['GREETING']}, visitor"
 
 
-@web.get("/ir-al-estado")
-def ir_al_estado():
-    return redirect(url_for("api.estado"))
+@web.get("/go-to-status")
+def go_to_status():
+    return redirect(url_for("api.status"))
 
 
-class Contador:
+class Counter:
     def init_app(self, app: Flask) -> None:
-        # El estado vive en la app, no en la extensión: puede haber varias apps.
-        app.extensions["contador"] = {"visitas": 0}
+        # The state lives in the app, not in the extension: there may be several apps.
+        app.extensions["counter"] = {"visits": 0}
 
         @app.before_request
-        def contar() -> None:
-            app.extensions["contador"]["visitas"] += 1
+        def count() -> None:
+            app.extensions["counter"]["visits"] += 1
 
 
-contador = Contador()
+counter = Counter()
 
 
 def create_app(config: dict[str, object] | None = None) -> Flask:
     app = Flask(__name__)
-    app.config.from_mapping(SECRET_KEY="dev", ENTORNO="desarrollo", SALUDO="Hola")
+    app.config.from_mapping(SECRET_KEY="dev", ENVIRONMENT="development", GREETING="Hello")
     if config:
         app.config.update(config)
     app.register_blueprint(api, url_prefix="/api")
     app.register_blueprint(web)
-    contador.init_app(app)
+    counter.init_app(app)
     return app

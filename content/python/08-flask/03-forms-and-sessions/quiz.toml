@@ -1,54 +1,54 @@
 [[questions]]
-text = "¿Por qué conviene redirigir después de un POST exitoso (patrón PRG)?"
+text = "Why should you redirect after a successful POST (the PRG pattern)?"
 options = [
-  "Porque Flask no puede devolver HTML en un POST",
-  "Para que recargar la página no reenvíe el formulario y duplique la operación",
-  "Para que la respuesta sea más rápida",
-  "Porque los navegadores lo exigen",
+  "Because Flask can't return HTML from a POST",
+  "So reloading the page doesn't resubmit the form and repeat the operation",
+  "To make the response faster",
+  "Because browsers require it",
 ]
 correct = 1
-explanation = "Después del redirect, la página es un GET y recargarla no repite el POST."
+explanation = "After the redirect, the page is a GET, and reloading it doesn't repeat the POST."
 
 [[questions]]
-text = "¿Qué garantiza la sesión por defecto de Flask (cookie firmada)?"
+text = "What does Flask's default session (a signed cookie) guarantee?"
 options = [
-  "Que el usuario no puede leer su contenido",
-  "Que el usuario no puede modificar su contenido sin que se detecte",
-  "Que se guarda en la base de datos",
-  "Que dura para siempre",
+  "That the user can't read its contents",
+  "That the user can't modify its contents without it being detected",
+  "That it's stored in the database",
+  "That it lasts forever",
 ]
 correct = 1
-explanation = "Está firmada, no cifrada: el contenido se puede leer, pero no alterar. No guardes secretos ahí."
+explanation = "It's signed, not encrypted: the contents can be read, but not tampered with. Don't store secrets there."
 
 [[questions]]
-text = "¿Cuántas veces se muestra un mensaje creado con `flash()`?"
+text = "How many times is a message created with `flash()` shown?"
 options = [
-  "En todas las páginas hasta el logout",
-  "Una sola vez: se consume en el próximo request que lo lee",
-  "Solo en la misma respuesta del POST",
-  "Hasta que el usuario lo cierra",
+  "On every page until logout",
+  "Once: it's consumed by the next request that reads it",
+  "Only in the same response as the POST",
+  "Until the user dismisses it",
 ]
 correct = 1
-explanation = "`get_flashed_messages()` lo lee y lo saca de la sesión, por eso funciona justo después de un redirect."
+explanation = "`get_flashed_messages()` reads it and removes it from the session, which is why it works right after a redirect."
 
 [[questions]]
-text = "Un formulario tiene `required` en el HTML. ¿Hace falta validar en el servidor?"
+text = "A form has `required` in the HTML. Do you still need to validate on the server?"
 options = [
-  "No, el navegador ya lo valida",
-  "Sí: cualquiera puede mandar el POST sin pasar por el navegador",
-  "Solo si el campo es numérico",
-  "Solo en producción",
+  "No, the browser already validates it",
+  "Yes: anyone can send the POST without going through the browser",
+  "Only if the field is numeric",
+  "Only in production",
 ]
 correct = 1
-explanation = "La validación del cliente mejora la experiencia de uso, pero la seguridad y la integridad dependen de validar en el servidor."
+explanation = "Client-side validation improves the user experience, but security and data integrity depend on validating on the server."
 
 [[questions]]
-text = "En el `test_client` de Flask, ¿cómo se envía un formulario (no JSON)?"
+text = "With Flask's `test_client`, how do you submit a form (not JSON)?"
 options = [
-  "`cliente.post(url, json={...})`",
-  "`cliente.post(url, data={...})`",
-  "`cliente.post(url, form={...})`",
-  "`cliente.submit(url, {...})`",
+  "`client.post(url, json={...})`",
+  "`client.post(url, data={...})`",
+  "`client.post(url, form={...})`",
+  "`client.submit(url, {...})`",
 ]
 correct = 1
-explanation = "`data=` codifica los campos como un formulario; `json=` manda un body JSON."
+explanation = "`data=` encodes the fields as a form; `json=` sends a JSON body."

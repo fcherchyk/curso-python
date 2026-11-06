@@ -1,2 +1,2 @@
 title = "Flask"
-description = "El microframework: rutas, plantillas Jinja2, formularios y sesiones, app factory con blueprints, base de datos con Flask-SQLAlchemy y APIs REST."
+description = "The microframework: routes, Jinja2 templates, forms and sessions, app factory with blueprints, databases with Flask-SQLAlchemy, and REST APIs."

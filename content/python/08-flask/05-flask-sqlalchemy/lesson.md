@@ -1,11 +1,11 @@
-# Base de datos con Flask-SQLAlchemy
+# Databases with Flask-SQLAlchemy
 
-Flask no trae una capa de datos: la elegís vos. La opción más común es **SQLAlchemy**, el ORM
-más usado de Python, integrado con la extensión **Flask-SQLAlchemy**, que se encarga de la
-sesión por request, de la configuración y de algunos atajos (`get_or_404`, paginación). Lo que
-aprendas acá sobre SQLAlchemy 2.0 te sirve también en FastAPI, que lo usa sin extensión.
+Flask doesn't ship a data layer: you pick one. The most common choice is **SQLAlchemy**, Python's
+most widely used ORM, integrated through the **Flask-SQLAlchemy** extension, which handles the
+per-request session, the configuration and a few shortcuts (`get_or_404`, pagination). What you
+learn here about SQLAlchemy 2.0 also applies to FastAPI, which uses it without an extension.
 
-## Configuración
+## Configuration
 
 ```python
 from flask import Flask
@@ -19,147 +19,147 @@ db = SQLAlchemy(model_class=Base)
 
 def create_app(config=None):
     app = Flask(__name__)
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///tienda.db"   # o postgresql+psycopg://...
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///store.db"    # or postgresql+psycopg://...
     app.config.update(config or {})
     db.init_app(app)
     with app.app_context():
-        db.create_all()          # crea las tablas que falten (en producción: migraciones)
+        db.create_all()          # creates missing tables (in production: migrations)
     return app
 ```
 
-`"sqlite://"` (sin ruta) es una base **en memoria**: ideal para tests, porque cada app arranca
-vacía.
+`"sqlite://"` (no path) is an **in-memory** database: ideal for tests, because each app starts
+empty.
 
-## Modelos con el estilo 2.0 (tipado)
+## Models in the 2.0 (typed) style
 
 ```python
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-class Autor(db.Model):
+class Author(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    nombre: Mapped[str] = mapped_column(String(100), unique=True)
-    libros: Mapped[list["Libro"]] = relationship(back_populates="autor")
+    name: Mapped[str] = mapped_column(String(100), unique=True)
+    books: Mapped[list["Book"]] = relationship(back_populates="author")
 
-class Libro(db.Model):
+class Book(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    titulo: Mapped[str] = mapped_column(String(200))
-    anio: Mapped[int | None]                              # nullable porque es Optional
-    autor_id: Mapped[int] = mapped_column(ForeignKey("autor.id"))
-    autor: Mapped[Autor] = relationship(back_populates="libros")
+    title: Mapped[str] = mapped_column(String(200))
+    year: Mapped[int | None]                              # nullable because it's Optional
+    author_id: Mapped[int] = mapped_column(ForeignKey("author.id"))
+    author: Mapped[Author] = relationship(back_populates="books")
 ```
 
-- `Mapped[T]` declara la columna y su tipo de Python. `T | None` la hace **nullable**.
-- `mapped_column(...)` agrega los detalles: clave primaria, longitud, `unique`, `index`, `default`.
-- `relationship` define la relación **del lado de Python**: `libro.autor` y `autor.libros`.
-  `back_populates` mantiene sincronizados los dos lados.
-- Flask-SQLAlchemy deduce el nombre de la tabla (`autor`, `libro`); con `__tablename__` lo elegís
-  vos.
+- `Mapped[T]` declares the column and its Python type. `T | None` makes it **nullable**.
+- `mapped_column(...)` adds the details: primary key, length, `unique`, `index`, `default`.
+- `relationship` defines the relationship **on the Python side**: `book.author` and
+  `author.books`. `back_populates` keeps both sides in sync.
+- Flask-SQLAlchemy derives the table name (`author`, `book`); with `__tablename__` you choose it
+  yourself.
 
-## La sesión: la "unidad de trabajo"
+## The session: the "unit of work"
 
-Todas las operaciones pasan por `db.session`, que acumula los cambios hasta el `commit`:
+Every operation goes through `db.session`, which accumulates changes until `commit`:
 
 ```python
-autor = Autor(nombre="Borges")
-db.session.add(autor)
-db.session.add(Libro(titulo="Ficciones", autor=autor))   # asignar el objeto completa la FK
-db.session.commit()                                        # INSERTs en una transacción
+author = Author(name="Joyce")
+db.session.add(author)
+db.session.add(Book(title="Dubliners", author=author))   # assigning the object fills in the FK
+db.session.commit()                                        # INSERTs in one transaction
 
-autor.nombre = "Jorge Luis Borges"     # modificar es asignar…
-db.session.commit()                    # …y commitear
+author.name = "James Joyce"            # modifying is just assigning…
+db.session.commit()                    # …and committing
 
-db.session.delete(libro)
+db.session.delete(book)
 db.session.commit()
 ```
 
-Si algo falla en el medio, `db.session.rollback()` deshace lo pendiente. Flask-SQLAlchemy
-cierra la sesión automáticamente al terminar cada request.
+If something fails midway, `db.session.rollback()` undoes what's pending. Flask-SQLAlchemy closes
+the session automatically at the end of each request.
 
-## Consultas con `select()`
+## Queries with `select()`
 
-SQLAlchemy 2.0 usa un estilo unificado: se arma un `select` y se ejecuta con la sesión.
+SQLAlchemy 2.0 uses a unified style: you build a `select` and execute it with the session.
 
 ```python
 from sqlalchemy import select
 
-libro = db.session.get(Libro, 3)                        # por clave primaria (o None)
-libro = db.get_or_404(Libro, 3)                         # o aborta con 404
+book = db.session.get(Book, 3)                          # by primary key (or None)
+book = db.get_or_404(Book, 3)                           # or abort with 404
 
-stmt = select(Libro).where(Libro.anio > 1950).order_by(Libro.titulo)
-libros = db.session.scalars(stmt).all()                 # lista de Libro
+stmt = select(Book).where(Book.year > 1950).order_by(Book.title)
+books = db.session.scalars(stmt).all()                  # list of Book
 
-borges = db.session.scalars(
-    select(Autor).where(Autor.nombre == "Borges")
-).first()                                               # el primero o None
+joyce = db.session.scalars(
+    select(Author).where(Author.name == "Joyce")
+).first()                                               # the first one or None
 
-# JOIN: libros de un autor por nombre
-stmt = select(Libro).join(Libro.autor).where(Autor.nombre == "Borges")
+# JOIN: an author's books by name
+stmt = select(Book).join(Book.author).where(Author.name == "Joyce")
 
-# Contar
+# Counting
 from sqlalchemy import func
-total = db.session.scalar(select(func.count()).select_from(Libro))
+total = db.session.scalar(select(func.count()).select_from(Book))
 ```
 
-- `.scalars(...)` devuelve objetos del modelo; `.all()`, `.first()` y `.one()` los materializan.
-- `where` combina condiciones con `and_`/`or_`, o con varios argumentos.
-- La API vieja (`Libro.query.filter_by(...)`) sigue existiendo, pero está considerada *legacy*.
+- `.scalars(...)` returns model objects; `.all()`, `.first()` and `.one()` materialize them.
+- `where` combines conditions with `and_`/`or_`, or with several arguments.
+- The old API (`Book.query.filter_by(...)`) still exists, but it's considered *legacy*.
 
-## El problema N+1
+## The N+1 problem
 
 ```python
-for libro in db.session.scalars(select(Libro)):
-    print(libro.autor.nombre)        # ¡una consulta extra POR libro!
+for book in db.session.scalars(select(Book)):
+    print(book.author.name)          # one extra query PER book!
 ```
 
-Las relaciones se cargan de forma **perezosa** por defecto: cada `libro.autor` dispara un
-SELECT. Con 100 libros, son 101 consultas. La solución es pedir la carga anticipada:
+Relationships are loaded **lazily** by default: each `book.author` fires a SELECT. With 100
+books, that's 101 queries. The fix is to ask for eager loading:
 
 ```python
 from sqlalchemy.orm import selectinload, joinedload
 
-stmt = select(Libro).options(joinedload(Libro.autor))       # un JOIN
-stmt = select(Autor).options(selectinload(Autor.libros))    # un SELECT ... IN extra
+stmt = select(Book).options(joinedload(Book.author))        # one JOIN
+stmt = select(Author).options(selectinload(Author.books))   # one extra SELECT ... IN
 ```
 
-## Un CRUD típico
+## A typical CRUD
 
 ```python
-@app.post("/libros")
-def crear():
-    datos = request.get_json()
-    libro = Libro(titulo=datos["titulo"], autor=obtener_o_crear_autor(datos["autor"]))
-    db.session.add(libro)
+@app.post("/books")
+def create():
+    data = request.get_json()
+    book = Book(title=data["title"], author=get_or_create_author(data["author"]))
+    db.session.add(book)
     db.session.commit()
-    return {"id": libro.id, "titulo": libro.titulo}, 201     # el id ya existe después del commit
+    return {"id": book.id, "title": book.title}, 201         # the id exists after the commit
 ```
 
-## Migraciones
+## Migrations
 
-`db.create_all()` solo **crea** tablas que no existen: no las modifica. En un proyecto real, los
-cambios de esquema se versionan con **Alembic** (o **Flask-Migrate**, que lo integra):
-`flask db migrate -m "agrega año"` y `flask db upgrade`.
+`db.create_all()` only **creates** tables that don't exist: it doesn't modify them. In a real
+project, schema changes are versioned with **Alembic** (or **Flask-Migrate**, which integrates
+it): `flask db migrate -m "add year"` and `flask db upgrade`.
 
-## En los otros frameworks
+## In the other frameworks
 
-- **FastAPI**: el mismo SQLAlchemy 2.0, con la sesión como dependencia (`Depends(get_session)`).
-- **Django**: su propio ORM (`Libro.objects.filter(anio__gt=1950)`), con migraciones incorporadas
+- **FastAPI**: the same SQLAlchemy 2.0, with the session as a dependency (`Depends(get_session)`).
+- **Django**: its own ORM (`Book.objects.filter(year__gt=1950)`), with built-in migrations
   (`makemigrations`/`migrate`).
 
-## Resumen
+## Summary
 
-- `db = SQLAlchemy(model_class=Base)` y `db.init_app(app)` en la factory.
-- Modelos tipados: `Mapped[T]`, `mapped_column` y `relationship(back_populates=...)`.
-- `db.session.add/delete/commit`; `db.session.get` o `db.get_or_404` por clave primaria.
-- Consultas con `select(...).where(...).order_by(...)` y `db.session.scalars(...)`.
-- Cuidado con el N+1: `joinedload`/`selectinload`.
-- `create_all` para empezar; migraciones con Alembic en serio.
+- `db = SQLAlchemy(model_class=Base)` and `db.init_app(app)` in the factory.
+- Typed models: `Mapped[T]`, `mapped_column` and `relationship(back_populates=...)`.
+- `db.session.add/delete/commit`; `db.session.get` or `db.get_or_404` by primary key.
+- Queries with `select(...).where(...).order_by(...)` and `db.session.scalars(...)`.
+- Watch out for N+1: `joinedload`/`selectinload`.
+- `create_all` to get started; Alembic migrations for real work.
 
-## Ejercicio
+## Exercise
 
-Los modelos `Autor` y `Libro` ya están definidos. Escribí las vistas de una API de biblioteca:
-alta con "obtener o crear" el autor, listado filtrado y ordenado, detalle de un autor con sus
-libros y borrado.
+The `Author` and `Book` models are already defined. Write the views for a library API: creation
+with "get or create" for the author, a filtered and sorted listing, an author detail with their
+books, and deletion.
 
-**Para profundizar:** [Flask-SQLAlchemy](https://flask-sqlalchemy.readthedocs.io/),
+**Further reading:** [Flask-SQLAlchemy](https://flask-sqlalchemy.readthedocs.io/),
 [SQLAlchemy 2.0 ORM Quickstart](https://docs.sqlalchemy.org/en/20/orm/quickstart.html).
