@@ -1,49 +1,49 @@
 [[questions]]
-text = "Un `APIRouter(prefix=\"/productos\")` incluido con `app.include_router(router, prefix=\"/api/v1\")` y una ruta `@router.get(\"/{id}\")`. ¿Cuál es la URL?"
-options = ["`/productos/{id}`", "`/api/v1/productos/{id}`", "`/api/v1/{id}`", "`/productos/api/v1/{id}`"]
+text = "An `APIRouter(prefix=\"/products\")` included with `app.include_router(router, prefix=\"/api/v1\")` and a route `@router.get(\"/{id}\")`. What's the URL?"
+options = ["`/products/{id}`", "`/api/v1/products/{id}`", "`/api/v1/{id}`", "`/products/api/v1/{id}`"]
 correct = 1
-explanation = "Los prefijos se acumulan: el de `include_router` va primero y después el del router."
+explanation = "Prefixes stack up: the one from `include_router` comes first, then the router's own."
 
 [[questions]]
-text = "¿Para qué sirve registrar un `exception_handler` para una excepción de dominio?"
+text = "What's the point of registering an `exception_handler` for a domain exception?"
 options = [
-  "Para que la excepción no se levante nunca",
-  "Para que la lógica de negocio levante sus excepciones sin saber de HTTP, y la capa web las traduzca a respuestas coherentes",
-  "Para loguear más rápido",
-  "Es obligatorio para cada endpoint",
+  "So the exception is never raised",
+  "So the business logic can raise its exceptions without knowing about HTTP, and the web layer translates them into consistent responses",
+  "To log faster",
+  "It's required for every endpoint",
 ]
 correct = 1
-explanation = "Los servicios levantan `ProductoNoEncontrado` y el handler la convierte en un 404 con el formato de la API, en un solo lugar."
+explanation = "Services raise `ProductNotFound` and the handler turns it into a 404 in the API's format, in a single place."
 
 [[questions]]
-text = "En un middleware HTTP, ¿cuándo corre el código que está después de `await call_next(request)`?"
+text = "In an HTTP middleware, when does the code after `await call_next(request)` run?"
 options = [
-  "Antes de la ruta",
-  "Después de que la ruta generó la respuesta",
-  "Solo si hubo un error",
-  "Nunca",
+  "Before the route",
+  "After the route has produced the response",
+  "Only if there was an error",
+  "Never",
 ]
 correct = 1
-explanation = "`call_next` ejecuta el resto de la cadena (otros middlewares y la ruta). Después se puede modificar la respuesta, por ejemplo agregando headers."
+explanation = "`call_next` runs the rest of the chain (other middlewares and the route). Afterwards you can modify the response, for example by adding headers."
 
 [[questions]]
-text = "¿Para qué sirve el `lifespan` de FastAPI?"
+text = "What is FastAPI's `lifespan` for?"
 options = [
-  "Para limitar la duración de cada request",
-  "Para inicializar recursos al arrancar la app (clientes, cachés, conexiones) y liberarlos al apagarla",
-  "Para definir la expiración de los tokens",
-  "Para medir el tiempo de cada endpoint",
+  "Limiting how long each request can take",
+  "Initializing resources when the app starts (clients, caches, connections) and releasing them when it shuts down",
+  "Setting token expiration",
+  "Timing each endpoint",
 ]
 correct = 1
-explanation = "Es un context manager async: lo de antes del `yield` corre al arrancar y lo de después, al apagar. Reemplaza a `on_event`."
+explanation = "It's an async context manager: what's before the `yield` runs on startup and what's after, on shutdown. It replaces `on_event`."
 
 [[questions]]
-text = "Un frontend en `https://front.com` no puede llamar a tu API en `https://api.com` desde el navegador. ¿Qué falta?"
+text = "A frontend at `https://front.com` can't call your API at `https://api.com` from the browser. What's missing?"
 options = [
-  "Un `exception_handler`",
-  "Configurar CORS (`CORSMiddleware`) permitiendo ese origen",
-  "Usar `async def`",
-  "Un router",
+  "An `exception_handler`",
+  "Configuring CORS (`CORSMiddleware`) to allow that origin",
+  "Using `async def`",
+  "A router",
 ]
 correct = 1
-explanation = "El navegador bloquea los requests entre orígenes distintos, salvo que el servidor los autorice con los headers de CORS."
+explanation = "The browser blocks requests across different origins unless the server allows them with CORS headers."

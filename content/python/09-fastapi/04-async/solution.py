@@ -6,59 +6,59 @@ import httpx
 from fastapi import BackgroundTasks, Depends, FastAPI, Query
 from pydantic import BaseModel
 
-API_PRECIOS = "https://api.precios.test"
-ENVIADOS: list[tuple[str, int]] = []
-PEDIDOS: list[dict[str, Any]] = []
+PRICES_API = "https://api.prices.test"
+SENT: list[tuple[str, int]] = []
+ORDERS: list[dict[str, Any]] = []
 
 
-async def get_cliente() -> AsyncIterator[httpx.AsyncClient]:
-    async with httpx.AsyncClient(base_url=API_PRECIOS, timeout=5) as cliente:
-        yield cliente
+async def get_client() -> AsyncIterator[httpx.AsyncClient]:
+    async with httpx.AsyncClient(base_url=PRICES_API, timeout=5) as client:
+        yield client
 
 
-def enviar_confirmacion(email: str, pedido_id: int) -> None:
-    ENVIADOS.append((email, pedido_id))
+def send_confirmation(email: str, order_id: int) -> None:
+    SENT.append((email, order_id))
 
 
-class Pedido(BaseModel):
+class Order(BaseModel):
     email: str
-    productos: list[str]
+    products: list[str]
 
 
-async def obtener_precio(cliente: httpx.AsyncClient, producto: str) -> float:
-    r = await cliente.get(f"/precios/{producto}")
+async def fetch_price(client: httpx.AsyncClient, product: str) -> float:
+    r = await client.get(f"/prices/{product}")
     r.raise_for_status()
-    return float(r.json()["precio"])
+    return float(r.json()["price"])
 
 
-async def precios_en_paralelo(
-    cliente: httpx.AsyncClient, productos: list[str]
+async def prices_in_parallel(
+    client: httpx.AsyncClient, products: list[str]
 ) -> dict[str, float]:
-    precios = await asyncio.gather(*(obtener_precio(cliente, p) for p in productos))
-    return dict(zip(productos, precios, strict=True))
+    prices = await asyncio.gather(*(fetch_price(client, p) for p in products))
+    return dict(zip(products, prices, strict=True))
 
 
-async def con_timeout(corrutina: Coroutine[Any, Any, Any], segundos: float) -> Any:
+async def with_timeout(coroutine: Coroutine[Any, Any, Any], seconds: float) -> Any:
     try:
-        async with asyncio.timeout(segundos):
-            return await corrutina
+        async with asyncio.timeout(seconds):
+            return await coroutine
     except TimeoutError:
         return None
 
 
 app = FastAPI()
-Cliente = Annotated[httpx.AsyncClient, Depends(get_cliente)]
+Client = Annotated[httpx.AsyncClient, Depends(get_client)]
 
 
-@app.get("/cotizacion")
-async def cotizacion(cliente: Cliente, productos: Annotated[list[str], Query()]) -> dict[str, Any]:
-    precios = await precios_en_paralelo(cliente, productos)
-    return {"total": sum(precios.values()), "precios": precios}
+@app.get("/quote")
+async def quote(client: Client, products: Annotated[list[str], Query()]) -> dict[str, Any]:
+    prices = await prices_in_parallel(client, products)
+    return {"total": sum(prices.values()), "prices": prices}
 
 
-@app.post("/pedidos", status_code=201)
-def crear_pedido(pedido: Pedido, tareas: BackgroundTasks) -> dict[str, int]:
-    pedido_id = len(PEDIDOS) + 1
-    PEDIDOS.append({"id": pedido_id, **pedido.model_dump()})
-    tareas.add_task(enviar_confirmacion, pedido.email, pedido_id)
-    return {"id": pedido_id}
+@app.post("/orders", status_code=201)
+def create_order(order: Order, tasks: BackgroundTasks) -> dict[str, int]:
+    order_id = len(ORDERS) + 1
+    ORDERS.append({"id": order_id, **order.model_dump()})
+    tasks.add_task(send_confirmation, order.email, order_id)
+    return {"id": order_id}

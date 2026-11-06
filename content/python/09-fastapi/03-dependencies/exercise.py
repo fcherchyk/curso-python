@@ -1,17 +1,17 @@
-"""Inyección de dependencias con Depends.
+"""Dependency injection with Depends.
 
-Dependencias a escribir:
-- paginacion(pagina=1 (≥1), por_pagina=10 (≥1, ≤50)) → Pagina(offset, limite)
-- usuario_actual(authorization: header) → Usuario
-    sin header o sin "Bearer " → 401 detail "falta el token" (header WWW-Authenticate: Bearer)
-    token que no está en TOKENS → 401 detail "token inválido"
-- solo_admin(usuario = Depends(usuario_actual)) → el usuario, o 403 detail "requiere admin"
-- get_repo() → RepoProductos (ya escrita: devolvé REPO)
+Dependencies to write:
+- pagination(page=1 (≥1), per_page=10 (≥1, ≤50)) → Page(offset, limit)
+- current_user(authorization: header) → User
+    no header or no "Bearer " → 401 detail "missing token" (header WWW-Authenticate: Bearer)
+    token not in TOKENS → 401 detail "invalid token"
+- admin_only(user = Depends(current_user)) → the user, or 403 detail "admin required"
+- get_repo() → ProductRepo (already written: returns REPO)
 
 Endpoints:
-- GET    /productos             → repo.listar(offset, limite)  (paginado)
-- GET    /yo                    → {"nombre", "es_admin"} del usuario actual
-- DELETE /productos/{id}        → solo admin; repo.borrar(id) → 204, o 404 si no existía
+- GET    /products              → repo.list_page(offset, limit)  (paginated)
+- GET    /me                    → {"name", "is_admin"} of the current user
+- DELETE /products/{id}         → admin only; repo.delete(id) → 204, or 404 if it didn't exist
 """
 
 from dataclasses import dataclass, field
@@ -21,50 +21,50 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query, status  # no
 
 
 @dataclass
-class Usuario:
-    nombre: str
-    es_admin: bool = False
+class User:
+    name: str
+    is_admin: bool = False
 
 
-TOKENS = {"t-ana": Usuario("ana", es_admin=True), "t-beto": Usuario("beto")}
+TOKENS = {"t-alice": User("alice", is_admin=True), "t-bob": User("bob")}
 
 
 @dataclass
-class Pagina:
+class Page:
     offset: int
-    limite: int
+    limit: int
 
 
 @dataclass
-class RepoProductos:
-    productos: list[str] = field(default_factory=list)
+class ProductRepo:
+    products: list[str] = field(default_factory=list)
 
-    def listar(self, offset: int, limite: int) -> list[str]:
-        return self.productos[offset : offset + limite]
+    def list_page(self, offset: int, limit: int) -> list[str]:
+        return self.products[offset : offset + limit]
 
-    def borrar(self, indice: int) -> bool:
-        if 0 <= indice < len(self.productos):
-            del self.productos[indice]
+    def delete(self, index: int) -> bool:
+        if 0 <= index < len(self.products):
+            del self.products[index]
             return True
         return False
 
 
-REPO = RepoProductos([f"producto {i}" for i in range(1, 26)])
+REPO = ProductRepo([f"product {i}" for i in range(1, 26)])
 
 
-def get_repo() -> RepoProductos:
+def get_repo() -> ProductRepo:
     return REPO
 
 
-def paginacion() -> Pagina:  # ← agregale los parámetros
+def pagination() -> Page:  # ← add the parameters
     raise NotImplementedError("TODO")
 
 
-def usuario_actual() -> Usuario:  # ← agregale el header
+def current_user() -> User:  # ← add the header
     raise NotImplementedError("TODO")
 
 
-def solo_admin() -> Usuario:  # ← que dependa de usuario_actual
+def admin_only() -> User:  # ← make it depend on current_user
     raise NotImplementedError("TODO")
 
 

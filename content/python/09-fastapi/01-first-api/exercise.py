@@ -1,26 +1,26 @@
-"""FastAPI: tu primera API.
+"""FastAPI: your first API.
 
-La misma API del primer capítulo de Flask, en FastAPI:
+The same API as the first Flask chapter, in FastAPI:
 
-GET  /                      → {"mensaje": "Hola, FastAPI"}
-GET  /saludo/{nombre}       → {"saludo": "Hola, <nombre>!"}
-GET  /sumar?a=1&b=2         → {"resultado": 3}     (a y b obligatorios e int: si no, 422 automático)
-GET  /productos             → lista de productos; con ?max_precio=N solo los de precio <= N
-GET  /productos/{id}        → el producto, o 404 con detail "producto inexistente"
-POST /productos             → body ProductoNuevo → 201 con {"id": máx+1, "nombre", "precio"}
+GET  /                      → {"message": "Hello, FastAPI"}
+GET  /greet/{name}          → {"greeting": "Hello, <name>!"}
+GET  /add?a=1&b=2           → {"result": 3}     (a and b required and int: otherwise, automatic 422)
+GET  /products              → list of products; with ?max_price=N only those with price <= N
+GET  /products/{id}         → the product, or 404 with detail "product not found"
+POST /products              → body NewProduct → 201 with {"id": max+1, "name", "price"}
 """
 
 from fastapi import FastAPI, HTTPException  # noqa: F401
 from pydantic import BaseModel
 
-app = FastAPI(title="Tienda")
+app = FastAPI(title="Store")
 
-PRODUCTOS: dict[int, dict[str, object]] = {
-    1: {"id": 1, "nombre": "yerba", "precio": 3500},
-    2: {"id": 2, "nombre": "café", "precio": 9800},
+PRODUCTS: dict[int, dict[str, object]] = {
+    1: {"id": 1, "name": "mate", "price": 3500},
+    2: {"id": 2, "name": "coffee", "price": 9800},
 }
 
 
-class ProductoNuevo(BaseModel):
-    nombre: str
-    precio: int
+class NewProduct(BaseModel):
+    name: str
+    price: int

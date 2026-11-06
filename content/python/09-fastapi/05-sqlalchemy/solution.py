@@ -17,11 +17,11 @@ class Base(DeclarativeBase):
     pass
 
 
-class Tarea(Base):
-    __tablename__ = "tareas"
+class Task(Base):
+    __tablename__ = "tasks"
     id: Mapped[int] = mapped_column(primary_key=True)
-    titulo: Mapped[str] = mapped_column(String(100))
-    hecha: Mapped[bool] = mapped_column(default=False)
+    title: Mapped[str] = mapped_column(String(100))
+    done: Mapped[bool] = mapped_column(default=False)
 
 
 Base.metadata.create_all(engine)
@@ -32,66 +32,66 @@ def get_session() -> Iterator[Session]:
         yield session
 
 
-class TareaCrear(BaseModel):
-    titulo: str = Field(min_length=1, max_length=100)
+class TaskCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=100)
 
 
-class TareaActualizar(BaseModel):
-    titulo: str | None = Field(default=None, min_length=1, max_length=100)
-    hecha: bool | None = None
+class TaskUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=100)
+    done: bool | None = None
 
 
-class TareaPublica(BaseModel):
+class TaskPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
-    titulo: str
-    hecha: bool
+    title: str
+    done: bool
 
 
 SessionDep = Annotated[Session, Depends(get_session)]
 app = FastAPI()
 
 
-def buscar(session: Session, id: int) -> Tarea:
-    tarea = session.get(Tarea, id)
-    if tarea is None:
-        raise HTTPException(404, "tarea inexistente")
-    return tarea
+def find_task(session: Session, id: int) -> Task:
+    task = session.get(Task, id)
+    if task is None:
+        raise HTTPException(404, "task not found")
+    return task
 
 
-@app.post("/tareas", response_model=TareaPublica, status_code=201)
-def crear(datos: TareaCrear, session: SessionDep) -> Tarea:
-    tarea = Tarea(**datos.model_dump())
-    session.add(tarea)
+@app.post("/tasks", response_model=TaskPublic, status_code=201)
+def create(data: TaskCreate, session: SessionDep) -> Task:
+    task = Task(**data.model_dump())
+    session.add(task)
     session.commit()
-    session.refresh(tarea)
-    return tarea
+    session.refresh(task)
+    return task
 
 
-@app.get("/tareas", response_model=list[TareaPublica])
-def listar(session: SessionDep, hecha: bool | None = None) -> list[Tarea]:
-    stmt = select(Tarea).order_by(Tarea.id)
-    if hecha is not None:
-        stmt = stmt.where(Tarea.hecha == hecha)
+@app.get("/tasks", response_model=list[TaskPublic])
+def list_tasks(session: SessionDep, done: bool | None = None) -> list[Task]:
+    stmt = select(Task).order_by(Task.id)
+    if done is not None:
+        stmt = stmt.where(Task.done == done)
     return list(session.scalars(stmt))
 
 
-@app.get("/tareas/{id}", response_model=TareaPublica)
-def detalle(id: int, session: SessionDep) -> Tarea:
-    return buscar(session, id)
+@app.get("/tasks/{id}", response_model=TaskPublic)
+def detail(id: int, session: SessionDep) -> Task:
+    return find_task(session, id)
 
 
-@app.patch("/tareas/{id}", response_model=TareaPublica)
-def actualizar(id: int, datos: TareaActualizar, session: SessionDep) -> Tarea:
-    tarea = buscar(session, id)
-    for campo, valor in datos.model_dump(exclude_unset=True).items():
-        setattr(tarea, campo, valor)
+@app.patch("/tasks/{id}", response_model=TaskPublic)
+def update(id: int, data: TaskUpdate, session: SessionDep) -> Task:
+    task = find_task(session, id)
+    for field, value in data.model_dump(exclude_unset=True).items():
+        setattr(task, field, value)
     session.commit()
-    session.refresh(tarea)
-    return tarea
+    session.refresh(task)
+    return task
 
 
-@app.delete("/tareas/{id}", status_code=204)
-def borrar(id: int, session: SessionDep) -> None:
-    session.delete(buscar(session, id))
+@app.delete("/tasks/{id}", status_code=204)
+def delete(id: int, session: SessionDep) -> None:
+    session.delete(find_task(session, id))
     session.commit()

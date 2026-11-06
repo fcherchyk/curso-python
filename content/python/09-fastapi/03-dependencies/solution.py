@@ -5,83 +5,83 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
 
 
 @dataclass
-class Usuario:
-    nombre: str
-    es_admin: bool = False
+class User:
+    name: str
+    is_admin: bool = False
 
 
-TOKENS = {"t-ana": Usuario("ana", es_admin=True), "t-beto": Usuario("beto")}
+TOKENS = {"t-alice": User("alice", is_admin=True), "t-bob": User("bob")}
 
 
 @dataclass
-class Pagina:
+class Page:
     offset: int
-    limite: int
+    limit: int
 
 
 @dataclass
-class RepoProductos:
-    productos: list[str] = field(default_factory=list)
+class ProductRepo:
+    products: list[str] = field(default_factory=list)
 
-    def listar(self, offset: int, limite: int) -> list[str]:
-        return self.productos[offset : offset + limite]
+    def list_page(self, offset: int, limit: int) -> list[str]:
+        return self.products[offset : offset + limit]
 
-    def borrar(self, indice: int) -> bool:
-        if 0 <= indice < len(self.productos):
-            del self.productos[indice]
+    def delete(self, index: int) -> bool:
+        if 0 <= index < len(self.products):
+            del self.products[index]
             return True
         return False
 
 
-REPO = RepoProductos([f"producto {i}" for i in range(1, 26)])
+REPO = ProductRepo([f"product {i}" for i in range(1, 26)])
 
 
-def get_repo() -> RepoProductos:
+def get_repo() -> ProductRepo:
     return REPO
 
 
-def paginacion(
-    pagina: Annotated[int, Query(ge=1)] = 1,
-    por_pagina: Annotated[int, Query(ge=1, le=50)] = 10,
-) -> Pagina:
-    return Pagina(offset=(pagina - 1) * por_pagina, limite=por_pagina)
+def pagination(
+    page: Annotated[int, Query(ge=1)] = 1,
+    per_page: Annotated[int, Query(ge=1, le=50)] = 10,
+) -> Page:
+    return Page(offset=(page - 1) * per_page, limit=per_page)
 
 
-def usuario_actual(authorization: Annotated[str | None, Header()] = None) -> Usuario:
+def current_user(authorization: Annotated[str | None, Header()] = None) -> User:
     if authorization is None or not authorization.startswith("Bearer "):
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED,
-            detail="falta el token",
+            detail="missing token",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    usuario = TOKENS.get(authorization.removeprefix("Bearer "))
-    if usuario is None:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="token inválido")
-    return usuario
+    user = TOKENS.get(authorization.removeprefix("Bearer "))
+    if user is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="invalid token")
+    return user
 
 
-def solo_admin(usuario: Annotated[Usuario, Depends(usuario_actual)]) -> Usuario:
-    if not usuario.es_admin:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="requiere admin")
-    return usuario
+def admin_only(user: Annotated[User, Depends(current_user)]) -> User:
+    if not user.is_admin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="admin required")
+    return user
 
 
-Repo = Annotated[RepoProductos, Depends(get_repo)]
+Repo = Annotated[ProductRepo, Depends(get_repo)]
 
 app = FastAPI()
 
 
-@app.get("/productos")
-def listar(pag: Annotated[Pagina, Depends(paginacion)], repo: Repo) -> list[str]:
-    return repo.listar(pag.offset, pag.limite)
+@app.get("/products")
+def list_products(page: Annotated[Page, Depends(pagination)], repo: Repo) -> list[str]:
+    return repo.list_page(page.offset, page.limit)
 
 
-@app.get("/yo")
-def yo(usuario: Annotated[Usuario, Depends(usuario_actual)]) -> dict[str, object]:
-    return asdict(usuario)
+@app.get("/me")
+def me(user: Annotated[User, Depends(current_user)]) -> dict[str, object]:
+    return asdict(user)
 
 
-@app.delete("/productos/{id}", status_code=204, dependencies=[Depends(solo_admin)])
-def borrar(id: int, repo: Repo) -> None:
-    if not repo.borrar(id):
-        raise HTTPException(404, "producto inexistente")
+@app.delete("/products/{id}", status_code=204, dependencies=[Depends(admin_only)])
+def delete_product(id: int, repo: Repo) -> None:
+    if not repo.delete(id):
+        raise HTTPException(404, "product not found")

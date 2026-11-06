@@ -1,54 +1,54 @@
 [[questions]]
-text = "Con `precio: float`, ¿qué pasa con `Producto(nombre=\"x\", precio=\"3500\")` en el modo por defecto?"
+text = "With `price: float`, what happens with `Product(name=\"x\", price=\"3500\")` in the default mode?"
 options = [
-  "`ValidationError`: es un string",
-  "Se convierte a `3500.0`",
-  "Queda como string `\"3500\"`",
-  "Se ignora el campo",
+  "`ValidationError`: it's a string",
+  "It's converted to `3500.0`",
+  "It stays as the string `\"3500\"`",
+  "The field is ignored",
 ]
 correct = 1
-explanation = "En modo laxo, Pydantic convierte los valores compatibles. Con `strict=True` exigiría un número."
+explanation = "In lax mode, Pydantic converts compatible values. With `strict=True` it would require a number."
 
 [[questions]]
-text = "¿Qué hace `edad: int = Field(ge=0, le=130)`?"
+text = "What does `age: int = Field(ge=0, le=130)` do?"
 options = [
-  "Pone 0 como default",
-  "Exige que la edad esté entre 0 y 130 inclusive",
-  "Convierte la edad a un rango",
-  "Exige más de 0 y menos de 130 (exclusivo)",
+  "Sets 0 as the default",
+  "Requires the age to be between 0 and 130 inclusive",
+  "Converts the age to a range",
+  "Requires more than 0 and less than 130 (exclusive)",
 ]
 correct = 1
-explanation = "`ge` es \"mayor o igual\" y `le`, \"menor o igual\". Para exclusivos están `gt` y `lt`."
+explanation = "`ge` means \"greater than or equal\" and `le`, \"less than or equal\". For exclusive bounds there are `gt` and `lt`."
 
 [[questions]]
-text = "¿Para qué sirve `@model_validator(mode=\"after\")`?"
+text = "What is `@model_validator(mode=\"after\")` for?"
 options = [
-  "Para validar un solo campo",
-  "Para reglas que involucran varios campos, con el modelo ya construido",
-  "Para convertir el modelo a JSON",
-  "Para definir valores por defecto",
+  "Validating a single field",
+  "Rules that involve several fields, with the model already built",
+  "Converting the model to JSON",
+  "Defining default values",
 ]
 correct = 1
-explanation = "Ejemplos: que la contraseña no sea igual al nombre, o que `fecha_fin` sea posterior a `fecha_inicio`."
+explanation = "Examples: the password must not equal the name, or `end_date` must be after `start_date`."
 
 [[questions]]
-text = "Un endpoint tiene `response_model=UsuarioPublico` (sin `password`) y devuelve un dict con `password`. ¿Qué recibe el cliente?"
+text = "An endpoint has `response_model=PublicUser` (no `password`) and returns a dict with `password`. What does the client get?"
 options = [
-  "El dict completo, con password",
-  "Solo los campos de `UsuarioPublico`: `password` se filtra",
-  "Un error 500",
-  "Un 422",
+  "The full dict, password included",
+  "Only the fields of `PublicUser`: `password` is filtered out",
+  "A 500 error",
+  "A 422",
 ]
 correct = 1
-explanation = "El `response_model` valida y filtra la salida. Es la forma idiomática de no exponer campos sensibles."
+explanation = "The `response_model` validates and filters the output. It's the idiomatic way to avoid exposing sensitive fields."
 
 [[questions]]
-text = "Si el body de un POST no cumple el modelo, ¿qué responde FastAPI?"
+text = "If a POST body doesn't match the model, what does FastAPI respond?"
 options = [
-  "400 con un mensaje genérico",
-  "422 con la lista de errores por campo (`loc`, `msg`, `type`)",
+  "400 with a generic message",
+  "422 with the list of per-field errors (`loc`, `msg`, `type`)",
   "500",
-  "200 con los datos corregidos",
+  "200 with the corrected data",
 ]
 correct = 1
-explanation = "La validación ocurre antes de llamar a tu función. El 422 indica qué campo falló y por qué."
+explanation = "Validation happens before your function is called. The 422 says which field failed and why."

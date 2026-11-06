@@ -1,18 +1,18 @@
-"""Base de datos con SQLAlchemy 2.0.
+"""Databases with SQLAlchemy 2.0.
 
-Ya están el engine, el modelo Tarea y get_session. Escribí:
+The engine, the Task model and get_session are already there. Write:
 
 Schemas (Pydantic):
-- TareaCrear: titulo (1 a 100 caracteres)
-- TareaActualizar: titulo y hecha, ambos opcionales (PATCH)
-- TareaPublica: id, titulo, hecha (con from_attributes=True)
+- TaskCreate: title (1 to 100 characters)
+- TaskUpdate: title and done, both optional (PATCH)
+- TaskPublic: id, title, done (with from_attributes=True)
 
-Endpoints (todos usan la sesión de get_session):
-- POST   /tareas           → 201 TareaPublica
-- GET    /tareas           → lista ordenada por id; con ?hecha=true|false, filtrada
-- GET    /tareas/{id}      → TareaPublica o 404 "tarea inexistente"
-- PATCH  /tareas/{id}      → actualiza SOLO lo enviado (exclude_unset) o 404
-- DELETE /tareas/{id}      → 204 o 404
+Endpoints (all use the session from get_session):
+- POST   /tasks            → 201 TaskPublic
+- GET    /tasks            → list ordered by id; with ?done=true|false, filtered
+- GET    /tasks/{id}       → TaskPublic or 404 "task not found"
+- PATCH  /tasks/{id}       → updates ONLY what was sent (exclude_unset) or 404
+- DELETE /tasks/{id}       → 204 or 404
 """
 
 from collections.abc import Iterator
@@ -34,11 +34,11 @@ class Base(DeclarativeBase):
     pass
 
 
-class Tarea(Base):
-    __tablename__ = "tareas"
+class Task(Base):
+    __tablename__ = "tasks"
     id: Mapped[int] = mapped_column(primary_key=True)
-    titulo: Mapped[str] = mapped_column(String(100))
-    hecha: Mapped[bool] = mapped_column(default=False)
+    title: Mapped[str] = mapped_column(String(100))
+    done: Mapped[bool] = mapped_column(default=False)
 
 
 Base.metadata.create_all(engine)

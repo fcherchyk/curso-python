@@ -1,54 +1,54 @@
 [[questions]]
-text = "¿Por qué se separan los modelos del ORM de los schemas de Pydantic?"
+text = "Why are ORM models kept separate from Pydantic schemas?"
 options = [
-  "Porque SQLAlchemy no funciona con FastAPI",
-  "Para controlar qué puede enviar el cliente y qué devuelve la API (sin exponer campos internos), independientemente de la tabla",
-  "Por rendimiento",
-  "Porque Pydantic no soporta enteros",
+  "Because SQLAlchemy doesn't work with FastAPI",
+  "To control what the client can send and what the API returns (without exposing internal fields), independently of the table",
+  "For performance",
+  "Because Pydantic doesn't support integers",
 ]
 correct = 1
-explanation = "El schema de entrada no tiene `id` y el de salida no expone campos sensibles. La API y la tabla evolucionan por separado."
+explanation = "The input schema has no `id` and the output schema doesn't expose sensitive fields. The API and the table evolve separately."
 
 [[questions]]
-text = "¿Para qué sirve `model_config = ConfigDict(from_attributes=True)` en un schema?"
+text = "What is `model_config = ConfigDict(from_attributes=True)` for in a schema?"
 options = [
-  "Para leer el schema desde un archivo",
-  "Para poder construirlo desde un objeto con atributos (por ejemplo, una instancia del ORM)",
-  "Para hacerlo inmutable",
-  "Para validar en modo estricto",
+  "Reading the schema from a file",
+  "Being able to build it from an object with attributes (for example, an ORM instance)",
+  "Making it immutable",
+  "Validating in strict mode",
 ]
 correct = 1
-explanation = "Permite `TareaPublica.model_validate(tarea_orm)`, que es lo que hace FastAPI con el `response_model` cuando devolvés un objeto del ORM."
+explanation = "It allows `TaskPublic.model_validate(orm_task)`, which is what FastAPI does with the `response_model` when you return an ORM object."
 
 [[questions]]
-text = "En un PATCH con body `{\"hecha\": true}`, ¿qué devuelve `datos.model_dump(exclude_unset=True)`?"
+text = "In a PATCH with body `{\"done\": true}`, what does `data.model_dump(exclude_unset=True)` return?"
 options = [
-  "`{\"titulo\": None, \"hecha\": True}`",
-  "`{\"hecha\": True}`",
+  "`{\"title\": None, \"done\": True}`",
+  "`{\"done\": True}`",
   "`{}`",
-  "Todos los campos con sus defaults",
+  "Every field with its defaults",
 ]
 correct = 1
-explanation = "Solo incluye los campos que vinieron en el JSON. Así no se pisan los demás con `None`."
+explanation = "It only includes the fields that came in the JSON. That way the others aren't overwritten with `None`."
 
 [[questions]]
-text = "¿Qué hace `session.refresh(tarea)` después del `commit`?"
+text = "What does `session.refresh(task)` do after the `commit`?"
 options = [
-  "Borra la tarea",
-  "Recarga el objeto desde la base (por ejemplo, el id y los defaults generados)",
-  "Deshace los cambios",
-  "Cierra la sesión",
+  "Deletes the task",
+  "Reloads the object from the database (for example, the id and generated defaults)",
+  "Rolls back the changes",
+  "Closes the session",
 ]
 correct = 1
-explanation = "Sincroniza el objeto con lo que quedó guardado, para que la respuesta tenga los valores definitivos."
+explanation = "It syncs the object with what was actually saved, so the response has the final values."
 
 [[questions]]
-text = "Un endpoint usa una `Session` sincrónica de SQLAlchemy. ¿Cómo conviene declararlo?"
+text = "An endpoint uses a synchronous SQLAlchemy `Session`. How should you declare it?"
 options = [
   "`async def`",
-  "`def`, para que FastAPI lo ejecute en el thread pool sin bloquear el loop",
-  "Da igual",
-  "Con `@app.sync`",
+  "`def`, so FastAPI runs it in the thread pool without blocking the loop",
+  "It doesn't matter",
+  "With `@app.sync`",
 ]
 correct = 1
-explanation = "El driver sincrónico bloquea. Con `def`, ese bloqueo ocurre en un thread aparte. Para todo async, `AsyncSession`."
+explanation = "The synchronous driver blocks. With `def`, that blocking happens on a separate thread. For fully async, use `AsyncSession`."

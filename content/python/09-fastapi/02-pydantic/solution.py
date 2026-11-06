@@ -2,59 +2,59 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
-class Direccion(BaseModel):
-    calle: str = Field(min_length=3)
-    ciudad: str
-    cp: str = Field(pattern=r"^\d{4}$")
+class Address(BaseModel):
+    street: str = Field(min_length=3)
+    city: str
+    postcode: str = Field(pattern=r"^\d{4}$")
 
 
-class UsuarioNuevo(BaseModel):
-    nombre: str = Field(min_length=2, max_length=50)
+class NewUser(BaseModel):
+    name: str = Field(min_length=2, max_length=50)
     email: str
-    edad: int = Field(ge=0, le=130)
+    age: int = Field(ge=0, le=130)
     password: str = Field(min_length=8)
-    direccion: Direccion | None = None
+    address: Address | None = None
 
-    # mode="before": el strip corre antes de chequear el largo.
-    @field_validator("nombre", mode="before")
+    # mode="before": the strip runs before the length check.
+    @field_validator("name", mode="before")
     @classmethod
-    def limpiar_nombre(cls, v: object) -> object:
+    def clean_name(cls, v: object) -> object:
         return v.strip() if isinstance(v, str) else v
 
     @field_validator("email")
     @classmethod
-    def validar_email(cls, v: str) -> str:
+    def validate_email(cls, v: str) -> str:
         if "@" not in v:
-            raise ValueError("email inválido")
+            raise ValueError("invalid email")
         return v.lower()
 
     @model_validator(mode="after")
-    def password_distinto_del_nombre(self) -> "UsuarioNuevo":
-        if self.password.lower() == self.nombre.lower():
-            raise ValueError("la contraseña no puede ser igual al nombre")
+    def password_differs_from_name(self) -> "NewUser":
+        if self.password.lower() == self.name.lower():
+            raise ValueError("the password can't be the same as the name")
         return self
 
 
-class UsuarioPublico(BaseModel):
+class PublicUser(BaseModel):
     id: int
-    nombre: str
+    name: str
     email: str
-    edad: int
+    age: int
 
 
 app = FastAPI()
-USUARIOS: dict[int, dict[str, object]] = {}
+USERS: dict[int, dict[str, object]] = {}
 
 
-@app.post("/usuarios", response_model=UsuarioPublico, status_code=201)
-def crear_usuario(datos: UsuarioNuevo) -> dict[str, object]:
-    nuevo_id = len(USUARIOS) + 1
-    USUARIOS[nuevo_id] = {"id": nuevo_id, **datos.model_dump()}
-    return USUARIOS[nuevo_id]  # incluye password: response_model lo filtra
+@app.post("/users", response_model=PublicUser, status_code=201)
+def create_user(data: NewUser) -> dict[str, object]:
+    new_id = len(USERS) + 1
+    USERS[new_id] = {"id": new_id, **data.model_dump()}
+    return USERS[new_id]  # includes password: response_model filters it out
 
 
-@app.get("/usuarios/{id}", response_model=UsuarioPublico)
-def ver_usuario(id: int) -> dict[str, object]:
-    if id not in USUARIOS:
-        raise HTTPException(404, "usuario inexistente")
-    return USUARIOS[id]
+@app.get("/users/{id}", response_model=PublicUser)
+def get_user(id: int) -> dict[str, object]:
+    if id not in USERS:
+        raise HTTPException(404, "user not found")
+    return USERS[id]

@@ -1,22 +1,22 @@
 [[questions]]
-text = "Con `@app.get(\"/productos/{id}\")` y `def detalle(id: int)`, ¿qué responde `/productos/abc`?"
-options = ["404", "422 con el detalle del error de validación", "500", "200 con `id = \"abc\"`"]
+text = "With `@app.get(\"/products/{id}\")` and `def detail(id: int)`, what does `/products/abc` return?"
+options = ["404", "422 with the details of the validation error", "500", "200 with `id = \"abc\"`"]
 correct = 1
-explanation = "El type hint valida y convierte. Un valor inválido da 422 (Unprocessable Entity) sin llegar a tu función."
+explanation = "The type hint validates and converts. An invalid value returns 422 (Unprocessable Entity) without ever reaching your function."
 
 [[questions]]
-text = "En `def listar(q: str | None = None, pagina: int = 1)`, ¿de dónde salen `q` y `pagina`?"
+text = "In `def list_products(q: str | None = None, page: int = 1)`, where do `q` and `page` come from?"
 options = [
-  "Del body JSON",
-  "Del query string (`?q=...&pagina=...`)",
-  "De los headers",
-  "De la ruta",
+  "The JSON body",
+  "The query string (`?q=...&page=...`)",
+  "The headers",
+  "The path",
 ]
 correct = 1
-explanation = "Los parámetros de tipo simple que no aparecen en la ruta son query params. Con default son opcionales."
+explanation = "Simple-typed parameters that don't appear in the path are query params. With a default they're optional."
 
 [[questions]]
-text = "¿Cómo se responde un 404 en FastAPI?"
+text = "How do you return a 404 in FastAPI?"
 options = [
   "`return {\"detail\": \"...\"}, 404`",
   "`raise HTTPException(status_code=404, detail=\"...\")`",
@@ -24,21 +24,21 @@ options = [
   "`return HTTPException(404)`",
 ]
 correct = 1
-explanation = "`HTTPException` se levanta. FastAPI la convierte en una respuesta JSON `{\"detail\": ...}` con el código indicado."
+explanation = "`HTTPException` is raised. FastAPI turns it into a JSON response `{\"detail\": ...}` with the given status code."
 
 [[questions]]
-text = "¿Qué se obtiene en `/docs` sin escribir nada extra?"
+text = "What do you get at `/docs` without writing anything extra?"
 options = [
-  "Nada: hay que instalar un plugin",
-  "Documentación interactiva (Swagger UI) generada desde los tipos y las rutas",
-  "Los logs del servidor",
-  "El código fuente",
+  "Nothing: you need to install a plugin",
+  "Interactive documentation (Swagger UI) generated from the types and routes",
+  "The server logs",
+  "The source code",
 ]
 correct = 1
-explanation = "FastAPI genera el esquema OpenAPI a partir de las firmas y los modelos, y lo muestra en `/docs` y `/redoc`."
+explanation = "FastAPI generates the OpenAPI schema from the signatures and models, and shows it at `/docs` and `/redoc`."
 
 [[questions]]
-text = "Un parámetro `datos: ProductoNuevo` (un `BaseModel` de Pydantic) en un endpoint POST se toma de…"
-options = ["El query string", "El body JSON", "Los headers", "Las cookies"]
+text = "A parameter `data: NewProduct` (a Pydantic `BaseModel`) in a POST endpoint is read from…"
+options = ["The query string", "The JSON body", "The headers", "The cookies"]
 correct = 1
-explanation = "Los parámetros que son modelos Pydantic se leen del body y se validan campo por campo."
+explanation = "Parameters that are Pydantic models are read from the body and validated field by field."

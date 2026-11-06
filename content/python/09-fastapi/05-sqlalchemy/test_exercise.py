@@ -7,68 +7,68 @@ from sqlalchemy.pool import StaticPool
 
 
 @pytest.fixture
-def cliente():
-    """Cada test usa una base en memoria NUEVA, inyectada con dependency_overrides."""
+def client():
+    """Each test uses a NEW in-memory database, injected with dependency_overrides."""
     engine = create_engine(
         "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
     )
     Base.metadata.create_all(engine)
-    Sesion = sessionmaker(bind=engine)
+    TestSession = sessionmaker(bind=engine)
 
-    def sesion_de_test():
-        with Sesion() as s:
+    def override_session():
+        with TestSession() as s:
             yield s
 
-    app.dependency_overrides[get_session] = sesion_de_test
+    app.dependency_overrides[get_session] = override_session
     yield TestClient(app)
     app.dependency_overrides.clear()
 
 
-def crear(cliente, titulo):
-    return cliente.post("/tareas", json={"titulo": titulo})
+def create(client, title):
+    return client.post("/tasks", json={"title": title})
 
 
-def test_crear(cliente):
-    r = crear(cliente, "comprar yerba")
+def test_create(client):
+    r = create(client, "buy mate")
     assert r.status_code == 201
-    assert r.json() == {"id": 1, "titulo": "comprar yerba", "hecha": False}
+    assert r.json() == {"id": 1, "title": "buy mate", "done": False}
 
 
-def test_crear_valida(cliente):
-    assert crear(cliente, "").status_code == 422
-    assert crear(cliente, "x" * 101).status_code == 422
-    assert cliente.post("/tareas", json={"titulo": "x", "id": 99}).json()["id"] == 1
+def test_create_validates(client):
+    assert create(client, "").status_code == 422
+    assert create(client, "x" * 101).status_code == 422
+    assert client.post("/tasks", json={"title": "x", "id": 99}).json()["id"] == 1
 
 
-def test_listar_y_filtrar(cliente):
+def test_list_and_filter(client):
     for t in ["a", "b", "c"]:
-        crear(cliente, t)
-    cliente.patch("/tareas/2", json={"hecha": True})
-    assert [t["titulo"] for t in cliente.get("/tareas").json()] == ["a", "b", "c"]
-    assert [t["titulo"] for t in cliente.get("/tareas", params={"hecha": True}).json()] == ["b"]
-    assert [t["id"] for t in cliente.get("/tareas", params={"hecha": False}).json()] == [1, 3]
+        create(client, t)
+    client.patch("/tasks/2", json={"done": True})
+    assert [t["title"] for t in client.get("/tasks").json()] == ["a", "b", "c"]
+    assert [t["title"] for t in client.get("/tasks", params={"done": True}).json()] == ["b"]
+    assert [t["id"] for t in client.get("/tasks", params={"done": False}).json()] == [1, 3]
 
 
-def test_detalle(cliente):
-    crear(cliente, "a")
-    assert cliente.get("/tareas/1").json()["titulo"] == "a"
-    r = cliente.get("/tareas/9")
+def test_detail(client):
+    create(client, "a")
+    assert client.get("/tasks/1").json()["title"] == "a"
+    r = client.get("/tasks/9")
     assert r.status_code == 404
-    assert r.json() == {"detail": "tarea inexistente"}
+    assert r.json() == {"detail": "task not found"}
 
 
-def test_patch_parcial(cliente):
-    crear(cliente, "original")
-    r = cliente.patch("/tareas/1", json={"hecha": True})
+def test_partial_patch(client):
+    create(client, "original")
+    r = client.patch("/tasks/1", json={"done": True})
     assert r.status_code == 200
-    assert r.json() == {"id": 1, "titulo": "original", "hecha": True}, "no pises lo que no vino"
-    r = cliente.patch("/tareas/1", json={"titulo": "nuevo"})
-    assert r.json() == {"id": 1, "titulo": "nuevo", "hecha": True}
-    assert cliente.patch("/tareas/9", json={"hecha": True}).status_code == 404
+    assert r.json() == {"id": 1, "title": "original", "done": True}, "don't overwrite what wasn't sent"
+    r = client.patch("/tasks/1", json={"title": "new"})
+    assert r.json() == {"id": 1, "title": "new", "done": True}
+    assert client.patch("/tasks/9", json={"done": True}).status_code == 404
 
 
-def test_borrar(cliente):
-    crear(cliente, "a")
-    assert cliente.delete("/tareas/1").status_code == 204
-    assert cliente.get("/tareas").json() == []
-    assert cliente.delete("/tareas/1").status_code == 404
+def test_delete(client):
+    create(client, "a")
+    assert client.delete("/tasks/1").status_code == 204
+    assert client.get("/tasks").json() == []
+    assert client.delete("/tasks/1").status_code == 404

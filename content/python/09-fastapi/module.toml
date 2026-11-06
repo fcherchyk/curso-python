@@ -1,2 +1,2 @@
 title = "FastAPI"
-description = "APIs modernas con type hints: Pydantic, inyección de dependencias, async, SQLAlchemy 2.0, routers, errores y middleware."
+description = "Modern APIs with type hints: Pydantic, dependency injection, async, SQLAlchemy 2.0, routers, errors and middleware."

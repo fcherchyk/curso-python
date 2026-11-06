@@ -1,44 +1,44 @@
-"""Pydantic: validar datos con tipos.
+"""Pydantic: validating data with types.
 
-1. Direccion: calle (str, mín. 3 caracteres), ciudad (str), cp (str de exactamente 4 dígitos).
-2. UsuarioNuevo:
-   - nombre: 2 a 50 caracteres, SIN espacios alrededor (field_validator que hace strip;
-     el largo se valida después del strip)
-   - email: tiene que contener "@"; se guarda en minúscula (field_validator)
-   - edad: entre 0 y 130
-   - password: mínimo 8 caracteres
-   - direccion: Direccion | None = None
-   - regla entre campos (model_validator): password distinto del nombre (sin importar
-     mayúsculas) → si no, ValueError("la contraseña no puede ser igual al nombre")
-3. UsuarioPublico: id, nombre, email, edad (sin password ni dirección).
-4. POST /usuarios: body UsuarioNuevo → 201 con UsuarioPublico (response_model), id incremental.
-   GET  /usuarios/{id}: UsuarioPublico o 404.
+1. Address: street (str, min. 3 characters), city (str), postcode (str of exactly 4 digits).
+2. NewUser:
+   - name: 2 to 50 characters, WITHOUT surrounding whitespace (field_validator that strips;
+     the length is validated after the strip)
+   - email: must contain "@"; stored in lowercase (field_validator)
+   - age: between 0 and 130
+   - password: at least 8 characters
+   - address: Address | None = None
+   - cross-field rule (model_validator): password different from the name (case
+     insensitive) → otherwise, ValueError("the password can't be the same as the name")
+3. PublicUser: id, name, email, age (no password or address).
+4. POST /users: body NewUser → 201 with PublicUser (response_model), incremental id.
+   GET  /users/{id}: PublicUser or 404.
 """
 
 from fastapi import FastAPI, HTTPException  # noqa: F401
 from pydantic import BaseModel, Field, field_validator, model_validator  # noqa: F401
 
 
-class Direccion(BaseModel):
-    calle: str
-    ciudad: str
-    cp: str
+class Address(BaseModel):
+    street: str
+    city: str
+    postcode: str
 
 
-class UsuarioNuevo(BaseModel):
-    nombre: str
+class NewUser(BaseModel):
+    name: str
     email: str
-    edad: int
+    age: int
     password: str
-    direccion: Direccion | None = None
+    address: Address | None = None
 
 
-class UsuarioPublico(BaseModel):
+class PublicUser(BaseModel):
     id: int
-    nombre: str
+    name: str
     email: str
-    edad: int
+    age: int
 
 
 app = FastAPI()
-USUARIOS: dict[int, dict[str, object]] = {}
+USERS: dict[int, dict[str, object]] = {}

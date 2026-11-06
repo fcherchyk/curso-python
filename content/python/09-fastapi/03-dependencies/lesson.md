@@ -1,159 +1,159 @@
-# Inyección de dependencias con `Depends`
+# Dependency injection with `Depends`
 
-La función más poderosa de FastAPI es su sistema de **dependencias**. Una dependencia es una
-función que FastAPI ejecuta **antes** de tu endpoint para darle algo que necesita: el usuario
-autenticado, una sesión de base de datos, la configuración o los parámetros de paginación.
-Resuelve con una sola idea lo que en Flask necesitaba decoradores, `g` y `current_app`, y hace
-que todo sea **fácil de reemplazar en los tests**.
+FastAPI's most powerful feature is its **dependency** system. A dependency is a function that
+FastAPI runs **before** your endpoint to give it something it needs: the authenticated user, a
+database session, the configuration or the pagination parameters. With a single idea it solves
+what in Flask took decorators, `g` and `current_app`, and it makes everything **easy to swap
+out in tests**.
 
-## Lo básico
+## The basics
 
 ```python
 from typing import Annotated
 from fastapi import Depends, FastAPI, Query
 
-def paginacion(
-    pagina: Annotated[int, Query(ge=1)] = 1,
-    por_pagina: Annotated[int, Query(ge=1, le=100)] = 20,
+def pagination(
+    page: Annotated[int, Query(ge=1)] = 1,
+    per_page: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> dict[str, int]:
-    return {"offset": (pagina - 1) * por_pagina, "limite": por_pagina}
+    return {"offset": (page - 1) * per_page, "limit": per_page}
 
-@app.get("/productos")
-def listar(pag: Annotated[dict[str, int], Depends(paginacion)]):
-    return PRODUCTOS[pag["offset"] : pag["offset"] + pag["limite"]]
+@app.get("/products")
+def list_products(pag: Annotated[dict[str, int], Depends(pagination)]):
+    return PRODUCTS[pag["offset"] : pag["offset"] + pag["limit"]]
 ```
 
-- `Depends(funcion)` le dice a FastAPI: "antes de llamar al endpoint, llamá a `funcion` y pasame
-  lo que devuelve".
-- La dependencia **declara sus propios parámetros** (query, headers, otras dependencias) y
-  FastAPI los resuelve igual que los de un endpoint. Aparecen en `/docs`.
-- `Annotated[T, Depends(f)]` es la forma recomendada. También se puede definir un alias,
-  `Paginacion = Annotated[dict, Depends(paginacion)]`, y usarlo en muchos endpoints.
+- `Depends(function)` tells FastAPI: "before calling the endpoint, call `function` and pass me
+  what it returns".
+- The dependency **declares its own parameters** (query, headers, other dependencies) and
+  FastAPI resolves them just like an endpoint's. They show up in `/docs`.
+- `Annotated[T, Depends(f)]` is the recommended form. You can also define an alias,
+  `Pagination = Annotated[dict, Depends(pagination)]`, and use it in many endpoints.
 
-## Autenticación como dependencia
+## Authentication as a dependency
 
 ```python
 from fastapi import Header, HTTPException, status
 
-def usuario_actual(authorization: Annotated[str | None, Header()] = None) -> Usuario:
+def current_user(authorization: Annotated[str | None, Header()] = None) -> User:
     if authorization is None or not authorization.startswith("Bearer "):
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED,
-            detail="falta el token",
+            detail="missing token",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    usuario = buscar_por_token(authorization.removeprefix("Bearer "))
-    if usuario is None:
-        raise HTTPException(401, detail="token inválido")
-    return usuario
+    user = find_by_token(authorization.removeprefix("Bearer "))
+    if user is None:
+        raise HTTPException(401, detail="invalid token")
+    return user
 
-@app.get("/yo")
-def yo(usuario: Annotated[Usuario, Depends(usuario_actual)]):
-    return usuario
+@app.get("/me")
+def me(user: Annotated[User, Depends(current_user)]):
+    return user
 ```
 
-- `Header()` lee un header. El nombre del parámetro se convierte: `authorization` →
+- `Header()` reads a header. The parameter name is converted: `authorization` →
   `Authorization`, `x_token` → `X-Token`.
-- Si la dependencia **levanta** `HTTPException`, el endpoint ni se ejecuta.
-- FastAPI trae utilidades como `OAuth2PasswordBearer` y `HTTPBearer`, que además integran el
-  botón "Authorize" en `/docs`.
+- If the dependency **raises** `HTTPException`, the endpoint never runs.
+- FastAPI ships utilities like `OAuth2PasswordBearer` and `HTTPBearer`, which also wire up the
+  "Authorize" button in `/docs`.
 
-## Subdependencias: componer
+## Sub-dependencies: composing
 
-Las dependencias pueden depender de otras, y así se arma una cadena:
+Dependencies can depend on others, forming a chain:
 
 ```python
-def solo_admin(usuario: Annotated[Usuario, Depends(usuario_actual)]) -> Usuario:
-    if not usuario.es_admin:
-        raise HTTPException(403, "requiere permisos de administrador")
-    return usuario
+def admin_only(user: Annotated[User, Depends(current_user)]) -> User:
+    if not user.is_admin:
+        raise HTTPException(403, "administrator permissions required")
+    return user
 
-@app.delete("/productos/{id}", status_code=204)
-def borrar(id: int, admin: Annotated[Usuario, Depends(solo_admin)]): ...
+@app.delete("/products/{id}", status_code=204)
+def delete_product(id: int, admin: Annotated[User, Depends(admin_only)]): ...
 ```
 
-FastAPI arma el grafo y **cachea cada dependencia dentro del mismo request**: si dos
-dependencias piden `usuario_actual`, se ejecuta una sola vez.
+FastAPI builds the graph and **caches each dependency within the same request**: if two
+dependencies ask for `current_user`, it runs only once.
 
-Si no necesitás el valor, la dependencia puede ir en el decorador:
-`@app.delete(..., dependencies=[Depends(solo_admin)])`. También en un router entero.
+If you don't need the value, the dependency can go in the decorator:
+`@app.delete(..., dependencies=[Depends(admin_only)])`. Or on an entire router.
 
-## Dependencias con `yield`: setup y limpieza
+## Dependencies with `yield`: setup and cleanup
 
 ```python
 def get_session():
     session = SessionLocal()
     try:
-        yield session            # el endpoint usa la sesión
+        yield session            # the endpoint uses the session
     finally:
-        session.close()          # corre después de enviar la respuesta
+        session.close()          # runs after the response is sent
 ```
 
-Es el mismo patrón de los context managers del módulo 04. Así se maneja la sesión de base de
-datos en el capítulo de SQLAlchemy.
+It's the same pattern as the context managers from module 04. This is how the database
+session is handled in the SQLAlchemy chapter.
 
-## Inyectar servicios y configuración
+## Injecting services and configuration
 
 ```python
 from functools import lru_cache
 
 @lru_cache
-def get_settings() -> Settings:          # se crea una sola vez
+def get_settings() -> Settings:          # created only once
     return Settings()
 
-def get_repo() -> RepositorioProductos:
-    return RepositorioSQL(...)
+def get_repo() -> ProductRepository:
+    return SQLRepository(...)
 
-@app.get("/productos")
-def listar(repo: Annotated[RepositorioProductos, Depends(get_repo)]):
-    return repo.listar()
+@app.get("/products")
+def list_products(repo: Annotated[ProductRepository, Depends(get_repo)]):
+    return repo.list_all()
 ```
 
-El endpoint no sabe **de dónde** sale el repositorio: solo declara que lo necesita. Esa es la
-inversión de dependencias del módulo de testing, ahora integrada en el framework.
+The endpoint doesn't know **where** the repository comes from: it just declares that it needs
+one. That's the dependency inversion from the testing module, now built into the framework.
 
 ## Tests: `dependency_overrides`
 
-La gran ventaja: en los tests reemplazás cualquier dependencia sin parchear nada.
+The big win: in tests you replace any dependency without patching anything.
 
 ```python
-def repo_falso():
-    return RepositorioEnMemoria([...])
+def fake_repo():
+    return InMemoryRepository([...])
 
-def test_listar():
-    app.dependency_overrides[get_repo] = repo_falso
-    app.dependency_overrides[usuario_actual] = lambda: Usuario(nombre="test", es_admin=True)
+def test_list():
+    app.dependency_overrides[get_repo] = fake_repo
+    app.dependency_overrides[current_user] = lambda: User(name="test", is_admin=True)
     try:
-        r = TestClient(app).get("/productos")
+        r = TestClient(app).get("/products")
         ...
     finally:
         app.dependency_overrides.clear()
 ```
 
-La clave del dict es la **función original** y el valor, la que la reemplaza.
+The dict key is the **original function** and the value is its replacement.
 
-## Comparación
+## Comparison
 
-| Necesidad              | Flask                          | FastAPI                                  |
+| Need                   | Flask                          | FastAPI                                  |
 |------------------------|--------------------------------|------------------------------------------|
-| usuario autenticado    | decorador + `g.usuario`        | `Depends(usuario_actual)`                |
-| configuración          | `current_app.config`           | `Depends(get_settings)`                  |
-| sesión de base         | `db.session` (scoped)          | `Depends(get_session)` con `yield`       |
-| reemplazar en tests    | config de la factory o mocks   | `app.dependency_overrides`               |
-| permisos compuestos    | decoradores apilados           | subdependencias                           |
+| authenticated user     | decorator + `g.user`           | `Depends(current_user)`                  |
+| configuration          | `current_app.config`           | `Depends(get_settings)`                  |
+| database session       | `db.session` (scoped)          | `Depends(get_session)` with `yield`      |
+| swapping in tests      | factory config or mocks        | `app.dependency_overrides`               |
+| composed permissions   | stacked decorators             | sub-dependencies                         |
 
-## Resumen
+## Summary
 
-- `Depends(f)`: FastAPI llama a `f` (resolviendo sus parámetros) y le pasa el resultado al endpoint.
-- Autenticación, paginación, configuración y repositorios como dependencias.
-- Las subdependencias se componen y se cachean dentro de cada request.
-- `yield` para el setup y la limpieza (sesiones).
-- `app.dependency_overrides[original] = falsa` para testear.
+- `Depends(f)`: FastAPI calls `f` (resolving its parameters) and passes the result to the endpoint.
+- Authentication, pagination, configuration and repositories as dependencies.
+- Sub-dependencies compose and are cached within each request.
+- `yield` for setup and cleanup (sessions).
+- `app.dependency_overrides[original] = fake` for testing.
 
-## Ejercicio
+## Exercise
 
-Paginación, autenticación por token, un permiso de admin compuesto y un repositorio
-inyectado que los tests reemplazan con `dependency_overrides`.
+Pagination, token authentication, a composed admin permission and an injected repository that
+the tests replace with `dependency_overrides`.
 
-**Para profundizar:** [FastAPI: Dependencies](https://fastapi.tiangolo.com/tutorial/dependencies/),
+**Further reading:** [FastAPI: Dependencies](https://fastapi.tiangolo.com/tutorial/dependencies/),
 [Testing Dependencies with Overrides](https://fastapi.tiangolo.com/advanced/testing-dependencies/).

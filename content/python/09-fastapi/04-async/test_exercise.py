@@ -6,89 +6,89 @@ import httpx
 import pytest
 from exercise import (
     app,
-    con_timeout,
-    get_cliente,
-    obtener_precio,
-    precios_en_paralelo,
+    fetch_price,
+    get_client,
+    prices_in_parallel,
+    with_timeout,
 )
 from fastapi.testclient import TestClient
 
-PRECIOS = {"yerba": 3500.0, "cafe": 9800.0, "te": 1200.0, "azucar": 900.0, "leche": 1500.0}
-DEMORA = 0.2
+PRICES = {"mate": 3500.0, "coffee": 9800.0, "tea": 1200.0, "sugar": 900.0, "milk": 1500.0}
+DELAY = 0.2
 
 
-async def api_falsa(request: httpx.Request) -> httpx.Response:
-    await asyncio.sleep(DEMORA)  # cada consulta "tarda" 200 ms
-    producto = request.url.path.rsplit("/", 1)[-1]
-    if producto not in PRECIOS:
-        return httpx.Response(404, json={"error": "no existe"})
-    return httpx.Response(200, json={"precio": PRECIOS[producto]})
+async def fake_api(request: httpx.Request) -> httpx.Response:
+    await asyncio.sleep(DELAY)  # each request "takes" 200 ms
+    product = request.url.path.rsplit("/", 1)[-1]
+    if product not in PRICES:
+        return httpx.Response(404, json={"error": "not found"})
+    return httpx.Response(200, json={"price": PRICES[product]})
 
 
-def cliente_falso() -> httpx.AsyncClient:
-    return httpx.AsyncClient(transport=httpx.MockTransport(api_falsa), base_url="http://falsa")
+def fake_client() -> httpx.AsyncClient:
+    return httpx.AsyncClient(transport=httpx.MockTransport(fake_api), base_url="http://fake")
 
 
-def test_obtener_precio():
-    async def caso():
-        async with cliente_falso() as c:
-            return await obtener_precio(c, "yerba")
+def test_fetch_price():
+    async def case():
+        async with fake_client() as c:
+            return await fetch_price(c, "mate")
 
-    assert asyncio.run(caso()) == 3500.0
-
-
-def test_precios_en_paralelo_es_concurrente():
-    async def caso():
-        async with cliente_falso() as c:
-            inicio = time.perf_counter()
-            res = await precios_en_paralelo(c, list(PRECIOS))
-            return res, time.perf_counter() - inicio
-
-    res, demora = asyncio.run(caso())
-    assert res == PRECIOS
-    assert demora < DEMORA * 2.5, f"tardó {demora:.2f}s: ¿las consultas van una por una?"
+    assert asyncio.run(case()) == 3500.0
 
 
-def test_con_timeout():
-    async def lenta():
+def test_prices_in_parallel_is_concurrent():
+    async def case():
+        async with fake_client() as c:
+            start = time.perf_counter()
+            res = await prices_in_parallel(c, list(PRICES))
+            return res, time.perf_counter() - start
+
+    res, elapsed = asyncio.run(case())
+    assert res == PRICES
+    assert elapsed < DELAY * 2.5, f"took {elapsed:.2f}s: are the requests running one by one?"
+
+
+def test_with_timeout():
+    async def slow():
         await asyncio.sleep(1)
-        return "tarde"
+        return "late"
 
-    async def rapida():
+    async def fast():
         return "ok"
 
-    assert asyncio.run(con_timeout(rapida(), 0.5)) == "ok"
-    inicio = time.perf_counter()
-    assert asyncio.run(con_timeout(lenta(), 0.1)) is None
-    assert time.perf_counter() - inicio < 0.5
+    assert asyncio.run(with_timeout(fast(), 0.5)) == "ok"
+    start = time.perf_counter()
+    assert asyncio.run(with_timeout(slow(), 0.1)) is None
+    assert time.perf_counter() - start < 0.5
 
 
 @pytest.fixture
-def cliente():
+def client():
     async def override():
-        async with cliente_falso() as c:
+        async with fake_client() as c:
             yield c
 
-    app.dependency_overrides[get_cliente] = override
-    exercise.ENVIADOS.clear()
-    exercise.PEDIDOS.clear()
+    app.dependency_overrides[get_client] = override
+    exercise.SENT.clear()
+    exercise.ORDERS.clear()
     yield TestClient(app)
     app.dependency_overrides.clear()
 
 
-def test_endpoint_cotizacion(cliente):
-    inicio = time.perf_counter()
-    r = cliente.get("/cotizacion", params={"productos": ["yerba", "cafe", "te"]})
+def test_quote_endpoint(client):
+    start = time.perf_counter()
+    r = client.get("/quote", params={"products": ["mate", "coffee", "tea"]})
     assert r.status_code == 200
     assert r.json() == {
         "total": 14500.0,
-        "precios": {"yerba": 3500.0, "cafe": 9800.0, "te": 1200.0},
+        "prices": {"mate": 3500.0, "coffee": 9800.0, "tea": 1200.0},
     }
-    assert time.perf_counter() - inicio < DEMORA * 2.5, "el endpoint también tiene que ser concurrente"
+    assert time.perf_counter() - start < DELAY * 2.5, "the endpoint must be concurrent too"
 
 
-def test_pedido_con_tarea_en_segundo_plano(cliente):
-    r = cliente.post("/pedidos", json={"email": "ana@x.com", "productos": ["yerba"]})
+def test_order_with_background_task(client):
+    r = client.post("/orders", json={"email": "alice@x.com", "products": ["mate"]})
     assert r.status_code == 201
     assert r.json() == {"id": 1}
-    assert exercise.ENVIADOS == [("ana@x.com", 1)]
+    assert exercise.SENT == [("alice@x.com", 1)]

@@ -1,169 +1,170 @@
-# Pydantic: validar datos con tipos
+# Pydantic: validating data with types
 
-Pydantic es la librería de validación más usada de Python, y es el corazón de FastAPI. Declarás
-un **modelo** con type hints y Pydantic **valida, convierte y serializa** los datos que llegan
-de afuera (JSON de una API, archivos de configuración, variables de entorno). Si algo no cumple,
-te da errores detallados por campo. Se diferencia de las dataclasses del módulo 05 en que
-estas **no validan** nada.
+Pydantic is Python's most widely used validation library, and it's the heart of FastAPI. You
+declare a **model** with type hints, and Pydantic **validates, converts and serializes** the
+data coming in from outside (an API's JSON, config files, environment variables). If something
+doesn't fit, it gives you detailed per-field errors. That's the difference from the
+dataclasses in module 05: those **don't validate** anything.
 
-## Un modelo
+## A model
 
 ```python
 from pydantic import BaseModel
 
-class Producto(BaseModel):
-    nombre: str
-    precio: float
-    tags: list[str] = []          # con default: opcional (Pydantic copia el default, no hay trampa)
-    descripcion: str | None = None
+class Product(BaseModel):
+    name: str
+    price: float
+    tags: list[str] = []          # with a default: optional (Pydantic copies the default, no trap here)
+    description: str | None = None
 
-p = Producto(nombre="yerba", precio="3500")     # "3500" se convierte a 3500.0
-p.precio                                        # 3500.0
+p = Product(name="mate", price="3500")          # "3500" is converted to 3500.0
+p.price                                         # 3500.0
 p.model_dump()                                  # dict
 p.model_dump_json()                             # JSON (str)
-Producto.model_validate({"nombre": "café", "precio": 10})   # desde un dict
-Producto.model_validate_json('{"nombre": "té", "precio": 5}')
+Product.model_validate({"name": "coffee", "price": 10})   # from a dict
+Product.model_validate_json('{"name": "tea", "price": 5}')
 ```
 
-Si los datos no sirven, levanta `ValidationError` con **todos** los problemas juntos:
+If the data is no good, it raises `ValidationError` with **all** the problems together:
 
 ```python
-Producto(nombre="x", precio="caro")
-# ValidationError: 1 validation error for Producto
-# precio
+Product(name="x", price="expensive")
+# ValidationError: 1 validation error for Product
+# price
 #   Input should be a valid number, unable to parse string as a number
 ```
 
-Por defecto Pydantic está en **modo laxo**: convierte `"3500"` en `3500`. Con
-`model_config = ConfigDict(strict=True)` (o `Field(strict=True)` en un campo) exige el tipo
-exacto.
+By default Pydantic runs in **lax mode**: it converts `"3500"` into `3500`. With
+`model_config = ConfigDict(strict=True)` (or `Field(strict=True)` on a field) it requires the
+exact type.
 
-## Restricciones con `Field`
+## Constraints with `Field`
 
 ```python
 from typing import Annotated
 from pydantic import BaseModel, Field
 
-class UsuarioNuevo(BaseModel):
-    nombre: str = Field(min_length=2, max_length=50)
-    edad: int = Field(ge=0, le=130)              # ≥ 0 y ≤ 130
+class NewUser(BaseModel):
+    name: str = Field(min_length=2, max_length=50)
+    age: int = Field(ge=0, le=130)               # ≥ 0 and ≤ 130
     password: str = Field(min_length=8)
-    cp: str = Field(pattern=r"^\d{4}$")           # regex
-    precio: Annotated[float, Field(gt=0)]         # forma equivalente con Annotated
+    postcode: str = Field(pattern=r"^\d{4}$")     # regex
+    price: Annotated[float, Field(gt=0)]          # equivalent form with Annotated
 ```
 
-Restricciones típicas: `gt`/`ge`/`lt`/`le` para números, `min_length`/`max_length` para strings
-y listas, `pattern` para regex y `default`/`default_factory`. Para emails, `EmailStr` (necesita
+Typical constraints: `gt`/`ge`/`lt`/`le` for numbers, `min_length`/`max_length` for strings
+and lists, `pattern` for regex, and `default`/`default_factory`. For emails, `EmailStr` (needs
 `pip install "pydantic[email]"`).
 
-## Validadores propios
+## Custom validators
 
 ```python
 from pydantic import field_validator, model_validator
 
-class UsuarioNuevo(BaseModel):
-    nombre: str
+class NewUser(BaseModel):
+    name: str
     email: str
     password: str
 
-    @field_validator("nombre", mode="before")
+    @field_validator("name", mode="before")
     @classmethod
-    def limpiar_nombre(cls, v: object) -> object:
-        return v.strip() if isinstance(v, str) else v   # puede TRANSFORMAR el valor…
+    def clean_name(cls, v: object) -> object:
+        return v.strip() if isinstance(v, str) else v   # it can TRANSFORM the value…
 
     @field_validator("email")
     @classmethod
-    def validar_email(cls, v: str) -> str:
+    def validate_email(cls, v: str) -> str:
         if "@" not in v:
-            raise ValueError("email inválido")   # …o rechazarlo
+            raise ValueError("invalid email")   # …or reject it
         return v.lower()
 
     @model_validator(mode="after")
-    def password_distinto_del_nombre(self) -> "UsuarioNuevo":
-        if self.password.lower() == self.nombre.lower():
-            raise ValueError("la contraseña no puede ser igual al nombre")
+    def password_differs_from_name(self) -> "NewUser":
+        if self.password.lower() == self.name.lower():
+            raise ValueError("the password can't be the same as the name")
         return self
 ```
 
-- `field_validator` valida **un campo**; devuelve el valor (transformado o no) o levanta
-  `ValueError`.
-- `model_validator(mode="after")` valida **reglas entre campos**, con el modelo ya construido.
-- El orden importa. Con `mode="after"` (el default), tu validador corre **después** del tipo y
-  de las restricciones de `Field`. Con `mode="before"`, corre **antes**, sobre el dato crudo
-  (que puede no ser un `str`). Por eso el `strip` del ejemplo es `before`: así `min_length` se
-  chequea sobre el nombre ya limpio.
+- `field_validator` validates **one field**; it returns the value (transformed or not) or
+  raises `ValueError`.
+- `model_validator(mode="after")` validates **cross-field rules**, with the model already built.
+- Order matters. With `mode="after"` (the default), your validator runs **after** the type
+  and `Field` constraints. With `mode="before"`, it runs **before**, on the raw data (which may
+  not be a `str`). That's why the `strip` in the example is `before`: that way `min_length` is
+  checked on the already-cleaned name.
 
-## Modelos anidados
+## Nested models
 
 ```python
-class Direccion(BaseModel):
-    calle: str
-    ciudad: str
+class Address(BaseModel):
+    street: str
+    city: str
 
-class Cliente(BaseModel):
-    nombre: str
-    direccion: Direccion                 # se valida recursivamente
-    otras: list[Direccion] = []
+class Customer(BaseModel):
+    name: str
+    address: Address                     # validated recursively
+    others: list[Address] = []
 ```
 
-Los errores indican la ruta completa: `direccion.ciudad: Field required`.
+Errors show the full path: `address.city: Field required`.
 
-## Pydantic en FastAPI
+## Pydantic in FastAPI
 
-FastAPI usa los modelos en las dos direcciones:
+FastAPI uses models in both directions:
 
 ```python
-class UsuarioPublico(BaseModel):          # lo que DEVOLVÉS (sin password)
+class PublicUser(BaseModel):              # what you RETURN (no password)
     id: int
-    nombre: str
+    name: str
     email: str
 
-@app.post("/usuarios", response_model=UsuarioPublico, status_code=201)
-def crear(datos: UsuarioNuevo):            # lo que RECIBÍS (validado)
-    usuario = {"id": 1, **datos.model_dump()}
-    return usuario                         # incluye password…
-                                           # …pero response_model lo FILTRA
+@app.post("/users", response_model=PublicUser, status_code=201)
+def create(data: NewUser):                 # what you RECEIVE (validated)
+    user = {"id": 1, **data.model_dump()}
+    return user                            # includes password…
+                                           # …but response_model FILTERS it out
 ```
 
-- El parámetro de tipo modelo es el **body**. Si no valida, FastAPI responde **422** con la lista
-  de errores (`loc`, `msg`, `type`) sin entrar a tu función.
-- `response_model` (o el tipo de retorno anotado) **filtra y valida la salida**: aunque devuelvas
-  un dict con `password`, la respuesta solo tiene los campos de `UsuarioPublico`. Es la forma
-  idiomática de no filtrar datos sensibles.
-- El patrón habitual es tener **un modelo por caso de uso**: `XCrear` (entrada), `XActualizar`
-  (con campos opcionales) y `XPublico` (salida).
+- A model-typed parameter is the **body**. If it doesn't validate, FastAPI responds **422**
+  with the list of errors (`loc`, `msg`, `type`) without entering your function.
+- `response_model` (or the annotated return type) **filters and validates the output**: even
+  if you return a dict with `password`, the response only has the fields of `PublicUser`. It's
+  the idiomatic way to avoid leaking sensitive data.
+- The usual pattern is **one model per use case**: `XCreate` (input), `XUpdate` (with optional
+  fields) and `XPublic` (output).
 
-## Serialización
+## Serialization
 
 ```python
 p.model_dump(exclude={"password"})
-p.model_dump(exclude_none=True)           # sin los campos None
-p.model_dump(mode="json")                 # tipos JSON-compatibles (fechas a string, etc.)
-p.model_copy(update={"precio": 10})       # copia con cambios
+p.model_dump(exclude_none=True)           # without the None fields
+p.model_dump(mode="json")                 # JSON-compatible types (dates to strings, etc.)
+p.model_copy(update={"price": 10})        # copy with changes
 ```
 
-## En los otros frameworks
+## In the other frameworks
 
-- **Flask** no trae validación: se hace a mano, o con Pydantic, marshmallow o WTForms.
-- **Django** valida con `Form` (HTML) y Django REST Framework con `Serializer`: la misma idea con
-  otra sintaxis.
-- También se usa Pydantic fuera de la web: `pydantic-settings` lee la configuración desde
-  variables de entorno con tipos.
+- **Flask** has no built-in validation: you do it by hand, or with Pydantic, marshmallow or
+  WTForms.
+- **Django** validates with `Form` (HTML), and Django REST Framework with `Serializer`: the
+  same idea with a different syntax.
+- Pydantic is also used outside the web: `pydantic-settings` reads typed configuration from
+  environment variables.
 
-## Resumen
+## Summary
 
-- `BaseModel` + type hints = validación y conversión; `ValidationError` reporta todos los errores.
-- `Field(...)` para las restricciones (`ge`, `min_length`, `pattern`…).
-- `field_validator` para un campo; `model_validator(mode="after")` para reglas entre campos.
-- Modelos anidados y listas de modelos se validan recursivamente.
-- En FastAPI: modelo como parámetro = body validado (si falla, 422); `response_model` filtra la
-  salida.
+- `BaseModel` + type hints = validation and conversion; `ValidationError` reports every error.
+- `Field(...)` for constraints (`ge`, `min_length`, `pattern`…).
+- `field_validator` for one field; `model_validator(mode="after")` for cross-field rules.
+- Nested models and lists of models are validated recursively.
+- In FastAPI: model as a parameter = validated body (422 if it fails); `response_model`
+  filters the output.
 
-## Ejercicio
+## Exercise
 
-Modelos de usuario con restricciones, normalización, una regla entre campos y una API que
-nunca devuelve la contraseña.
+User models with constraints, normalization, a cross-field rule and an API that never returns
+the password.
 
-**Para profundizar:** [Pydantic: Models](https://docs.pydantic.dev/latest/concepts/models/),
+**Further reading:** [Pydantic: Models](https://docs.pydantic.dev/latest/concepts/models/),
 [Validators](https://docs.pydantic.dev/latest/concepts/validators/),
 [FastAPI: Response Model](https://fastapi.tiangolo.com/tutorial/response-model/).

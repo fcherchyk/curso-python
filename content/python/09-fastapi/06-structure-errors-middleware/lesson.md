@@ -1,161 +1,162 @@
-# Estructura, errores y middleware
+# Structure, errors and middleware
 
-Una API de verdad no entra en un solo archivo. Este capítulo cierra el módulo con las piezas
-de un proyecto FastAPI profesional: **routers** para organizar, **excepciones de dominio**
-convertidas en respuestas HTTP coherentes, **middleware** para lo transversal (tiempos, ids de
-request, CORS), el **lifespan** para inicializar recursos y una factory que deja todo testeable.
+A real API doesn't fit in a single file. This chapter wraps up the module with the pieces of a
+professional FastAPI project: **routers** to organize, **domain exceptions** turned into
+consistent HTTP responses, **middleware** for cross-cutting concerns (timing, request ids,
+CORS), the **lifespan** to initialize resources, and a factory that keeps everything testable.
 
-## Routers: los blueprints de FastAPI
+## Routers: FastAPI's blueprints
 
 ```python
-# app/routers/productos.py
+# app/routers/products.py
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/productos", tags=["productos"])
+router = APIRouter(prefix="/products", tags=["products"])
 
 @router.get("")
-def listar(): ...
+def list_products(): ...
 
 @router.get("/{id}")
-def detalle(id: int): ...
+def detail(id: int): ...
 ```
 
 ```python
 # app/main.py
 from fastapi import FastAPI
-from app.routers import productos, usuarios
+from app.routers import products, users
 
 app = FastAPI()
-app.include_router(productos.router, prefix="/api/v1")
-app.include_router(usuarios.router, prefix="/api/v1")
+app.include_router(products.router, prefix="/api/v1")
+app.include_router(users.router, prefix="/api/v1")
 ```
 
-- `prefix` y `tags` se definen en el router o al incluirlo (y se acumulan).
-- También se pueden agregar dependencias a todo un router:
-  `APIRouter(dependencies=[Depends(usuario_actual)])`.
-- Estructura típica: `routers/` (HTTP), `schemas/` (Pydantic), `models/` (ORM), `services/`
-  (lógica de negocio) y `deps.py` (dependencias).
+- `prefix` and `tags` are set on the router or when including it (and they stack up).
+- You can also add dependencies to an entire router:
+  `APIRouter(dependencies=[Depends(current_user)])`.
+- Typical layout: `routers/` (HTTP), `schemas/` (Pydantic), `models/` (ORM), `services/`
+  (business logic) and `deps.py` (dependencies).
 
-## Errores: excepciones de dominio y handlers
+## Errors: domain exceptions and handlers
 
-La lógica de negocio no debería saber de HTTP. Levanta **sus** excepciones y la capa web las
-traduce:
+Business logic shouldn't know about HTTP. It raises **its own** exceptions and the web layer
+translates them:
 
 ```python
-class ProductoNoEncontrado(Exception):
+class ProductNotFound(Exception):
     def __init__(self, id: int):
         self.id = id
 
-@app.exception_handler(ProductoNoEncontrado)
-async def manejar_no_encontrado(request: Request, exc: ProductoNoEncontrado):
+@app.exception_handler(ProductNotFound)
+async def handle_not_found(request: Request, exc: ProductNotFound):
     return JSONResponse(
         status_code=404,
-        content={"error": "producto_no_encontrado", "id": exc.id},
+        content={"error": "product_not_found", "id": exc.id},
     )
 ```
 
-Así, `services.vender(id, cantidad)` levanta `ProductoNoEncontrado` o `StockInsuficiente` y
-cualquier endpoint que lo llame responde 404 o 409 sin `try/except`.
+That way, `services.sell(id, quantity)` raises `ProductNotFound` or `InsufficientStock`, and
+any endpoint that calls it responds 404 or 409 without a `try/except`.
 
-### Personalizar el 422
+### Customizing the 422
 
-Los errores de validación de FastAPI son detallados pero verbosos. Si tu API tiene un formato de
-error propio, se reemplaza el handler de `RequestValidationError`:
+FastAPI's validation errors are detailed but verbose. If your API has its own error format,
+replace the `RequestValidationError` handler:
 
 ```python
 from fastapi.exceptions import RequestValidationError
 
 @app.exception_handler(RequestValidationError)
-async def validacion(request: Request, exc: RequestValidationError):
-    campos = [".".join(str(p) for p in e["loc"][1:]) for e in exc.errors()]
-    return JSONResponse(status_code=422, content={"error": "validacion", "campos": campos})
+async def validation(request: Request, exc: RequestValidationError):
+    fields = [".".join(str(p) for p in e["loc"][1:]) for e in exc.errors()]
+    return JSONResponse(status_code=422, content={"error": "validation", "fields": fields})
 ```
 
-**Elegí un formato de error y usalo en todas partes.** Quien consume la API lo agradece. Hay un
-estándar, *Problem Details* (RFC 9457), que muchas APIs adoptan.
+**Pick one error format and use it everywhere.** Whoever consumes your API will thank you.
+There's a standard, *Problem Details* (RFC 9457), that many APIs adopt.
 
-## Middleware: código alrededor de cada request
+## Middleware: code around every request
 
 ```python
 import time, uuid
 
 @app.middleware("http")
-async def medir_y_etiquetar(request: Request, call_next):
+async def time_and_tag(request: Request, call_next):
     request_id = request.headers.get("X-Request-ID") or uuid.uuid4().hex
-    inicio = time.perf_counter()
-    respuesta = await call_next(request)          # ejecuta la ruta (y otros middlewares)
-    respuesta.headers["X-Request-ID"] = request_id
-    respuesta.headers["X-Tiempo-Proceso"] = f"{time.perf_counter() - inicio:.4f}"
-    return respuesta
+    start = time.perf_counter()
+    response = await call_next(request)           # runs the route (and other middlewares)
+    response.headers["X-Request-ID"] = request_id
+    response.headers["X-Process-Time"] = f"{time.perf_counter() - start:.4f}"
+    return response
 ```
 
-- Lo que va **antes** de `call_next` corre antes de la ruta; lo que va **después**, con la
-  respuesta ya armada.
-- Usos típicos: logging y métricas, ids de correlación, headers de seguridad y compresión.
-- Middlewares incluidos: `CORSMiddleware` (para que un frontend en otro dominio pueda llamar a
-  tu API), `GZipMiddleware` y `TrustedHostMiddleware`.
+- What goes **before** `call_next` runs before the route; what goes **after** runs with the
+  response already built.
+- Typical uses: logging and metrics, correlation ids, security headers and compression.
+- Built-in middlewares: `CORSMiddleware` (so a frontend on another domain can call your API),
+  `GZipMiddleware` and `TrustedHostMiddleware`.
 
 ```python
 from fastapi.middleware.cors import CORSMiddleware
-app.add_middleware(CORSMiddleware, allow_origins=["https://mi-front.com"], allow_methods=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=["https://my-frontend.com"], allow_methods=["*"])
 ```
 
-¿Middleware o dependencia? Si aplica a **todos** los requests y no necesita datos del endpoint,
-middleware. Si es por endpoint o por router, o produce un valor (el usuario), dependencia.
+Middleware or dependency? If it applies to **every** request and doesn't need data from the
+endpoint, middleware. If it's per endpoint or per router, or it produces a value (the user),
+dependency.
 
-## Lifespan: inicializar y liberar recursos
+## Lifespan: initializing and releasing resources
 
 ```python
 from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.state.cliente_http = httpx.AsyncClient()     # al arrancar
+    app.state.http_client = httpx.AsyncClient()      # on startup
     app.state.cache = {}
     yield
-    await app.state.cliente_http.aclose()            # al apagar
+    await app.state.http_client.aclose()             # on shutdown
 
 app = FastAPI(lifespan=lifespan)
 ```
 
-`app.state` guarda recursos compartidos de **esa** app. Desde un endpoint se accede con
-`request.app.state`. Reemplaza a los viejos `@app.on_event("startup")`. En los tests, el lifespan
-corre usando `TestClient` como context manager: `with TestClient(app) as c: ...`.
+`app.state` holds shared resources for **that** app. From an endpoint you reach it with
+`request.app.state`. It replaces the old `@app.on_event("startup")`. In tests, the lifespan
+runs when you use `TestClient` as a context manager: `with TestClient(app) as c: ...`.
 
-## La factory
+## The factory
 
 ```python
 def create_app() -> FastAPI:
     app = FastAPI(lifespan=lifespan)
-    app.include_router(productos.router, prefix="/api/v1")
-    app.add_exception_handler(ProductoNoEncontrado, manejar_no_encontrado)
-    app.middleware("http")(medir_y_etiquetar)
+    app.include_router(products.router, prefix="/api/v1")
+    app.add_exception_handler(ProductNotFound, handle_not_found)
+    app.middleware("http")(time_and_tag)
     return app
 ```
 
-Igual que en Flask: cada test arma su app limpia y no queda estado compartido.
+Same as in Flask: each test builds its own clean app and no state is shared.
 
-## Despliegue, en dos líneas
+## Deployment, in two lines
 
-En producción: `fastapi run app/main.py` o `uvicorn app.main:app --workers 4` (o `gunicorn` con
-workers de uvicorn), detrás de un proxy (nginx o el balanceador de la nube), en un contenedor y
-con la configuración por variables de entorno.
+In production: `fastapi run app/main.py` or `uvicorn app.main:app --workers 4` (or `gunicorn`
+with uvicorn workers), behind a proxy (nginx or the cloud load balancer), in a container and
+configured through environment variables.
 
-## Resumen
+## Summary
 
-- `APIRouter(prefix, tags)` + `include_router` para organizar por recurso.
-- Excepciones de dominio + `exception_handler` para que los errores sean coherentes; reemplazá el
-  handler del 422 si tenés un formato propio.
-- `@app.middleware("http")` para lo transversal; CORS con `CORSMiddleware`.
-- `lifespan` y `app.state` para los recursos compartidos.
-- Factory `create_app()` para los tests.
+- `APIRouter(prefix, tags)` + `include_router` to organize by resource.
+- Domain exceptions + `exception_handler` for consistent errors; replace the 422 handler if you
+  have your own format.
+- `@app.middleware("http")` for cross-cutting concerns; CORS with `CORSMiddleware`.
+- `lifespan` and `app.state` for shared resources.
+- A `create_app()` factory for tests.
 
-## Ejercicio
+## Exercise
 
-Una API de inventario armada con un router, excepciones de dominio con handlers, un formato
-propio para el 422, un middleware de ids y tiempos, y un lifespan que carga el estado inicial.
+An inventory API built with a router, domain exceptions with handlers, a custom format for the
+422, a middleware for ids and timing, and a lifespan that loads the initial state.
 
-**Para profundizar:** [Bigger Applications](https://fastapi.tiangolo.com/tutorial/bigger-applications/),
+**Further reading:** [Bigger Applications](https://fastapi.tiangolo.com/tutorial/bigger-applications/),
 [Handling Errors](https://fastapi.tiangolo.com/tutorial/handling-errors/),
 [Middleware](https://fastapi.tiangolo.com/tutorial/middleware/),
 [Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).

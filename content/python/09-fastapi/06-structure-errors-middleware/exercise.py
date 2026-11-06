@@ -1,20 +1,20 @@
-"""Estructura, errores y middleware.
+"""Structure, errors and middleware.
 
-Armá create_app() con:
+Build create_app() with:
 
-1. lifespan: al arrancar, app.state.stock = copia de STOCK_INICIAL.
-2. router = APIRouter(prefix="/productos", tags=["productos"]), incluido con prefix="/api/v1":
-     GET  /api/v1/productos/{nombre}            → {"nombre", "stock"}
-     POST /api/v1/productos/{nombre}/ventas     → body Venta {"cantidad": int > 0}
-                                                  → {"nombre", "stock"} actualizado
-   Usá vender() (lógica de dominio), que levanta las excepciones de abajo.
+1. lifespan: on startup, app.state.stock = copy of INITIAL_STOCK.
+2. router = APIRouter(prefix="/products", tags=["products"]), included with prefix="/api/v1":
+     GET  /api/v1/products/{name}               → {"name", "stock"}
+     POST /api/v1/products/{name}/sales         → body Sale {"quantity": int > 0}
+                                                  → updated {"name", "stock"}
+   Use sell() (domain logic), which raises the exceptions below.
 3. Handlers:
-     ProductoNoEncontrado → 404 {"error": "producto_no_encontrado", "nombre": ...}
-     StockInsuficiente    → 409 {"error": "stock_insuficiente", "disponible": ...}
-     RequestValidationError → 422 {"error": "validacion", "campos": ["cantidad", ...]}
-       (cada campo es el loc sin el primer elemento, unido con ".")
-4. Middleware HTTP: header X-Request-ID (el que vino en el request o uuid4().hex)
-   y X-Tiempo-Proceso (segundos, como string) en TODAS las respuestas.
+     ProductNotFound   → 404 {"error": "product_not_found", "name": ...}
+     InsufficientStock → 409 {"error": "insufficient_stock", "available": ...}
+     RequestValidationError → 422 {"error": "validation", "fields": ["quantity", ...]}
+       (each field is the loc without its first element, joined with ".")
+4. HTTP middleware: header X-Request-ID (the one sent in the request, or uuid4().hex)
+   and X-Process-Time (seconds, as a string) on ALL responses.
 """
 
 import time  # noqa: F401
@@ -26,37 +26,37 @@ from fastapi.exceptions import RequestValidationError  # noqa: F401
 from fastapi.responses import JSONResponse  # noqa: F401
 from pydantic import BaseModel, Field
 
-STOCK_INICIAL = {"yerba": 10, "cafe": 2}
+INITIAL_STOCK = {"mate": 10, "coffee": 2}
 
 
-class ProductoNoEncontrado(Exception):
-    def __init__(self, nombre: str) -> None:
-        self.nombre = nombre
+class ProductNotFound(Exception):
+    def __init__(self, name: str) -> None:
+        self.name = name
 
 
-class StockInsuficiente(Exception):
-    def __init__(self, disponible: int) -> None:
-        self.disponible = disponible
+class InsufficientStock(Exception):
+    def __init__(self, available: int) -> None:
+        self.available = available
 
 
-def vender(stock: dict[str, int], nombre: str, cantidad: int) -> int:
-    """Lógica de dominio (ya hecha): descuenta y devuelve el stock restante."""
-    if nombre not in stock:
-        raise ProductoNoEncontrado(nombre)
-    if cantidad > stock[nombre]:
-        raise StockInsuficiente(stock[nombre])
-    stock[nombre] -= cantidad
-    return stock[nombre]
+def sell(stock: dict[str, int], name: str, quantity: int) -> int:
+    """Domain logic (already done): subtracts and returns the remaining stock."""
+    if name not in stock:
+        raise ProductNotFound(name)
+    if quantity > stock[name]:
+        raise InsufficientStock(stock[name])
+    stock[name] -= quantity
+    return stock[name]
 
 
-class Venta(BaseModel):
-    cantidad: int = Field(gt=0)
+class Sale(BaseModel):
+    quantity: int = Field(gt=0)
 
 
-router = APIRouter(prefix="/productos", tags=["productos"])
+router = APIRouter(prefix="/products", tags=["products"])
 
 
 def create_app() -> FastAPI:
     app = FastAPI()
-    # TODO: lifespan, router, handlers y middleware
+    # TODO: lifespan, router, handlers and middleware
     return app

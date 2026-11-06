@@ -1,44 +1,44 @@
 [[questions]]
-text = "¿Qué hace `usuario: Annotated[Usuario, Depends(usuario_actual)]` en un endpoint?"
+text = "What does `user: Annotated[User, Depends(current_user)]` do in an endpoint?"
 options = [
-  "Importa la clase Usuario",
-  "Hace que FastAPI llame a `usuario_actual` antes del endpoint y le pase el resultado",
-  "Valida el body como un Usuario",
-  "Crea un usuario nuevo en cada request",
+  "Imports the User class",
+  "Makes FastAPI call `current_user` before the endpoint and pass it the result",
+  "Validates the body as a User",
+  "Creates a new user on every request",
 ]
 correct = 1
-explanation = "La dependencia se resuelve antes, con sus propios parámetros (headers, query, otras dependencias). Si levanta HTTPException, el endpoint no se ejecuta."
+explanation = "The dependency is resolved first, with its own parameters (headers, query, other dependencies). If it raises HTTPException, the endpoint doesn't run."
 
 [[questions]]
-text = "Dos dependencias de un mismo request piden `Depends(usuario_actual)`. ¿Cuántas veces se ejecuta?"
-options = ["Dos", "Una: se cachea dentro del request", "Ninguna", "Depende del orden"]
+text = "Two dependencies in the same request ask for `Depends(current_user)`. How many times does it run?"
+options = ["Twice", "Once: it's cached within the request", "Never", "It depends on the order"]
 correct = 1
-explanation = "FastAPI cachea el resultado de cada dependencia por request (salvo `use_cache=False`)."
+explanation = "FastAPI caches each dependency's result per request (unless `use_cache=False`)."
 
 [[questions]]
-text = "¿Cómo reemplazás una dependencia en los tests?"
+text = "How do you replace a dependency in tests?"
 options = [
-  "Con `unittest.mock.patch` sobre el endpoint",
-  "Con `app.dependency_overrides[dependencia_original] = reemplazo`",
-  "Redefiniendo la función en el test",
-  "No se puede",
+  "With `unittest.mock.patch` on the endpoint",
+  "With `app.dependency_overrides[original_dependency] = replacement`",
+  "By redefining the function in the test",
+  "You can't",
 ]
 correct = 1
-explanation = "El dict de overrides mapea la función original a la que la reemplaza. Conviene limpiarlo después de cada test."
+explanation = "The overrides dict maps the original function to its replacement. Clear it after each test."
 
 [[questions]]
-text = "En una dependencia con `yield`, ¿cuándo corre el código después del `yield`?"
+text = "In a dependency with `yield`, when does the code after the `yield` run?"
 options = [
-  "Antes del endpoint",
-  "Después de que el endpoint termina (limpieza, por ejemplo cerrar la sesión)",
-  "Nunca",
-  "Solo si hubo un error",
+  "Before the endpoint",
+  "After the endpoint finishes (cleanup, for example closing the session)",
+  "Never",
+  "Only if there was an error",
 ]
 correct = 1
-explanation = "Funciona como un context manager: setup antes del `yield` y limpieza después, idealmente en un `finally`."
+explanation = "It works like a context manager: setup before the `yield` and cleanup after, ideally in a `finally`."
 
 [[questions]]
-text = "¿Qué código corresponde a un usuario autenticado que no tiene permisos de admin?"
+text = "Which status code fits an authenticated user who lacks admin permissions?"
 options = ["401", "403", "404", "422"]
 correct = 1
-explanation = "Se sabe quién es (no es 401), pero no puede hacer la acción: 403 Forbidden."
+explanation = "We know who they are (so not 401), but they can't perform the action: 403 Forbidden."

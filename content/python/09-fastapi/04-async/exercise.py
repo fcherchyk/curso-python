@@ -1,14 +1,14 @@
-"""Async en FastAPI.
+"""Async in FastAPI.
 
-1. async obtener_precio(cliente, producto) → float
-     GET /precios/{producto} con el AsyncClient; devolvé json["precio"].
-2. async precios_en_paralelo(cliente, productos) → dict producto → precio
-     Todas las consultas A LA VEZ (asyncio.gather). Los tests miden el tiempo.
-3. async con_timeout(corrutina, segundos) → el resultado, o None si tarda más (asyncio.timeout).
-4. GET /cotizacion?productos=a&productos=b  (endpoint async)
-     → {"total": suma de precios, "precios": {...}} usando el cliente de get_cliente (Depends).
-5. POST /pedidos  body {"email": str, "productos": [str]}
-     → 201 {"id": n} y agrega con BackgroundTasks enviar_confirmacion(email, id).
+1. async fetch_price(client, product) → float
+     GET /prices/{product} with the AsyncClient; return json["price"].
+2. async prices_in_parallel(client, products) → dict product → price
+     All requests AT THE SAME TIME (asyncio.gather). The tests measure the time.
+3. async with_timeout(coroutine, seconds) → the result, or None if it takes longer (asyncio.timeout).
+4. GET /quote?products=a&products=b  (async endpoint)
+     → {"total": sum of prices, "prices": {...}} using the client from get_client (Depends).
+5. POST /orders  body {"email": str, "products": [str]}
+     → 201 {"id": n} and adds send_confirmation(email, id) with BackgroundTasks.
 """
 
 import asyncio  # noqa: F401
@@ -19,36 +19,36 @@ import httpx
 from fastapi import BackgroundTasks, Depends, FastAPI, Query  # noqa: F401
 from pydantic import BaseModel
 
-API_PRECIOS = "https://api.precios.test"
-ENVIADOS: list[tuple[str, int]] = []
-PEDIDOS: list[dict[str, Any]] = []
+PRICES_API = "https://api.prices.test"
+SENT: list[tuple[str, int]] = []
+ORDERS: list[dict[str, Any]] = []
 
 
-async def get_cliente() -> AsyncIterator[httpx.AsyncClient]:
-    async with httpx.AsyncClient(base_url=API_PRECIOS, timeout=5) as cliente:
-        yield cliente
+async def get_client() -> AsyncIterator[httpx.AsyncClient]:
+    async with httpx.AsyncClient(base_url=PRICES_API, timeout=5) as client:
+        yield client
 
 
-def enviar_confirmacion(email: str, pedido_id: int) -> None:
-    ENVIADOS.append((email, pedido_id))
+def send_confirmation(email: str, order_id: int) -> None:
+    SENT.append((email, order_id))
 
 
-class Pedido(BaseModel):
+class Order(BaseModel):
     email: str
-    productos: list[str]
+    products: list[str]
 
 
-async def obtener_precio(cliente: httpx.AsyncClient, producto: str) -> float:
+async def fetch_price(client: httpx.AsyncClient, product: str) -> float:
     raise NotImplementedError("TODO")
 
 
-async def precios_en_paralelo(
-    cliente: httpx.AsyncClient, productos: list[str]
+async def prices_in_parallel(
+    client: httpx.AsyncClient, products: list[str]
 ) -> dict[str, float]:
     raise NotImplementedError("TODO")
 
 
-async def con_timeout(corrutina: Coroutine[Any, Any, Any], segundos: float) -> Any:
+async def with_timeout(coroutine: Coroutine[Any, Any, Any], seconds: float) -> Any:
     raise NotImplementedError("TODO")
 
 

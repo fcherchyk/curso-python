@@ -1,157 +1,157 @@
-# FastAPI: tu primera API
+# FastAPI: your first API
 
-FastAPI es el framework web de Python que más creció en los últimos años. Su idea central es
-usar los **type hints** que ya escribís para todo: validar los datos de entrada, convertir tipos,
-serializar las respuestas y generar la **documentación interactiva** (OpenAPI) automáticamente.
-Está construido sobre **Starlette** (la parte web, ASGI) y **Pydantic** (la validación). Esta
-misma app del curso está hecha con FastAPI.
+FastAPI is the Python web framework that has grown the most in recent years. Its core idea is
+to use the **type hints** you already write for everything: validating input data, converting
+types, serializing responses and generating **interactive documentation** (OpenAPI)
+automatically. It's built on **Starlette** (the web part, ASGI) and **Pydantic** (validation).
+This very course app is built with FastAPI.
 
-## La app mínima
+## The minimal app
 
 ```python
 from fastapi import FastAPI
 
-app = FastAPI(title="Tienda")
+app = FastAPI(title="Store")
 
 @app.get("/")
-def inicio():
-    return {"mensaje": "Hola, FastAPI"}
+def home():
+    return {"message": "Hello, FastAPI"}
 ```
 
 ```bash
 uv add "fastapi[standard]"
-uv run fastapi dev app.py       # http://127.0.0.1:8000  (o: uvicorn app:app --reload)
+uv run fastapi dev app.py       # http://127.0.0.1:8000  (or: uvicorn app:app --reload)
 ```
 
-Abrí **`/docs`** y vas a ver la documentación interactiva (Swagger UI) generada a partir de tu
-código, donde podés probar cada endpoint. En `/redoc` hay otra vista y en `/openapi.json`, el
-esquema crudo.
+Open **`/docs`** and you'll see the interactive documentation (Swagger UI) generated from your
+code, where you can try out every endpoint. `/redoc` has another view, and `/openapi.json` has
+the raw schema.
 
-## Parámetros de ruta: tipados
+## Path parameters: typed
 
 ```python
-@app.get("/productos/{id}")
-def detalle(id: int):
+@app.get("/products/{id}")
+def detail(id: int):
     return {"id": id}
 ```
 
-- La variable se declara en la ruta con llaves `{id}` y como **parámetro de la función**.
-- El type hint **convierte y valida**: `/productos/7` llama con `id=7` (int), y `/productos/abc`
-  responde **422** con un JSON que explica el error, sin llegar a tu función.
+- The variable is declared in the path with braces `{id}` and as a **function parameter**.
+- The type hint **converts and validates**: `/products/7` calls with `id=7` (int), and
+  `/products/abc` responds **422** with a JSON body explaining the error, without reaching your
+  function.
 
-Comparalo con Flask, donde el converter va en la ruta (`<int:id>`) y los datos se leen de un
-`request` global. En FastAPI, **todo lo que la función necesita está en su firma**.
+Compare this with Flask, where the converter goes in the route (`<int:id>`) and data is read
+from a global `request`. In FastAPI, **everything the function needs is in its signature**.
 
-## Query parameters: los parámetros que no están en la ruta
+## Query parameters: the ones that aren't in the path
 
 ```python
-@app.get("/productos")
-def listar(q: str | None = None, pagina: int = 1, solo_stock: bool = False):
+@app.get("/products")
+def list_products(q: str | None = None, page: int = 1, in_stock: bool = False):
     ...
 ```
 
 ```
-GET /productos?q=yerba&pagina=2&solo_stock=true
+GET /products?q=mate&page=2&in_stock=true
 ```
 
-- Todo parámetro que **no** aparece en la ruta y es de tipo simple es un **query param**.
-- Con default es opcional; sin default es **obligatorio** (si falta, 422).
-- `bool` acepta `true/false/1/0/yes/no/on/off`.
-- Para validar más, `Query`: `pagina: Annotated[int, Query(ge=1)] = 1` exige que sea ≥ 1.
+- Any simple-typed parameter that does **not** appear in the path is a **query param**.
+- With a default it's optional; without one it's **required** (if missing, 422).
+- `bool` accepts `true/false/1/0/yes/no/on/off`.
+- For more validation, use `Query`: `page: Annotated[int, Query(ge=1)] = 1` requires it to be ≥ 1.
 
-## Respuestas y códigos de estado
+## Responses and status codes
 
 ```python
 from fastapi import HTTPException, status
 
-@app.get("/productos/{id}")
-def detalle(id: int):
-    producto = PRODUCTOS.get(id)
-    if producto is None:
-        raise HTTPException(status_code=404, detail="producto inexistente")
-    return producto           # dict, lista o modelo Pydantic → JSON
+@app.get("/products/{id}")
+def detail(id: int):
+    product = PRODUCTS.get(id)
+    if product is None:
+        raise HTTPException(status_code=404, detail="product not found")
+    return product            # dict, list or Pydantic model → JSON
 
-@app.post("/productos", status_code=status.HTTP_201_CREATED)
-def crear(...):
+@app.post("/products", status_code=status.HTTP_201_CREATED)
+def create(...):
     ...
 ```
 
-- Lo que devuelvas se serializa a JSON.
-- `HTTPException` **se levanta** (no se devuelve) y FastAPI responde
-  `{"detail": "..."}` con el código indicado.
-- `status_code=` en el decorador define el código de éxito por defecto.
+- Whatever you return is serialized to JSON.
+- `HTTPException` is **raised** (not returned), and FastAPI responds with
+  `{"detail": "..."}` and the given status code.
+- `status_code=` in the decorator sets the default success code.
 
-## El body: con Pydantic (adelanto)
+## The body: with Pydantic (a preview)
 
-Para recibir JSON en el body, se declara un **modelo**:
+To receive JSON in the body, you declare a **model**:
 
 ```python
 from pydantic import BaseModel
 
-class ProductoNuevo(BaseModel):
-    nombre: str
-    precio: int
+class NewProduct(BaseModel):
+    name: str
+    price: int
 
-@app.post("/productos", status_code=201)
-def crear(datos: ProductoNuevo):        # un modelo como parámetro = el body
+@app.post("/products", status_code=201)
+def create(data: NewProduct):           # a model as a parameter = the body
     ...
-    return {"id": 3, **datos.model_dump()}
+    return {"id": 3, **data.model_dump()}
 ```
 
-Si el JSON no tiene `nombre` o `precio` no es un número, FastAPI responde **422** detallando
-cada campo inválido. Validar a mano, como en Flask, no hace falta. El próximo capítulo es
-todo sobre Pydantic.
+If the JSON has no `name` or `price` isn't a number, FastAPI responds **422** detailing each
+invalid field. No need to validate by hand like in Flask. The next chapter is all about
+Pydantic.
 
-## `def` o `async def`
+## `def` or `async def`
 
-Las vistas pueden ser `def` o `async def`, y FastAPI acepta las dos. Por ahora usá `def`; en el
-capítulo de async vemos cuándo conviene cada una.
+Views can be `def` or `async def`, and FastAPI accepts both. For now, use `def`; in the async
+chapter we'll see when each one makes sense.
 
-## Testear con `TestClient`
+## Testing with `TestClient`
 
 ```python
 from fastapi.testclient import TestClient
 
-cliente = TestClient(app)
+client = TestClient(app)
 
-def test_detalle():
-    r = cliente.get("/productos/1")
+def test_detail():
+    r = client.get("/products/1")
     assert r.status_code == 200
-    assert r.json()["nombre"] == "yerba"
+    assert r.json()["name"] == "mate"
 
-def test_validacion():
-    assert cliente.get("/productos/abc").status_code == 422
+def test_validation():
+    assert client.get("/products/abc").status_code == 422
 ```
 
-`TestClient` está basado en `httpx`: misma API (`get`, `post(json=...)`, `params=`,
-`headers=`) y respuestas con `.json()`, `.text` y `.status_code`.
+`TestClient` is based on `httpx`: same API (`get`, `post(json=...)`, `params=`,
+`headers=`) and responses with `.json()`, `.text` and `.status_code`.
 
-## Comparación con Flask
+## Compared with Flask
 
 | Flask                                  | FastAPI                                     |
 |----------------------------------------|---------------------------------------------|
 | `@app.get("/p/<int:id>")`              | `@app.get("/p/{id}")` + `id: int`           |
-| `request.args.get("q", type=int)`      | parámetro `q: int \| None = None`            |
-| `request.get_json()` + validar a mano  | parámetro `datos: Modelo` (validación automática) |
-| `return {...}, 404` o `abort(404)`     | `raise HTTPException(404, ...)`             |
-| 400 hecho a mano                       | 422 automático con el detalle por campo     |
-| sin documentación                      | `/docs` (OpenAPI) automático                |
-| WSGI (sincrónico)                      | ASGI (sync y async)                         |
+| `request.args.get("q", type=int)`      | parameter `q: int \| None = None`            |
+| `request.get_json()` + manual checks   | parameter `data: Model` (automatic validation) |
+| `return {...}, 404` or `abort(404)`    | `raise HTTPException(404, ...)`             |
+| hand-made 400                          | automatic 422 with per-field details        |
+| no documentation                       | automatic `/docs` (OpenAPI)                 |
+| WSGI (synchronous)                     | ASGI (sync and async)                       |
 
-## Resumen
+## Summary
 
-- `app = FastAPI()` y `@app.get/post/...` como en Flask.
-- Parámetros de ruta `{id}` + `id: int`; el resto de los parámetros simples son query params.
-- Los type hints validan y convierten: un dato inválido da 422 con el detalle.
-- `raise HTTPException(status_code, detail)` para los errores; `status_code=` para el código
-  de éxito.
-- `/docs` gratis; `TestClient(app)` para testear.
+- `app = FastAPI()` and `@app.get/post/...` just like in Flask.
+- Path parameters `{id}` + `id: int`; all other simple parameters are query params.
+- Type hints validate and convert: invalid data gives a 422 with the details.
+- `raise HTTPException(status_code, detail)` for errors; `status_code=` for the success code.
+- `/docs` for free; `TestClient(app)` for testing.
 
-## Ejercicio
+## Exercise
 
-La misma API de productos del primer capítulo de Flask, ahora en FastAPI: vas a ver cuánto
-código de validación desaparece.
+The same products API from the first Flask chapter, now in FastAPI: you'll see how much
+validation code disappears.
 
-**Para profundizar:** [FastAPI Tutorial](https://fastapi.tiangolo.com/tutorial/),
+**Further reading:** [FastAPI Tutorial](https://fastapi.tiangolo.com/tutorial/),
 [Path Parameters](https://fastapi.tiangolo.com/tutorial/path-params/),
 [Query Parameters](https://fastapi.tiangolo.com/tutorial/query-params/).
