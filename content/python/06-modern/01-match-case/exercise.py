@@ -1,6 +1,6 @@
 """Pattern matching: match / case.
 
-Resolvé las tres funciones con `match` (nada de cadenas de if/elif).
+Solve all three functions with `match` (no if/elif chains).
 """
 
 from dataclasses import dataclass
@@ -8,48 +8,48 @@ from typing import Any
 
 
 @dataclass
-class Circulo:
-    radio: float
+class Circle:
+    radius: float
 
 
 @dataclass
-class Rectangulo:
-    ancho: float
-    alto: float
+class Rectangle:
+    width: float
+    height: float
 
 
-def interpretar_comando(comando: str) -> str:
-    """Interpretá comandos de texto con `match` sobre `comando.split()`:
+def interpret_command(command: str) -> str:
+    """Interpret text commands with `match` on `command.split()`:
 
-    - "salir" o "quit"          -> "chau"
-    - "ir <dir>"                -> "yendo a <dir>"   (dir: norte/sur/este/oeste)
-    - "ir <otra cosa>"          -> "dirección inválida"
-    - "tomar <obj> [<obj>...]"  -> "tomaste: a, b"   (uno o más objetos)
-    - ""                        -> "decí algo"
-    - cualquier otra cosa       -> "no entiendo"
+    - "exit" or "quit"           -> "bye"
+    - "go <dir>"                 -> "going <dir>"   (dir: north/south/east/west)
+    - "go <anything else>"       -> "invalid direction"
+    - "take <obj> [<obj>...]"    -> "you took: a, b"   (one or more objects)
+    - ""                         -> "say something"
+    - anything else              -> "I don't understand"
     """
     raise NotImplementedError("TODO")
 
 
-def procesar_evento(evento: dict[str, Any]) -> str:
-    """Patrones de mapeo sobre eventos tipo JSON:
+def process_event(event: dict[str, Any]) -> str:
+    """Mapping patterns over JSON-like events:
 
-    - {"tipo": "click", "x": int, "y": int}   -> "click en (x, y)"
-    - {"tipo": "tecla", "tecla": "enter"}     -> "confirmar"
-    - {"tipo": "tecla", "tecla": str}         -> "tecla <tecla>"
-    - {"tipo": "scroll", "delta": d} con d<0  -> "scroll abajo" / d>0 -> "scroll arriba"
-    - otro                                    -> "desconocido"
+    - {"type": "click", "x": int, "y": int}   -> "click at (x, y)"
+    - {"type": "key", "key": "enter"}         -> "confirm"
+    - {"type": "key", "key": str}             -> "key <key>"
+    - {"type": "scroll", "delta": d} with d<0 -> "scroll down" / d>0 -> "scroll up"
+    - other                                   -> "unknown"
     """
     raise NotImplementedError("TODO")
 
 
-def describir_figura(figura: object) -> str:
-    """Patrones de clase:
+def describe_shape(shape: object) -> str:
+    """Class patterns:
 
-    - Circulo de radio 0 o Rectangulo con algún lado 0 -> "degenerada"
-    - Circulo(r)                                        -> "círculo de radio r"
-    - Rectangulo(a, a) (lados iguales)                  -> "cuadrado de lado a"
-    - Rectangulo(a, b)                                  -> "rectángulo a x b"
-    - otra cosa                                         -> TypeError
+    - Circle with radius 0 or Rectangle with a side of 0 -> "degenerate"
+    - Circle(r)                                          -> "circle of radius r"
+    - Rectangle(a, a) (equal sides)                      -> "square of side a"
+    - Rectangle(a, b)                                    -> "rectangle a x b"
+    - anything else                                      -> TypeError
     """
     raise NotImplementedError("TODO")

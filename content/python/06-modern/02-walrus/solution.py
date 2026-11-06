@@ -2,26 +2,26 @@ import re
 from collections.abc import Callable
 from typing import IO
 
-PRECIO = re.compile(r"\$\s*(\d+(?:\.\d+)?)")
+PRICE = re.compile(r"\$\s*(\d+(?:\.\d+)?)")
 
 
-def leer_en_bloques(archivo: IO[str], tamanio: int) -> list[str]:
-    bloques = []
-    while bloque := archivo.read(tamanio):
-        bloques.append(bloque)
-    return bloques
+def read_in_chunks(file: IO[str], size: int) -> list[str]:
+    chunks = []
+    while chunk := file.read(size):
+        chunks.append(chunk)
+    return chunks
 
 
-def largos_mayores(palabras: list[str], minimo: int) -> list[int]:
-    return [n for p in palabras if (n := len(p)) > minimo]
+def long_lengths(words: list[str], minimum: int) -> list[int]:
+    return [n for w in words if (n := len(w)) > minimum]
 
 
-def extraer_precios(lineas: list[str]) -> list[float]:
-    return [float(m[1]) for linea in lineas if (m := PRECIO.search(linea))]
+def extract_prices(lines: list[str]) -> list[float]:
+    return [float(m[1]) for line in lines if (m := PRICE.search(line))]
 
 
-def primer_ok(intentos: Callable[[], str | None], maximo: int) -> str | None:
-    for _ in range(maximo):
-        if (resultado := intentos()) is not None:
-            return resultado
+def first_ok(attempt: Callable[[], str | None], max_tries: int) -> str | None:
+    for _ in range(max_tries):
+        if (result := attempt()) is not None:
+            return result
     return None

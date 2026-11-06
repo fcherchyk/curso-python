@@ -1,37 +1,37 @@
-"""El operador walrus `:=`. Usalo en cada función."""
+"""The walrus operator `:=`. Use it in every function."""
 
 import re  # noqa: F401
 from collections.abc import Callable
 from typing import IO
 
-PRECIO = re.compile(r"\$\s*(\d+(?:\.\d+)?)")
+PRICE = re.compile(r"\$\s*(\d+(?:\.\d+)?)")
 
 
-def leer_en_bloques(archivo: IO[str], tamanio: int) -> list[str]:
-    """Leé el archivo en bloques de `tamanio` caracteres hasta el final.
+def read_in_chunks(file: IO[str], size: int) -> list[str]:
+    """Read the file in chunks of `size` characters until the end.
 
-    Pista: `while (bloque := archivo.read(tamanio)):`
+    Hint: `while (chunk := file.read(size)):`
     """
     raise NotImplementedError("TODO")
 
 
-def largos_mayores(palabras: list[str], minimo: int) -> list[int]:
-    """Largos de las palabras con largo > minimo, calculando len() UNA vez por palabra."""
+def long_lengths(words: list[str], minimum: int) -> list[int]:
+    """Lengths of the words longer than minimum, calling len() ONCE per word."""
     raise NotImplementedError("TODO")
 
 
-def extraer_precios(lineas: list[str]) -> list[float]:
-    """Precios (como float) de las líneas que tienen uno con el formato de `PRECIO`
-    ("$ 12.50", "$3"). Las demás se ignoran.
+def extract_prices(lines: list[str]) -> list[float]:
+    """Prices (as float) from the lines that have one in the `PRICE` format
+    ("$ 12.50", "$3"). Other lines are ignored.
 
-    >>> extraer_precios(["café $ 2.5", "sin precio", "pan $3"])
+    >>> extract_prices(["coffee $ 2.5", "no price", "bread $3"])
     [2.5, 3.0]
     """
     raise NotImplementedError("TODO")
 
 
-def primer_ok(intentos: Callable[[], str | None], maximo: int) -> str | None:
-    """Llamá a `intentos()` hasta `maximo` veces y devolvé el primer resultado que no
-    sea None (o None si ninguno funcionó).
+def first_ok(attempt: Callable[[], str | None], max_tries: int) -> str | None:
+    """Call `attempt()` up to `max_tries` times and return the first result that isn't
+    None (or None if none worked).
     """
     raise NotImplementedError("TODO")

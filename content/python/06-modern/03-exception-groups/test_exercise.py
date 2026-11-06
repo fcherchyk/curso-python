@@ -1,60 +1,60 @@
 import pytest
-from exercise import clasificar_errores, ejecutar_todas, validar_usuario
+from exercise import classify_errors, run_all, validate_user
 
 
-def test_validar_usuario_ok():
-    assert validar_usuario({"nombre": "Ana", "edad": 30, "email": "a@b.com"}) is None
+def test_validate_user_ok():
+    assert validate_user({"name": "Alice", "age": 30, "email": "a@b.com"}) is None
 
 
-def test_validar_usuario_reporta_todo():
+def test_validate_user_reports_everything():
     with pytest.raises(ExceptionGroup) as info:
-        validar_usuario({"nombre": "", "edad": "treinta", "email": "sin-arroba"})
-    mensajes = sorted(str(e) for e in info.value.exceptions)
-    assert mensajes == ["edad", "email", "nombre"]
+        validate_user({"name": "", "age": "thirty", "email": "no-at-sign"})
+    messages = sorted(str(e) for e in info.value.exceptions)
+    assert messages == ["age", "email", "name"]
 
 
-def test_validar_usuario_campos_faltantes():
+def test_validate_user_missing_fields():
     with pytest.raises(ExceptionGroup) as info:
-        validar_usuario({})
+        validate_user({})
     assert len(info.value.exceptions) == 3
 
 
-def test_clasificar_errores():
-    assert clasificar_errores({"nombre": "", "edad": -1, "email": "x"}) == {
-        "valor": ["nombre", "edad", "email"],
-        "tipo": [],
+def test_classify_errors():
+    assert classify_errors({"name": "", "age": -1, "email": "x"}) == {
+        "value": ["name", "age", "email"],
+        "type": [],
     }
-    assert clasificar_errores({"nombre": "A", "edad": "x", "email": "a@b"}) == {
-        "valor": [],
-        "tipo": ["edad"],
+    assert classify_errors({"name": "A", "age": "x", "email": "a@b"}) == {
+        "value": [],
+        "type": ["age"],
     }
-    assert clasificar_errores({"nombre": "A", "edad": 1, "email": "a@b"}) == {
-        "valor": [],
-        "tipo": [],
+    assert classify_errors({"name": "A", "age": 1, "email": "a@b"}) == {
+        "value": [],
+        "type": [],
     }
 
 
-def test_ejecutar_todas_sin_errores():
-    assert ejecutar_todas([lambda: 1, lambda: "dos"]) == [1, "dos"]
+def test_run_all_without_errors():
+    assert run_all([lambda: 1, lambda: "two"]) == [1, "two"]
 
 
-def test_ejecutar_todas_junta_errores_con_notas():
-    corridas = []
+def test_run_all_collects_errors_with_notes():
+    runs = []
 
     def ok():
-        corridas.append("ok")
+        runs.append("ok")
         return 1
 
     def boom():
         raise KeyError("x")
 
-    def otra():
+    def another():
         raise ValueError("y")
 
     with pytest.raises(ExceptionGroup) as info:
-        ejecutar_todas([boom, ok, otra])
-    assert corridas == ["ok"], "tiene que ejecutar todas aunque alguna falle"
+        run_all([boom, ok, another])
+    assert runs == ["ok"], "it must run every task even if some fail"
     excs = info.value.exceptions
     assert [type(e) for e in excs] == [KeyError, ValueError]
-    assert excs[0].__notes__ == ["tarea 0"]
-    assert excs[1].__notes__ == ["tarea 2"]
+    assert excs[0].__notes__ == ["task 0"]
+    assert excs[1].__notes__ == ["task 2"]

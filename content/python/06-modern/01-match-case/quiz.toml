@@ -1,39 +1,39 @@
 [[questions]]
-text = "Con `ROJO = \"rojo\"`, ¿qué hace `case ROJO:` dentro de un `match`?"
+text = "With `RED = \"red\"`, what does `case RED:` do inside a `match`?"
 options = [
-  "Compara el sujeto con `\"rojo\"`",
-  "Captura cualquier valor en una variable llamada `ROJO` (siempre matchea)",
-  "Levanta `SyntaxError`",
-  "Compara con el string `\"ROJO\"`",
+  "Compares the subject to `\"red\"`",
+  "Captures any value into a variable named `RED` (it always matches)",
+  "Raises `SyntaxError`",
+  "Compares to the string `\"RED\"`",
 ]
 correct = 1
-explanation = "Un nombre suelto en un patrón es una captura. Para comparar con una constante hay que usar un nombre con punto (`Color.ROJO`) o un literal."
+explanation = "A bare name in a pattern is a capture. To compare against a constant you need a dotted name (`Color.RED`) or a literal."
 
 [[questions]]
-text = "¿El patrón `{\"tipo\": \"click\", \"x\": x}` matchea `{\"tipo\": \"click\", \"x\": 1, \"boton\": \"izq\"}`?"
-options = ["No, sobra la clave `boton`", "Sí: los patrones de mapeo ignoran las claves extra", "Solo con `**resto`", "Levanta `KeyError`"]
+text = "Does the pattern `{\"type\": \"click\", \"x\": x}` match `{\"type\": \"click\", \"x\": 1, \"button\": \"left\"}`?"
+options = ["No, the `button` key is extra", "Yes: mapping patterns ignore extra keys", "Only with `**rest`", "It raises `KeyError`"]
 correct = 1
-explanation = "Los patrones de mapeo solo exigen las claves que nombran. Para capturar las demás existe `**resto`."
+explanation = "Mapping patterns only require the keys they name. To capture the rest there's `**rest`."
 
 [[questions]]
-text = "Si varios `case` coinciden, ¿cuál se ejecuta?"
-options = ["Todos, en orden", "El primero que coincide", "El último", "El más específico"]
+text = "If several `case` clauses match, which one runs?"
+options = ["All of them, in order", "The first one that matches", "The last one", "The most specific one"]
 correct = 1
-explanation = "Los `case` se prueban en orden y solo se ejecuta el primero que coincide. No hay fall-through."
+explanation = "`case` clauses are tried in order and only the first match runs. There's no fall-through."
 
 [[questions]]
-text = "¿Qué hace `case {\"x\": int(x)}`?"
+text = "What does `case {\"x\": int(x)}` do?"
 options = [
-  "Convierte el valor a int",
-  "Matchea solo si el valor de `\"x\"` es un int, y lo captura en `x`",
-  "Llama a `int()` y falla si no se puede",
-  "Es un error de sintaxis",
+  "Converts the value to int",
+  "Matches only if the value of `\"x\"` is an int, and captures it in `x`",
+  "Calls `int()` and fails if it can't",
+  "It's a syntax error",
 ]
 correct = 1
-explanation = "`int(x)` en un patrón es un patrón de clase: verifica `isinstance(valor, int)` y captura. No convierte."
+explanation = "`int(x)` in a pattern is a class pattern: it checks `isinstance(value, int)` and captures. It doesn't convert."
 
 [[questions]]
-text = "¿El patrón `[a, b]` matchea el string `\"ab\"`?"
-options = ["Sí, con `a = \"a\"` y `b = \"b\"`", "No: los patrones de secuencia no desarman strings", "Solo si es una tupla", "Levanta `TypeError`"]
+text = "Does the pattern `[a, b]` match the string `\"ab\"`?"
+options = ["Yes, with `a = \"a\"` and `b = \"b\"`", "No: sequence patterns don't destructure strings", "Only if it's a tuple", "It raises `TypeError`"]
 correct = 1
-explanation = "Por diseño, `str`, `bytes` y `bytearray` no matchean patrones de secuencia, para evitar sorpresas."
+explanation = "By design, `str`, `bytes` and `bytearray` don't match sequence patterns, to avoid surprises."

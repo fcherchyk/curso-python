@@ -1,37 +1,37 @@
-"""ExceptionGroup, except* y notas."""
+"""ExceptionGroup, except* and notes."""
 
 from collections.abc import Callable
 from typing import Any
 
 
-def validar_usuario(datos: dict[str, Any]) -> None:
-    """Validá TODOS los campos y reportá todos los errores juntos.
+def validate_user(data: dict[str, Any]) -> None:
+    """Validate ALL the fields and report every error together.
 
-    - "nombre": str no vacío     -> si no, ValueError("nombre")
-    - "edad": int                -> si no es int, TypeError("edad")
-    - "edad" >= 0                -> si es negativa, ValueError("edad")
-    - "email": contiene "@"      -> si no, ValueError("email")
+    - "name": non-empty str     -> otherwise ValueError("name")
+    - "age": int                -> if it's not an int, TypeError("age")
+    - "age" >= 0                -> if it's negative, ValueError("age")
+    - "email": contains "@"     -> otherwise ValueError("email")
 
-    Si hay errores, levantá `ExceptionGroup("usuario inválido", errores)`.
-    Los campos faltantes cuentan como inválidos.
+    If there are errors, raise `ExceptionGroup("invalid user", errors)`.
+    Missing fields count as invalid.
     """
     raise NotImplementedError("TODO")
 
 
-def clasificar_errores(datos: dict[str, Any]) -> dict[str, list[str]]:
-    """Llamá a `validar_usuario` y clasificá los errores con `except*`.
+def classify_errors(data: dict[str, Any]) -> dict[str, list[str]]:
+    """Call `validate_user` and classify the errors with `except*`.
 
-    Devolvé {"valor": [...mensajes de ValueError], "tipo": [...de TypeError]}.
-    Si no hay errores, las dos listas quedan vacías.
+    Return {"value": [...ValueError messages], "type": [...TypeError messages]}.
+    If there are no errors, both lists stay empty.
     """
     raise NotImplementedError("TODO")
 
 
-def ejecutar_todas(tareas: list[Callable[[], Any]]) -> list[Any]:
-    """Ejecutá todas las tareas (aunque alguna falle) y devolvé sus resultados en orden.
+def run_all(tasks: list[Callable[[], Any]]) -> list[Any]:
+    """Run every task (even if some fail) and return their results in order.
 
-    Si alguna levantó una excepción (Exception), al final levantá
-    `ExceptionGroup("fallaron tareas", [...])` con esas excepciones, cada una con la
-    nota "tarea N" (N empezando en 0).
+    If any of them raised an exception (Exception), at the end raise
+    `ExceptionGroup("tasks failed", [...])` with those exceptions, each one with the
+    note "task N" (N starting at 0).
     """
     raise NotImplementedError("TODO")

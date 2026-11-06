@@ -1,39 +1,39 @@
 [[questions]]
-text = "¿Qué valor toma `n` en `if n := len([1, 2, 3]) > 2:`?"
-options = ["`3`", "`True`", "`2`", "Es un error de sintaxis"]
+text = "What value does `n` get in `if n := len([1, 2, 3]) > 2:`?"
+options = ["`3`", "`True`", "`2`", "It's a syntax error"]
 correct = 1
-explanation = "Sin paréntesis, `:=` tiene menor precedencia que `>`: se asigna el resultado de `len(...) > 2`, que es `True`. Lo correcto es `(n := len(xs)) > 2`."
+explanation = "Without parentheses, `:=` has lower precedence than `>`: it assigns the result of `len(...) > 2`, which is `True`. The right way is `(n := len(xs)) > 2`."
 
 [[questions]]
-text = "¿Cuál es la ventaja principal de `while bloque := f.read(4096):`?"
+text = "What's the main advantage of `while chunk := f.read(4096):`?"
 options = [
-  "Es más rápido",
-  "Evita duplicar la lectura antes y al final del bucle",
-  "Lee todo el archivo de una vez",
-  "Cierra el archivo al terminar",
+  "It's faster",
+  "It avoids duplicating the read before the loop and at the end of it",
+  "It reads the whole file at once",
+  "It closes the file when done",
 ]
 correct = 1
-explanation = "Sin walrus, la lectura aparece antes del `while` y otra vez al final del cuerpo. Con walrus queda en un solo lugar."
+explanation = "Without walrus, the read appears before the `while` and again at the end of the body. With walrus it lives in a single place."
 
 [[questions]]
-text = "En `[r for x in xs if (r := f(x)) > 0]`, ¿cuántas veces se llama a `f` por elemento?"
-options = ["Ninguna", "Una", "Dos", "Depende del resultado"]
+text = "In `[r for x in xs if (r := f(x)) > 0]`, how many times is `f` called per element?"
+options = ["Zero", "Once", "Twice", "It depends on the result"]
 correct = 1
-explanation = "El valor se calcula una vez en el filtro, se guarda en `r` y se reutiliza como resultado."
+explanation = "The value is computed once in the filter, stored in `r` and reused as the result."
 
 [[questions]]
-text = "¿Cuál de estas líneas es inválida?"
+text = "Which of these lines is invalid?"
 options = ["`if (m := re.match(p, s)):`", "`x := 5`", "`print(y := 3)`", "`while (d := q.get()) is not None:`"]
 correct = 1
-explanation = "Como sentencia suelta, `x := 5` no está permitido: para eso está `=`. Dentro de expresiones (argumentos, condiciones), sí."
+explanation = "As a standalone statement, `x := 5` isn't allowed: that's what `=` is for. Inside expressions (arguments, conditions), it is."
 
 [[questions]]
-text = "¿Cuándo **no** conviene usar walrus?"
+text = "When should you **not** use walrus?"
 options = [
-  "Para leer en un `while` hasta que no haya más datos",
-  "Para encadenar tres asignaciones en un mismo `if` solo por ahorrar líneas",
-  "Para usar el resultado de `re.match` en el mismo `if`",
-  "Para no calcular dos veces un valor en una comprehension",
+  "To read in a `while` until there's no more data",
+  "To chain three assignments in a single `if` just to save lines",
+  "To use the result of `re.match` in the same `if`",
+  "To avoid computing a value twice in a comprehension",
 ]
 correct = 1
-explanation = "El objetivo es eliminar duplicación. Si la expresión se vuelve difícil de leer, es mejor usar varias líneas."
+explanation = "The goal is to remove duplication. If the expression gets hard to read, use several lines instead."

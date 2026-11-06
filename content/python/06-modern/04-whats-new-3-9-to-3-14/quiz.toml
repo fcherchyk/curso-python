@@ -1,44 +1,44 @@
 [[questions]]
-text = "¿En qué modo hay que abrir un archivo para `tomllib.load`?"
-options = ["Texto (`\"r\"`)", "Binario (`\"rb\"`)", "Cualquiera", "Escritura"]
+text = "In which mode do you have to open a file for `tomllib.load`?"
+options = ["Text (`\"r\"`)", "Binary (`\"rb\"`)", "Either", "Write"]
 correct = 1
-explanation = "`tomllib.load` recibe un archivo binario y decodifica UTF-8 por su cuenta. Para un string, usá `tomllib.loads`."
+explanation = "`tomllib.load` takes a binary file and decodes UTF-8 on its own. For a string, use `tomllib.loads`."
 
 [[questions]]
-text = "¿Cuál es la práctica recomendada con fechas y zonas horarias?"
+text = "What's the recommended practice with dates and time zones?"
 options = [
-  "Guardar en hora local y convertir a UTC al mostrar",
-  "Guardar y comparar en UTC; convertir a la zona local solo para mostrar",
-  "Usar siempre datetimes naive",
-  "Usar `datetime.utcnow()`",
+  "Store in local time and convert to UTC for display",
+  "Store and compare in UTC; convert to the local zone only for display",
+  "Always use naive datetimes",
+  "Use `datetime.utcnow()`",
 ]
 correct = 1
-explanation = "UTC no tiene horario de verano ni ambigüedades. `utcnow()` está deprecado porque devuelve un datetime naive; usá `datetime.now(UTC)`."
+explanation = "UTC has no daylight saving time and no ambiguities. `utcnow()` is deprecated because it returns a naive datetime; use `datetime.now(UTC)`."
 
 [[questions]]
-text = "¿Qué devuelve `t\"Hola {nombre}\"` en Python 3.14?"
+text = "What does `t\"Hello {name}\"` return in Python 3.14?"
 options = [
-  "Un `str` igual que una f-string",
-  "Un objeto `Template` con las partes literales y los valores por separado",
-  "Un error de sintaxis",
-  "Un `bytes`",
+  "A `str`, just like an f-string",
+  "A `Template` object with the literal parts and the values kept separate",
+  "A syntax error",
+  "A `bytes` object",
 ]
 correct = 1
-explanation = "Las t-strings no interpolan: entregan un `Template` para que una librería combine las partes de forma segura (escapando HTML, parametrizando SQL, etc.)."
+explanation = "t-strings don't interpolate: they hand over a `Template` so a library can combine the parts safely (escaping HTML, parameterizing SQL, etc.)."
 
 [[questions]]
-text = "¿En qué versión se agregaron `match`/`case` y la sintaxis `X | Y` para tipos?"
+text = "In which version were `match`/`case` and the `X | Y` syntax for types added?"
 options = ["3.8", "3.9", "3.10", "3.12"]
 correct = 2
-explanation = "Las dos llegaron en Python 3.10, junto con `zip(strict=True)` y mejores mensajes de error."
+explanation = "Both arrived in Python 3.10, along with `zip(strict=True)` and better error messages."
 
 [[questions]]
-text = "¿Qué hace `DEFAULTS | seccion`?"
+text = "What does `DEFAULTS | section` do?"
 options = [
-  "Modifica `DEFAULTS` agregándole `seccion`",
-  "Devuelve un dict nuevo donde `seccion` pisa a `DEFAULTS`",
-  "Devuelve las claves en común",
-  "Levanta `TypeError`",
+  "Modifies `DEFAULTS` by adding `section` to it",
+  "Returns a new dict where `section` overrides `DEFAULTS`",
+  "Returns the keys they have in common",
+  "Raises `TypeError`",
 ]
 correct = 1
-explanation = "El operador `|` de dicts (3.9) crea un dict nuevo y no muta ninguno de los dos. El que modifica en el lugar es `|=`."
+explanation = "The dict `|` operator (3.9) creates a new dict and mutates neither. The in-place version is `|=`."

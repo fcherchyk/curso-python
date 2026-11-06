@@ -1,132 +1,131 @@
-# ExceptionGroup, `except*` y notas
+# ExceptionGroup, `except*` and notes
 
-Hasta 3.10, una excepción representaba **un** error. Pero hay situaciones en las que ocurren
-**varios a la vez** y querés reportarlos todos juntos: validar un formulario completo, correr
-tareas en paralelo donde fallan dos o procesar un lote con errores en distintas filas. Para
-eso, 3.11 agregó `ExceptionGroup`, la sintaxis `except*` y las notas en las excepciones.
+Up to 3.10, an exception represented **one** error. But there are situations where **several
+happen at once** and you want to report them all together: validating a whole form, running
+tasks in parallel where two of them fail, or processing a batch with errors in different rows.
+For that, 3.11 added `ExceptionGroup`, the `except*` syntax and notes on exceptions.
 
-## `ExceptionGroup`: varias excepciones en una
+## `ExceptionGroup`: several exceptions in one
 
 ```python
-errores = [ValueError("nombre vacío"), TypeError("edad no es int")]
-raise ExceptionGroup("usuario inválido", errores)
+errors = [ValueError("empty name"), TypeError("age is not an int")]
+raise ExceptionGroup("invalid user", errors)
 ```
 
-El traceback muestra un árbol con todos los errores:
+The traceback shows a tree with every error:
 
 ```
-  | ExceptionGroup: usuario inválido (2 sub-exceptions)
+  | ExceptionGroup: invalid user (2 sub-exceptions)
   +-+---------------- 1 ----------------
-    | ValueError: nombre vacío
+    | ValueError: empty name
     +---------------- 2 ----------------
-    | TypeError: edad no es int
+    | TypeError: age is not an int
     +------------------------------------
 ```
 
-- El primer argumento es un mensaje; el segundo, una **secuencia no vacía** de excepciones.
-- `.exceptions` da la tupla de sub-excepciones.
-- Los grupos se pueden **anidar**: un grupo puede contener otros grupos.
-- Si todas las sub-excepciones heredan de `Exception`, se crea un `ExceptionGroup`; si alguna
-  es un `BaseException` (como `KeyboardInterrupt`), un `BaseExceptionGroup`.
+- The first argument is a message; the second, a **non-empty sequence** of exceptions.
+- `.exceptions` gives you the tuple of sub-exceptions.
+- Groups can be **nested**: a group can contain other groups.
+- If every sub-exception inherits from `Exception`, you get an `ExceptionGroup`; if any is a
+  `BaseException` (like `KeyboardInterrupt`), a `BaseExceptionGroup`.
 
-### El patrón: acumular y levantar al final
+### The pattern: collect and raise at the end
 
 ```python
-def validar(datos: dict) -> None:
-    errores: list[Exception] = []
-    if not datos.get("nombre"):
-        errores.append(ValueError("nombre"))
-    if not isinstance(datos.get("edad"), int):
-        errores.append(TypeError("edad"))
-    if errores:
-        raise ExceptionGroup("datos inválidos", errores)
+def validate(data: dict) -> None:
+    errors: list[Exception] = []
+    if not data.get("name"):
+        errors.append(ValueError("name"))
+    if not isinstance(data.get("age"), int):
+        errors.append(TypeError("age"))
+    if errors:
+        raise ExceptionGroup("invalid data", errors)
 ```
 
-A quien completa un formulario le sirve mucho más recibir **todos** los problemas juntos que
-corregirlos de a uno por intento.
+Someone filling out a form is much better served by getting **all** the problems at once than
+by fixing them one per attempt.
 
-## `except*`: manejar por tipo dentro del grupo
+## `except*`: handling by type inside the group
 
-Un `except ValueError` común **no** atrapa un `ExceptionGroup` que contiene `ValueError`s.
-Para eso está `except*`:
+A regular `except ValueError` does **not** catch an `ExceptionGroup` that contains
+`ValueError`s. That's what `except*` is for:
 
 ```python
 try:
-    validar(datos)
-except* ValueError as grupo:          # grupo es un ExceptionGroup SOLO con los ValueError
-    for e in grupo.exceptions:
-        print("valor inválido:", e)
-except* TypeError as grupo:           # ¡esta rama TAMBIÉN se ejecuta si hay TypeErrors!
-    for e in grupo.exceptions:
-        print("tipo inválido:", e)
+    validate(data)
+except* ValueError as group:          # group is an ExceptionGroup with ONLY the ValueErrors
+    for e in group.exceptions:
+        print("invalid value:", e)
+except* TypeError as group:           # this branch ALSO runs if there are TypeErrors!
+    for e in group.exceptions:
+        print("invalid type:", e)
 ```
 
-Diferencias con el `except` clásico:
+Differences from the classic `except`:
 
-- **Se pueden ejecutar varias ramas**: cada una se queda con "su parte" del grupo.
-- En cada rama, la variable es **un grupo** (filtrado), no una excepción suelta.
-- Lo que no manejó ninguna rama se **re-levanta** automáticamente como un grupo con lo que
-  sobró.
-- No se puede mezclar `except` y `except*` en el mismo `try`.
-- `except*` también atrapa una excepción común (no agrupada): la envuelve en un grupo.
+- **Several branches can run**: each one takes "its share" of the group.
+- In each branch, the variable is **a group** (filtered), not a single exception.
+- Whatever no branch handled is **re-raised** automatically as a group with what's left.
+- You can't mix `except` and `except*` in the same `try`.
+- `except*` also catches a regular (ungrouped) exception: it wraps it in a group.
 
-### Filtrar a mano: `split` y `subgroup`
+### Filtering by hand: `split` and `subgroup`
 
 ```python
-valores, resto = grupo.split(ValueError)      # (grupo con ValueError, grupo con el resto)
-solo_valores = grupo.subgroup(ValueError)     # o None si no hay
+values, rest = group.split(ValueError)        # (group with ValueErrors, group with the rest)
+only_values = group.subgroup(ValueError)      # or None if there are none
 ```
 
-## Dónde vas a verlos: `asyncio.TaskGroup`
+## Where you'll see them: `asyncio.TaskGroup`
 
-El caso de uso más frecuente es la concurrencia. Si en un `TaskGroup` fallan dos tareas, se
-levanta un `ExceptionGroup` con las dos (lo vemos en el módulo de concurrencia):
+The most common use case is concurrency. If two tasks fail inside a `TaskGroup`, an
+`ExceptionGroup` with both is raised (we cover it in the concurrency module):
 
 ```python
 try:
     async with asyncio.TaskGroup() as tg:
-        tg.create_task(descargar(url1))
-        tg.create_task(descargar(url2))
+        tg.create_task(download(url1))
+        tg.create_task(download(url2))
 except* TimeoutError:
     ...
 except* ConnectionError:
     ...
 ```
 
-## Notas: contexto extra en cualquier excepción
+## Notes: extra context on any exception
 
-`add_note` (3.11) agrega texto que aparece en el traceback, **sin cambiar el tipo ni el
-mensaje** de la excepción. Es ideal para decir *dónde* ocurrió el error:
+`add_note` (3.11) adds text that shows up in the traceback, **without changing the type or the
+message** of the exception. It's ideal for saying *where* the error happened:
 
 ```python
-for n, fila in enumerate(filas, start=1):
+for n, row in enumerate(rows, start=1):
     try:
-        procesar(fila)
+        process(row)
     except ValueError as e:
-        e.add_note(f"en la fila {n}: {fila!r}")
+        e.add_note(f"on row {n}: {row!r}")
         raise
 ```
 
 ```
 ValueError: invalid literal for int() with base 10: 'x'
-en la fila 3: 'ana,x'
+on row 3: 'alice,x'
 ```
 
-Las notas quedan en `e.__notes__` (una lista). Son mejores que envolver en otra excepción
-cuando solo querés agregar contexto.
+Notes are kept in `e.__notes__` (a list). They're better than wrapping in another exception
+when all you want is to add context.
 
-## Resumen
+## Summary
 
-- `ExceptionGroup(mensaje, [excepciones])` para reportar varios errores juntos.
-- Acumulá en una lista y levantá el grupo al final si no está vacía.
-- `except* Tipo as grupo`: pueden correr varias ramas; lo no manejado se re-levanta.
-- `split` y `subgroup` para filtrar a mano.
-- `e.add_note(...)` para agregar contexto sin cambiar la excepción.
+- `ExceptionGroup(message, [exceptions])` to report several errors together.
+- Collect them in a list and raise the group at the end if it isn't empty.
+- `except* Type as group`: several branches can run; whatever isn't handled is re-raised.
+- `split` and `subgroup` to filter by hand.
+- `e.add_note(...)` to add context without changing the exception.
 
-## Ejercicio
+## Exercise
 
-Una validación que reporta todos los errores, una clasificación con `except*` y un ejecutor
-de tareas que junta los fallos con notas.
+A validation that reports every error, a classification with `except*` and a task runner that
+collects failures with notes.
 
-**Para profundizar:** [PEP 654 — Exception Groups and except*](https://peps.python.org/pep-0654/),
+**Further reading:** [PEP 654 — Exception Groups and except*](https://peps.python.org/pep-0654/),
 [PEP 678 — add_note](https://peps.python.org/pep-0678/).

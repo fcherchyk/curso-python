@@ -1,116 +1,115 @@
-# El operador walrus `:=`
+# The walrus operator `:=`
 
-El operador `:=` (3.8), apodado *walrus* ("morsa") por su forma, **asigna y devuelve** el
-valor dentro de una expresión. Su objetivo no es ahorrar una línea, sino **eliminar
-duplicación**: evitar calcular dos veces lo mismo o repetir una lectura antes y dentro de un
-bucle.
+The `:=` operator (3.8), nicknamed *walrus* because of its shape, **assigns and returns** the
+value inside an expression. Its goal isn't to save a line but to **remove duplication**: to
+avoid computing the same thing twice or repeating a read before and inside a loop.
 
-## La diferencia con `=`
+## How it differs from `=`
 
-`=` es una **sentencia**: no se puede usar dentro de un `if`, de un `while` o de una
-comprehension. `:=` es una **expresión**: produce un valor y, de paso, lo guarda en un nombre.
-
-```python
-if (n := len(datos)) > 10:
-    print(f"demasiados datos: {n}")
-```
-
-Sin walrus habría que calcular `len(datos)` dos veces o agregar una línea antes del `if`.
-
-## Caso 1: leer hasta que no haya más
-
-El patrón clásico de "leer, chequear, procesar, volver a leer":
+`=` is a **statement**: you can't use it inside an `if`, a `while` or a comprehension. `:=` is
+an **expression**: it produces a value and, along the way, stores it in a name.
 
 ```python
-# Sin walrus: la lectura está duplicada
-bloque = archivo.read(4096)
-while bloque:
-    procesar(bloque)
-    bloque = archivo.read(4096)
-
-# Con walrus: una sola lectura
-while bloque := archivo.read(4096):
-    procesar(bloque)
+if (n := len(data)) > 10:
+    print(f"too much data: {n}")
 ```
 
-Funciona con cualquier fuente que devuelva algo falsy al terminar: `readline()`, `queue.get()`
-con centinela, `socket.recv()` o `tuple(islice(it, n))` para lotes.
+Without walrus you'd have to compute `len(data)` twice or add a line before the `if`.
 
-## Caso 2: regex
+## Case 1: read until there's nothing left
+
+The classic "read, check, process, read again" pattern:
+
+```python
+# Without walrus: the read is duplicated
+chunk = file.read(4096)
+while chunk:
+    process(chunk)
+    chunk = file.read(4096)
+
+# With walrus: a single read
+while chunk := file.read(4096):
+    process(chunk)
+```
+
+It works with any source that returns something falsy when it's done: `readline()`,
+`queue.get()` with a sentinel, `socket.recv()` or `tuple(islice(it, n))` for batches.
+
+## Case 2: regex
 
 ```python
 import re
 
-if m := re.match(r"(\d{4})-(\d{2})", texto):
-    anio, mes = m.groups()
+if m := re.match(r"(\d{4})-(\d{2})", text):
+    year, month = m.groups()
 ```
 
-`re.match` devuelve un `Match` o `None`. Con walrus, el chequeo y el uso quedan juntos.
+`re.match` returns a `Match` or `None`. With walrus, the check and the use stay together.
 
-Encadenado con `elif`:
+Chained with `elif`:
 
 ```python
-if m := PATRON_FECHA.match(linea):
+if m := DATE_PATTERN.match(line):
     ...
-elif m := PATRON_HORA.match(linea):
+elif m := TIME_PATTERN.match(line):
     ...
 ```
 
-## Caso 3: comprehensions que filtran por un valor calculado
+## Case 3: comprehensions that filter on a computed value
 
 ```python
-# Sin walrus: parsear() se llama DOS veces por elemento
-resultados = [parsear(x) for x in datos if parsear(x) is not None]
+# Without walrus: parse() is called TWICE per element
+results = [parse(x) for x in data if parse(x) is not None]
 
-# Con walrus: una sola vez
-resultados = [r for x in datos if (r := parsear(x)) is not None]
+# With walrus: just once
+results = [r for x in data if (r := parse(x)) is not None]
 ```
 
-Esto importa cuando la función es cara o tiene efectos secundarios.
+This matters when the function is expensive or has side effects.
 
-## Caso 4: `any()` y "¿cuál fue?"
+## Case 4: `any()` and "which one was it?"
 
 ```python
-if any((largo := len(linea)) > 80 for linea in lineas):
-    print(f"hay una línea de {largo} caracteres")
+if any((length := len(line)) > 80 for line in lines):
+    print(f"there's a line with {length} characters")
 ```
 
-Como `any` corta en el primer verdadero, la variable queda con el valor que lo disparó. El
-nombre asignado dentro de una comprehension o generador queda disponible **afuera** (a
-diferencia de la variable del `for`), justamente para permitir este patrón.
+Since `any` stops at the first true value, the variable keeps the value that triggered it. A
+name assigned inside a comprehension or generator is available **outside** it (unlike the
+`for` variable), precisely to allow this pattern.
 
-## Reglas y paréntesis
+## Rules and parentheses
 
-- En una sentencia suelta, `x := 5` es un error de sintaxis (usá `=`). En argumentos y
-  comparaciones suelen hacer falta paréntesis: `if (n := len(xs)) > 10`.
-- Sin paréntesis, `if n := len(xs) > 10` asigna a `n` el **booleano** `len(xs) > 10`. Es un
-  bug clásico.
-- No se puede usar para asignar atributos ni índices: `self.x := 1` no es válido.
+- As a standalone statement, `x := 5` is a syntax error (use `=`). In arguments and
+  comparisons you usually need parentheses: `if (n := len(xs)) > 10`.
+- Without parentheses, `if n := len(xs) > 10` assigns the **boolean** `len(xs) > 10` to `n`.
+  It's a classic bug.
+- You can't use it to assign attributes or indexes: `self.x := 1` isn't valid.
 
-## Cuándo **no** usarlo
+## When **not** to use it
 
 ```python
-# ✗ No aporta nada: es un = disfrazado
-print(total := calcular())
+# ✗ Adds nothing: it's a disguised =
+print(total := compute())
 
-# ✗ Varias asignaciones en una línea: difícil de leer
+# ✗ Several assignments on one line: hard to read
 if (a := f()) and (b := g(a)) and (c := h(b)): ...
 ```
 
-Regla práctica: usalo si **quita** una duplicación o una línea que solo servía para preparar
-un `if` o un `while`. Si hay que pensar para leerlo, escribilo en dos líneas.
+Rule of thumb: use it if it **removes** duplication or a line that only existed to set up an
+`if` or a `while`. If you have to stop and think to read it, write it in two lines.
 
-## Resumen
+## Summary
 
-- `:=` asigna y devuelve el valor dentro de una expresión.
-- Casos típicos: `while x := leer()`, `if m := re.match(...)` y filtrar por un valor
-  calculado en una comprehension.
-- Paréntesis: `if (n := len(xs)) > 10`. Sin ellos, `n` recibe el booleano.
-- Usalo para eliminar duplicación, no para compactar.
+- `:=` assigns and returns the value inside an expression.
+- Typical cases: `while x := read()`, `if m := re.match(...)` and filtering on a computed
+  value in a comprehension.
+- Parentheses: `if (n := len(xs)) > 10`. Without them, `n` gets the boolean.
+- Use it to remove duplication, not to make code more compact.
 
-## Ejercicio
+## Exercise
 
-Leer en bloques, filtrar calculando una sola vez, extraer datos con regex y un bucle de
-reintentos, todo con walrus.
+Read in chunks, filter while computing just once, extract data with a regex and write a retry
+loop, all with walrus.
 
-**Para profundizar:** [PEP 572 — Assignment Expressions](https://peps.python.org/pep-0572/).
+**Further reading:** [PEP 572 — Assignment Expressions](https://peps.python.org/pep-0572/).

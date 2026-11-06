@@ -1,31 +1,31 @@
-from exercise import DEFAULTS, cargar_config, hora_en, tabla_precios
+from exercise import DEFAULTS, load_config, price_table, time_in
 
 
-def test_tabla_precios():
-    tabla = tabla_precios([("café", 1500.5), ("medialunas", 12.0)])
-    assert tabla == "café          1,500.50\nmedialunas       12.00\nTOTAL         1,512.50"
+def test_price_table():
+    table = price_table([("coffee", 1500.5), ("croissants", 12.0)])
+    assert table == "coffee        1,500.50\ncroissants       12.00\nTOTAL         1,512.50"
 
 
-def test_cargar_config():
+def test_load_config():
     toml = """
     [server]
-    host = "https://api.ejemplo.com"
+    host = "https://api.example.com"
     port = 9000
     """
-    assert cargar_config(toml) == {"host": "api.ejemplo.com", "port": 9000, "debug": False}
+    assert load_config(toml) == {"host": "api.example.com", "port": 9000, "debug": False}
 
 
-def test_cargar_config_sin_seccion_no_muta_defaults():
-    config = cargar_config('titulo = "x"')
+def test_load_config_without_section_does_not_mutate_defaults():
+    config = load_config('title = "x"')
     assert config == DEFAULTS
     config["port"] = 1
     assert DEFAULTS["port"] == 8000
 
 
-def test_hora_en():
-    assert hora_en("2026-01-15T15:30:00Z", "America/Argentina/Buenos_Aires") == "12:30"
-    assert hora_en("2026-01-15T15:30:00+00:00", "Europe/Madrid") == "16:30"
+def test_time_in():
+    assert time_in("2026-01-15T15:30:00Z", "America/Argentina/Buenos_Aires") == "12:30"
+    assert time_in("2026-01-15T15:30:00+00:00", "Europe/Madrid") == "16:30"
 
 
-def test_hora_en_respeta_horario_de_verano():
-    assert hora_en("2026-07-15T15:30:00Z", "Europe/Madrid") == "17:30"
+def test_time_in_respects_daylight_saving_time():
+    assert time_in("2026-07-15T15:30:00Z", "Europe/Madrid") == "17:30"

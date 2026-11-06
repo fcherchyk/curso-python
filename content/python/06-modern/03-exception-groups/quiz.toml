@@ -1,39 +1,39 @@
 [[questions]]
-text = "¿Un `except ValueError:` común atrapa un `ExceptionGroup` que contiene solo `ValueError`s?"
-options = ["Sí", "No: hace falta `except* ValueError` o `except ExceptionGroup`", "Solo si el grupo tiene un elemento", "Solo en 3.13+"]
+text = "Does a plain `except ValueError:` catch an `ExceptionGroup` that contains only `ValueError`s?"
+options = ["Yes", "No: you need `except* ValueError` or `except ExceptionGroup`", "Only if the group has one element", "Only in 3.13+"]
 correct = 1
-explanation = "El grupo no es un `ValueError`: es un `ExceptionGroup`. `except*` es el que mira adentro del grupo."
+explanation = "The group isn't a `ValueError`: it's an `ExceptionGroup`. `except*` is what looks inside the group."
 
 [[questions]]
-text = "En un `try` con `except* ValueError` y `except* TypeError`, si el grupo tiene de los dos tipos, ¿qué ramas se ejecutan?"
-options = ["Solo la primera", "Las dos", "Ninguna", "Solo la del tipo más frecuente"]
+text = "In a `try` with `except* ValueError` and `except* TypeError`, if the group has both types, which branches run?"
+options = ["Only the first", "Both", "Neither", "Only the one for the most frequent type"]
 correct = 1
-explanation = "Con `except*`, cada rama se queda con su parte del grupo, así que pueden ejecutarse varias."
+explanation = "With `except*`, each branch takes its share of the group, so several can run."
 
 [[questions]]
-text = "Dentro de `except* ValueError as g:`, ¿qué es `g`?"
+text = "Inside `except* ValueError as g:`, what is `g`?"
 options = [
-  "Un `ValueError`",
-  "Un `ExceptionGroup` con solo los `ValueError`",
-  "Una lista de strings",
-  "El grupo original completo",
+  "A `ValueError`",
+  "An `ExceptionGroup` with only the `ValueError`s",
+  "A list of strings",
+  "The full original group",
 ]
 correct = 1
-explanation = "La variable es siempre un grupo filtrado. Las excepciones individuales están en `g.exceptions`."
+explanation = "The variable is always a filtered group. The individual exceptions are in `g.exceptions`."
 
 [[questions]]
-text = "¿Qué pasa con las excepciones del grupo que ninguna rama `except*` manejó?"
-options = ["Se descartan", "Se re-levantan en un grupo", "Se convierten en warnings", "Se imprimen y siguen"]
+text = "What happens to the exceptions in the group that no `except*` branch handled?"
+options = ["They're discarded", "They're re-raised in a group", "They become warnings", "They're printed and execution continues"]
 correct = 1
-explanation = "Lo que no se manejó se vuelve a levantar automáticamente como un `ExceptionGroup` con lo que sobró."
+explanation = "Whatever wasn't handled is automatically re-raised as an `ExceptionGroup` with what's left."
 
 [[questions]]
-text = "¿Para qué sirve `e.add_note(\"en la fila 3\")`?"
+text = "What is `e.add_note(\"on row 3\")` for?"
 options = [
-  "Para cambiar el mensaje de la excepción",
-  "Para agregar contexto que aparece en el traceback sin cambiar el tipo ni el mensaje",
-  "Para suprimir la excepción",
-  "Para convertirla en un `ExceptionGroup`",
+  "To change the exception's message",
+  "To add context that shows up in the traceback without changing the type or the message",
+  "To suppress the exception",
+  "To turn it into an `ExceptionGroup`",
 ]
 correct = 1
-explanation = "Las notas se guardan en `__notes__` y se muestran debajo del mensaje original en el traceback."
+explanation = "Notes are stored in `__notes__` and shown below the original message in the traceback."

@@ -1,43 +1,43 @@
 import io
 
-from exercise import extraer_precios, largos_mayores, leer_en_bloques, primer_ok
+from exercise import extract_prices, first_ok, long_lengths, read_in_chunks
 
 
-def test_leer_en_bloques():
-    assert leer_en_bloques(io.StringIO("abcdefg"), 3) == ["abc", "def", "g"]
-    assert leer_en_bloques(io.StringIO(""), 3) == []
+def test_read_in_chunks():
+    assert read_in_chunks(io.StringIO("abcdefg"), 3) == ["abc", "def", "g"]
+    assert read_in_chunks(io.StringIO(""), 3) == []
 
 
-def test_largos_mayores():
-    assert largos_mayores(["a", "hola", "mundo", "yo"], 2) == [4, 5]
+def test_long_lengths():
+    assert long_lengths(["a", "hello", "world", "me"], 2) == [5, 5]
 
 
-def test_extraer_precios():
-    assert extraer_precios(["café $ 2.5", "sin precio", "pan $3", "$ 10.25 total"]) == [
+def test_extract_prices():
+    assert extract_prices(["coffee $ 2.5", "no price", "bread $3", "$ 10.25 total"]) == [
         2.5,
         3.0,
         10.25,
     ]
 
 
-def test_primer_ok():
-    respuestas = iter([None, None, "ok", "otro"])
-    llamadas = []
+def test_first_ok():
+    responses = iter([None, None, "ok", "other"])
+    calls = []
 
-    def intento():
-        llamadas.append(1)
-        return next(respuestas)
+    def attempt():
+        calls.append(1)
+        return next(responses)
 
-    assert primer_ok(intento, 5) == "ok"
-    assert len(llamadas) == 3
+    assert first_ok(attempt, 5) == "ok"
+    assert len(calls) == 3
 
 
-def test_primer_ok_agota():
-    llamadas = []
+def test_first_ok_exhausts():
+    calls = []
 
-    def falla():
-        llamadas.append(1)
+    def fails():
+        calls.append(1)
         return None
 
-    assert primer_ok(falla, 4) is None
-    assert len(llamadas) == 4
+    assert first_ok(fails, 4) is None
+    assert len(calls) == 4

@@ -1,163 +1,161 @@
 # Pattern matching: `match` / `case`
 
-`match` (3.10) **no es un `switch`**. Es *pattern matching estructural*: compara un valor
-contra **patrones** que describen su forma y, en el mismo paso, **desarma** la estructura y
-captura sus partes en variables. Brilla cuando procesás comandos, eventos, JSON, árboles de
-sintaxis o mensajes con distintas formas.
+`match` (3.10) **is not a `switch`**. It's *structural pattern matching*: it compares a value
+against **patterns** that describe its shape and, in the same step, **destructures** it and
+captures its parts in variables. It shines when you process commands, events, JSON, syntax
+trees or messages that come in different shapes.
 
-## Anatomía
+## Anatomy
 
 ```python
-match sujeto:
-    case patron_1:
+match subject:
+    case pattern_1:
         ...
-    case patron_2 if condicion:     # guarda opcional
+    case pattern_2 if condition:    # optional guard
         ...
-    case _:                         # comodín: todo lo demás
+    case _:                         # wildcard: everything else
         ...
 ```
 
-Los `case` se prueban **en orden** y se ejecuta **solo el primero** que coincide (no hay
-*fall-through* ni `break`). Si ninguno coincide y no hay `case _`, no pasa nada.
+`case` clauses are tried **in order** and **only the first** one that matches runs (there's no
+*fall-through* and no `break`). If none matches and there's no `case _`, nothing happens.
 
-## Los tipos de patrones
+## Kinds of patterns
 
-### Literales y alternativas
+### Literals and alternatives
 
 ```python
 match status:
     case 200 | 201 | 204:
         return "ok"
     case 404:
-        return "no encontrado"
+        return "not found"
     case 500 | 502 | 503:
-        return "error del servidor"
+        return "server error"
 ```
 
-### Capturas
+### Captures
 
-Un **nombre suelto** captura el valor, cualquiera sea:
+A **bare name** captures the value, whatever it is:
 
 ```python
-match punto:
+match point:
     case (0, 0):
-        return "origen"
-    case (x, 0):                  # captura x; exige y == 0
-        return f"sobre el eje X en {x}"
+        return "origin"
+    case (x, 0):                  # captures x; requires y == 0
+        return f"on the X axis at {x}"
     case (x, y):
         return f"({x}, {y})"
 ```
 
-### ⚠️ La trampa: un nombre suelto **captura**, no compara
+### ⚠️ The trap: a bare name **captures**, it doesn't compare
 
 ```python
-ROJO = "rojo"
+RED = "red"
 match color:
-    case ROJO:            # ✗ ¡NO compara con "rojo"! captura cualquier cosa en ROJO
+    case RED:             # ✗ does NOT compare with "red"! captures anything into RED
         ...
 ```
 
-Para comparar contra constantes, usá un **nombre con punto** (`Color.ROJO`,
-`config.MODO_DEBUG`) o un literal. Python sabe que un nombre con punto es un valor y no una
-captura.
+To compare against constants, use a **dotted name** (`Color.RED`, `config.DEBUG_MODE`) or a
+literal. Python knows a dotted name is a value, not a capture.
 
-### Secuencias
+### Sequences
 
 ```python
-match comando.split():
+match command.split():
     case []:
-        return "vacío"
-    case ["salir" | "quit"]:
-        return "chau"
-    case ["ir", direccion]:                     # exactamente 2 elementos
-        return f"yendo a {direccion}"
-    case ["tomar", *objetos] if objetos:        # 1 o más: *resto como en el unpacking
-        return f"tomaste {', '.join(objetos)}"
-    case ["tomar", primero, *_]:                # _ descarta
+        return "empty"
+    case ["exit" | "quit"]:
+        return "bye"
+    case ["go", direction]:                     # exactly 2 elements
+        return f"going {direction}"
+    case ["take", *items] if items:             # 1 or more: *rest like in unpacking
+        return f"you took {', '.join(items)}"
+    case ["take", first, *_]:                   # _ discards
         ...
 ```
 
-Los patrones de secuencia matchean listas y tuplas, pero **no** strings (un `str` no se
-desarma carácter por carácter, por diseño).
+Sequence patterns match lists and tuples, but **not** strings (a `str` isn't destructured
+character by character, by design).
 
-### Captura con `as`
+### Capturing with `as`
 
 ```python
-case ["ir", ("norte" | "sur" | "este" | "oeste") as direccion]:
+case ["go", ("north" | "south" | "east" | "west") as direction]:
     ...
 ```
 
-### Mapeos (dicts)
+### Mappings (dicts)
 
 ```python
-match evento:
-    case {"tipo": "click", "x": x, "y": y}:
-        return f"click en ({x}, {y})"
-    case {"tipo": "tecla", "tecla": "enter"}:
-        return "confirmar"
-    case {"tipo": "tecla", "tecla": tecla}:
-        return f"tecla {tecla}"
+match event:
+    case {"type": "click", "x": x, "y": y}:
+        return f"click at ({x}, {y})"
+    case {"type": "key", "key": "enter"}:
+        return "confirm"
+    case {"type": "key", "key": key}:
+        return f"key {key}"
 ```
 
-Las **claves extra se ignoran**: `{"tipo": "click", "x": 1, "y": 2, "boton": "izq"}` matchea
-el primer caso. Es justo lo que querés con JSON, donde siempre pueden aparecer campos nuevos.
-Para capturar el resto, `**resto`.
+**Extra keys are ignored**: `{"type": "click", "x": 1, "y": 2, "button": "left"}` matches the
+first case. That's exactly what you want with JSON, where new fields can always show up.
+To capture the rest, use `**rest`.
 
-### Clases (con validación de tipo)
+### Classes (with type checking)
 
 ```python
-match figura:
-    case Circulo(radio=0):
-        return "degenerada"
-    case Circulo(radio=r):
-        return f"círculo de radio {r}"
-    case Rectangulo(ancho=a, alto=b) if a == b:
-        return f"cuadrado de lado {a}"
-    case Rectangulo(ancho=a, alto=b):
-        return f"rectángulo {a} x {b}"
+match shape:
+    case Circle(radius=0):
+        return "degenerate"
+    case Circle(radius=r):
+        return f"circle of radius {r}"
+    case Rectangle(width=a, height=b) if a == b:
+        return f"square of side {a}"
+    case Rectangle(width=a, height=b):
+        return f"rectangle {a} x {b}"
 ```
 
-`Circulo(radio=r)` significa: "es instancia de `Circulo` y su atributo `radio` va a `r`".
-Las dataclasses permiten además la forma posicional, `Circulo(r)`, porque generan
+`Circle(radius=r)` means: "it's an instance of `Circle` and its `radius` attribute goes into
+`r`". Dataclasses also allow the positional form, `Circle(r)`, because they generate
 `__match_args__`.
 
-Con tipos built-in, `int(x)` o `str(s)` **verifica el tipo y captura**:
+With built-in types, `int(x)` or `str(s)` **checks the type and captures**:
 
 ```python
-case {"x": int(x), "y": int(y)}:     # solo si x e y son enteros
+case {"x": int(x), "y": int(y)}:     # only if x and y are ints
 ```
 
-## Guardas
+## Guards
 
-`if` después del patrón agrega una condición. Si el patrón coincide pero la guarda es falsa,
-se sigue con el próximo `case`:
+An `if` after the pattern adds a condition. If the pattern matches but the guard is false,
+matching continues with the next `case`:
 
 ```python
-case {"tipo": "scroll", "delta": d} if d < 0:
-    return "abajo"
-case {"tipo": "scroll", "delta": d} if d > 0:
-    return "arriba"
+case {"type": "scroll", "delta": d} if d < 0:
+    return "down"
+case {"type": "scroll", "delta": d} if d > 0:
+    return "up"
 ```
 
-## ¿`match` o `if/elif`?
+## `match` or `if/elif`?
 
-- **`match`** cuando ramificás según la **forma** de los datos (qué claves hay, cuántos
-  elementos, de qué clase es) y querés extraer partes.
-- **`if/elif`** para condiciones booleanas simples o rangos (`if edad < 18`). Un `match` con
-  puros literales tampoco agrega mucho frente a un dict de despacho.
+- **`match`** when you branch on the **shape** of the data (which keys are there, how many
+  elements, what class it is) and want to extract parts.
+- **`if/elif`** for simple boolean conditions or ranges (`if age < 18`). A `match` with only
+  literals doesn't add much over a dispatch dict either.
 
-## Resumen
+## Summary
 
-- `match` compara **forma** y **desarma** en un paso; gana el primer `case` que coincide.
-- Literales, `|`, capturas, secuencias con `*resto`, mapeos (claves extra ignoradas), clases
-  con atributos y `int(x)` para validar tipo.
-- **Un nombre suelto captura.** Para constantes, usá un nombre con punto.
-- `case _` como comodín; `if` como guarda; `as` para capturar un sub-patrón.
+- `match` compares **shape** and **destructures** in one step; the first matching `case` wins.
+- Literals, `|`, captures, sequences with `*rest`, mappings (extra keys ignored), classes with
+  attributes, and `int(x)` to check the type.
+- **A bare name captures.** For constants, use a dotted name.
+- `case _` as the wildcard; `if` as a guard; `as` to capture a sub-pattern.
 
-## Ejercicio
+## Exercise
 
-Un intérprete de comandos, un procesador de eventos tipo JSON y un descriptor de figuras,
-todos con `match`.
+A command interpreter, a JSON-like event processor and a shape describer, all with `match`.
 
-**Para profundizar:** [PEP 636 — tutorial de pattern matching](https://peps.python.org/pep-0636/)
-(el mejor recurso para aprenderlo).
+**Further reading:** [PEP 636 — pattern matching tutorial](https://peps.python.org/pep-0636/)
+(the best resource for learning it).

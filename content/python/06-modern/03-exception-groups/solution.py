@@ -2,42 +2,42 @@ from collections.abc import Callable
 from typing import Any
 
 
-def validar_usuario(datos: dict[str, Any]) -> None:
-    errores: list[Exception] = []
-    nombre = datos.get("nombre")
-    if not isinstance(nombre, str) or not nombre:
-        errores.append(ValueError("nombre"))
-    edad = datos.get("edad")
-    if not isinstance(edad, int):
-        errores.append(TypeError("edad"))
-    elif edad < 0:
-        errores.append(ValueError("edad"))
-    if "@" not in str(datos.get("email", "")):
-        errores.append(ValueError("email"))
-    if errores:
-        raise ExceptionGroup("usuario inválido", errores)
+def validate_user(data: dict[str, Any]) -> None:
+    errors: list[Exception] = []
+    name = data.get("name")
+    if not isinstance(name, str) or not name:
+        errors.append(ValueError("name"))
+    age = data.get("age")
+    if not isinstance(age, int):
+        errors.append(TypeError("age"))
+    elif age < 0:
+        errors.append(ValueError("age"))
+    if "@" not in str(data.get("email", "")):
+        errors.append(ValueError("email"))
+    if errors:
+        raise ExceptionGroup("invalid user", errors)
 
 
-def clasificar_errores(datos: dict[str, Any]) -> dict[str, list[str]]:
-    resultado: dict[str, list[str]] = {"valor": [], "tipo": []}
+def classify_errors(data: dict[str, Any]) -> dict[str, list[str]]:
+    result: dict[str, list[str]] = {"value": [], "type": []}
     try:
-        validar_usuario(datos)
-    except* ValueError as grupo:
-        resultado["valor"] = [str(e) for e in grupo.exceptions]
-    except* TypeError as grupo:
-        resultado["tipo"] = [str(e) for e in grupo.exceptions]
-    return resultado
+        validate_user(data)
+    except* ValueError as group:
+        result["value"] = [str(e) for e in group.exceptions]
+    except* TypeError as group:
+        result["type"] = [str(e) for e in group.exceptions]
+    return result
 
 
-def ejecutar_todas(tareas: list[Callable[[], Any]]) -> list[Any]:
-    resultados: list[Any] = []
-    errores: list[Exception] = []
-    for i, tarea in enumerate(tareas):
+def run_all(tasks: list[Callable[[], Any]]) -> list[Any]:
+    results: list[Any] = []
+    errors: list[Exception] = []
+    for i, task in enumerate(tasks):
         try:
-            resultados.append(tarea())
+            results.append(task())
         except Exception as e:
-            e.add_note(f"tarea {i}")
-            errores.append(e)
-    if errores:
-        raise ExceptionGroup("fallaron tareas", errores)
-    return resultados
+            e.add_note(f"task {i}")
+            errors.append(e)
+    if errors:
+        raise ExceptionGroup("tasks failed", errors)
+    return results
