@@ -1,116 +1,116 @@
-# Decoradores
+# Decorators
 
-Un decorador es una función que **recibe una función y devuelve otra**, normalmente una
-versión "envuelta" que agrega comportamiento antes o después de la original. Con decoradores
-están hechos `@property`, `@dataclass`, `@functools.cache`, las rutas de FastAPI y Flask
-(`@app.get(...)`) y las fixtures de pytest. Si entendés las closures, los decoradores son un
-paso más.
+A decorator is a function that **takes a function and returns another one**, usually a
+"wrapped" version that adds behavior before or after the original. `@property`,
+`@dataclass`, `@functools.cache`, FastAPI and Flask routes (`@app.get(...)`) and pytest
+fixtures are all built with decorators. If you understand closures, decorators are one more
+step.
 
-## `@` es azúcar sintáctico
+## `@` is syntactic sugar
 
 ```python
-@mi_decorador
-def saludar():
+@my_decorator
+def greet():
     ...
 ```
 
-es exactamente lo mismo que:
+is exactly the same as:
 
 ```python
-def saludar():
+def greet():
     ...
-saludar = mi_decorador(saludar)
+greet = my_decorator(greet)
 ```
 
-El decorador se ejecuta **una sola vez**, al definir la función (normalmente al importar el
-módulo). Lo que queda asignado al nombre `saludar` es lo que el decorador devolvió.
+The decorator runs **only once**, when the function is defined (usually when the module is
+imported). Whatever the decorator returned is what ends up bound to the name `greet`.
 
-## El patrón básico: un wrapper
+## The basic pattern: a wrapper
 
 ```python
 import functools
 
-def loguear(func):
+def log(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         print(f"→ {func.__name__}{args}")
-        resultado = func(*args, **kwargs)
-        print(f"← {func.__name__} = {resultado!r}")
-        return resultado
+        result = func(*args, **kwargs)
+        print(f"← {func.__name__} = {result!r}")
+        return result
     return wrapper
 
-@loguear
-def sumar(a, b):
+@log
+def add(a, b):
     return a + b
 
-sumar(2, 3)
-# → sumar(2, 3)
-# ← sumar = 5
+add(2, 3)
+# → add(2, 3)
+# ← add = 5
 ```
 
-Las partes:
+The parts:
 
-1. `loguear` recibe la función original.
-2. Define `wrapper`, una **closure** que tiene acceso a `func`.
-3. `wrapper` acepta `*args, **kwargs` para servir con **cualquier** firma y los reenvía.
-4. **Devuelve el resultado** de la función original (olvidarlo es un bug muy común: la
-   función decorada pasa a devolver `None`).
-5. `loguear` devuelve `wrapper`, que reemplaza a la original.
+1. `log` receives the original function.
+2. It defines `wrapper`, a **closure** with access to `func`.
+3. `wrapper` accepts `*args, **kwargs` so it works with **any** signature, and forwards them.
+4. It **returns the result** of the original function (forgetting this is a very common bug:
+   the decorated function starts returning `None`).
+5. `log` returns `wrapper`, which replaces the original.
 
-## `functools.wraps`: no te lo saltees
+## `functools.wraps`: don't skip it
 
-Sin `@functools.wraps(func)`, la función decorada pierde su identidad:
+Without `@functools.wraps(func)`, the decorated function loses its identity:
 
 ```python
-sumar.__name__     # 'wrapper'   ← sin wraps
-sumar.__doc__      # None
+add.__name__     # 'wrapper'   ← without wraps
+add.__doc__      # None
 ```
 
-Eso rompe tracebacks, logs, documentación, `help()`, frameworks que usan el nombre de la
-función (por ejemplo, para registrar rutas) y herramientas de introspección. `wraps` copia
-`__name__`, `__doc__`, `__module__`, `__qualname__` y `__dict__`, y agrega `__wrapped__`, que
-apunta a la original.
+That breaks tracebacks, logs, documentation, `help()`, frameworks that use the function's
+name (for example, to register routes) and introspection tools. `wraps` copies `__name__`,
+`__doc__`, `__module__`, `__qualname__` and `__dict__`, and adds `__wrapped__`, which points
+to the original.
 
-## Decoradores con estado
+## Stateful decorators
 
-Como el wrapper es un objeto función, se le pueden colgar atributos. Es la forma más simple
-de exponer estado:
+Since the wrapper is a function object, you can hang attributes on it. It's the simplest way
+to expose state:
 
 ```python
-def contar_llamadas(func):
+def count_calls(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        wrapper.llamadas += 1
+        wrapper.calls += 1
         return func(*args, **kwargs)
-    wrapper.llamadas = 0
+    wrapper.calls = 0
     return wrapper
 ```
 
-Otra variante es guardar el estado en la closure (una variable del decorador) y exponerlo
-con una función auxiliar.
+Another variant is to keep the state in the closure (a variable of the decorator) and expose
+it through a helper function.
 
-## Decoradores que no envuelven: registrar
+## Decorators that don't wrap: registration
 
-No todos los decoradores devuelven un wrapper. Algunos solo **registran** la función y la
-devuelven tal cual. Así funcionan los sistemas de plugins y las rutas de los frameworks web:
+Not every decorator returns a wrapper. Some just **register** the function and return it
+unchanged. That's how plugin systems and web framework routes work:
 
 ```python
-COMANDOS = {}
+COMMANDS = {}
 
-def comando(func):
-    COMANDOS[func.__name__] = func
-    return func             # la misma función, sin cambios
+def command(func):
+    COMMANDS[func.__name__] = func
+    return func             # the same function, unchanged
 
-@comando
-def ayuda(): ...
+@command
+def help(): ...
 
-COMANDOS["ayuda"]()
+COMMANDS["help"]()
 ```
 
-## Memoización: el ejemplo clásico
+## Memoization: the classic example
 
 ```python
-def memoizar(func):
+def memoize(func):
     cache = {}
     @functools.wraps(func)
     def wrapper(*args):
@@ -119,72 +119,72 @@ def memoizar(func):
         return cache[args]
     return wrapper
 
-@memoizar
+@memoize
 def fib(n):
     return n if n < 2 else fib(n - 1) + fib(n - 2)
 
-fib(100)     # instantáneo
+fib(100)     # instant
 ```
 
-Esto funciona porque dentro de `fib`, el nombre `fib` apunta a la versión **decorada**, así
-que las llamadas recursivas también pasan por el caché.
+This works because inside `fib`, the name `fib` points to the **decorated** version, so the
+recursive calls also go through the cache.
 
-En código real, usá la versión de la stdlib, que es más completa y está probada:
+In real code, use the stdlib version, which is more complete and well tested:
 
 ```python
 from functools import cache, lru_cache
 
-@cache                         # sin límite
+@cache                         # unbounded
 def fib(n): ...
 
-@lru_cache(maxsize=1024)       # descarta los menos usados
-def consultar(id): ...
+@lru_cache(maxsize=1024)       # evicts the least recently used
+def fetch(id): ...
 
-consultar.cache_info()         # hits, misses, tamaño
-consultar.cache_clear()
+fetch.cache_info()             # hits, misses, size
+fetch.cache_clear()
 ```
 
-Requisito: los argumentos tienen que ser **hashables**, porque son la clave del caché.
+Requirement: the arguments must be **hashable**, because they're the cache key.
 
-## Apilar decoradores
+## Stacking decorators
 
 ```python
-@loguear
-@memoizar
+@log
+@memoize
 def f(x): ...
 ```
 
-equivale a `f = loguear(memoizar(f))`: se aplican **de abajo hacia arriba**, y al llamar se
-ejecutan de afuera hacia adentro. El orden importa: en este ejemplo se loguean todas las
-llamadas, incluidas las que resuelve el caché. Invertidos, solo se loguearían las que
-realmente ejecutan `f`.
+is equivalent to `f = log(memoize(f))`: they're applied **bottom to top**, and when called
+they run from the outside in. Order matters: in this example every call is logged, including
+the ones served from the cache. Reversed, only the calls that actually run `f` would be
+logged.
 
-## Decoradores de la stdlib que tenés que reconocer
+## Stdlib decorators you should recognize
 
-| Decorador                     | Para qué                                               |
+| Decorator                     | What for                                               |
 |-------------------------------|--------------------------------------------------------|
-| `@functools.cache` / `lru_cache` | memoización                                         |
-| `@functools.wraps`            | preservar metadatos en tus decoradores                 |
-| `@property`                   | atributo calculado (módulo de modelado)                |
-| `@classmethod`, `@staticmethod` | métodos de clase y estáticos                         |
-| `@dataclass`                  | genera `__init__`, `__repr__` y `__eq__`               |
-| `@contextlib.contextmanager`  | context manager a partir de un generador               |
-| `@functools.singledispatch`   | sobrecarga según el tipo del primer argumento          |
-| `@typing.override` (3.12)     | marca que un método sobrescribe al de la clase padre   |
+| `@functools.cache` / `lru_cache` | memoization                                         |
+| `@functools.wraps`            | preserving metadata in your own decorators             |
+| `@property`                   | computed attribute (modeling module)                   |
+| `@classmethod`, `@staticmethod` | class and static methods                             |
+| `@dataclass`                  | generates `__init__`, `__repr__` and `__eq__`          |
+| `@contextlib.contextmanager`  | context manager from a generator                       |
+| `@functools.singledispatch`   | overloading on the type of the first argument          |
+| `@typing.override` (3.12)     | marks a method as overriding the parent class's        |
 
-## Resumen
+## Summary
 
-- `@deco` sobre `def f` equivale a `f = deco(f)`, y se ejecuta una vez, al definir.
-- El patrón: una closure `wrapper(*args, **kwargs)` que llama a `func` y **devuelve su
-  resultado**.
-- **Siempre** `@functools.wraps(func)`.
-- Hay decoradores que solo registran y devuelven la misma función.
-- Se apilan de abajo hacia arriba.
-- Para cachear, `functools.cache` y `lru_cache`.
+- `@deco` over `def f` is equivalent to `f = deco(f)`, and it runs once, at definition time.
+- The pattern: a closure `wrapper(*args, **kwargs)` that calls `func` and **returns its
+  result**.
+- **Always** use `@functools.wraps(func)`.
+- Some decorators only register and return the same function.
+- They stack bottom to top.
+- For caching, `functools.cache` and `lru_cache`.
 
-## Ejercicio
+## Exercise
 
-Tres decoradores: uno con estado en un atributo, un memoizador propio y uno de registro.
+Three decorators: one with state in an attribute, your own memoizer and a registration one.
 
-**Para profundizar:** [PEP 318 — Decorators](https://peps.python.org/pep-0318/),
-[functools](https://docs.python.org/3/library/functools.html), *Fluent Python*, cap. 9.
+**Further reading:** [PEP 318 — Decorators](https://peps.python.org/pep-0318/),
+[functools](https://docs.python.org/3/library/functools.html), *Fluent Python*, ch. 9.

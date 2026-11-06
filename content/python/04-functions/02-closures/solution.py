@@ -1,43 +1,43 @@
 from collections.abc import Callable
 
 
-def crear_contador(inicio: int = 0) -> Callable[[], int]:
-    actual = inicio - 1
+def make_counter(start: int = 0) -> Callable[[], int]:
+    current = start - 1
 
-    def siguiente() -> int:
-        nonlocal actual
-        actual += 1
-        return actual
+    def next_value() -> int:
+        nonlocal current
+        current += 1
+        return current
 
-    return siguiente
+    return next_value
 
 
-def multiplicadores(n: int) -> list[Callable[[int], int]]:
-    # El default congela el valor de i en cada vuelta (evita el late binding).
+def multipliers(n: int) -> list[Callable[[int], int]]:
+    # The default freezes the value of i on each iteration (avoids late binding).
     return [lambda x, i=i: x * i for i in range(n)]
 
 
-def crear_promediador() -> Callable[[float], float]:
+def make_averager() -> Callable[[float], float]:
     total = 0.0
-    cantidad = 0
+    count = 0
 
-    def agregar(x: float) -> float:
-        nonlocal total, cantidad
+    def add(x: float) -> float:
+        nonlocal total, count
         total += x
-        cantidad += 1
-        return total / cantidad
+        count += 1
+        return total / count
 
-    return agregar
+    return add
 
 
-def crear_limitador(max_llamadas: int) -> Callable[[], bool]:
-    restantes = max_llamadas
+def make_limiter(max_calls: int) -> Callable[[], bool]:
+    remaining = max_calls
 
-    def puede() -> bool:
-        nonlocal restantes
-        if restantes <= 0:
+    def allowed() -> bool:
+        nonlocal remaining
+        if remaining <= 0:
             return False
-        restantes -= 1
+        remaining -= 1
         return True
 
-    return puede
+    return allowed

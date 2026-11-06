@@ -7,21 +7,21 @@ from contextlib import contextmanager
 from pathlib import Path
 
 
-class Temporizador:
-    """Context manager que mide cuánto tarda el bloque.
+class Timer:
+    """Context manager that measures how long the block takes.
 
-        with Temporizador() as t:
-            hacer_algo()
-        print(t.duracion)   # segundos (float)
+        with Timer() as t:
+            do_something()
+        print(t.duration)   # seconds (float)
 
-    Usá `time.perf_counter()`. `duracion` vale None hasta que termina el bloque
-    (y se completa aunque el bloque falle). No suprime excepciones.
+    Use `time.perf_counter()`. `duration` is None until the block finishes
+    (and it's set even if the block fails). It doesn't suppress exceptions.
     """
 
     def __init__(self) -> None:
-        self.duracion: float | None = None
+        self.duration: float | None = None
 
-    def __enter__(self) -> "Temporizador":
+    def __enter__(self) -> "Timer":
         raise NotImplementedError("TODO")
 
     def __exit__(self, *exc_info: object) -> None:
@@ -29,22 +29,22 @@ class Temporizador:
 
 
 @contextmanager
-def en_directorio(path: str | Path) -> Iterator[Path]:
-    """Cambia el directorio de trabajo durante el bloque y lo restaura al salir,
-    AUNQUE haya una excepción. Hace `yield` del nuevo directorio como Path.
+def in_directory(path: str | Path) -> Iterator[Path]:
+    """Change the working directory for the duration of the block and restore it on
+    exit, EVEN if there's an exception. `yield` the new directory as a Path.
     """
     raise NotImplementedError("TODO")
-    yield  # (para que sea un generador; borrá esta línea al implementar)
+    yield  # (so it's a generator; delete this line when you implement it)
 
 
 @contextmanager
-def capturar_errores(*tipos: type[Exception]) -> Iterator[list[Exception]]:
-    """Suprime las excepciones de los `tipos` indicados y las agrega a la lista que
-    entrega el `with`. Las demás se propagan.
+def capture_errors(*types: type[Exception]) -> Iterator[list[Exception]]:
+    """Suppress exceptions of the given `types` and append them to the list the
+    `with` hands out. Any other exception propagates.
 
-        with capturar_errores(ValueError) as errores:
+        with capture_errors(ValueError) as errors:
             int("x")
-        errores  # [ValueError(...)]
+        errors  # [ValueError(...)]
     """
     raise NotImplementedError("TODO")
-    yield  # (para que sea un generador; borrá esta línea al implementar)
+    yield  # (so it's a generator; delete this line when you implement it)

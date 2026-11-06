@@ -1,49 +1,49 @@
 [[questions]]
-text = "En `with cm as x:`, ¿qué valor toma `x`?"
+text = "In `with cm as x:`, what value does `x` get?"
 options = [
-  "El objeto `cm`",
-  "Lo que devuelve `cm.__enter__()`",
-  "Lo que devuelve `cm.__exit__()`",
+  "The `cm` object",
+  "Whatever `cm.__enter__()` returns",
+  "Whatever `cm.__exit__()` returns",
   "`None`",
 ]
 correct = 1
-explanation = "`x` recibe el resultado de `__enter__`. Muchas veces es `self`, pero no siempre: por ejemplo, un lock o una transacción pueden devolver otra cosa."
+explanation = "`x` gets the result of `__enter__`. It's often `self`, but not always: a lock or a transaction, for example, may return something else."
 
 [[questions]]
-text = "Si `__exit__` devuelve `True` cuando hubo una excepción en el bloque, ¿qué pasa?"
+text = "If `__exit__` returns `True` when an exception occurred in the block, what happens?"
 options = [
-  "La excepción se re-levanta",
-  "La excepción se suprime y la ejecución sigue después del `with`",
-  "Se ejecuta el bloque de nuevo",
-  "Levanta `RuntimeError`",
+  "The exception is re-raised",
+  "The exception is suppressed and execution continues after the `with`",
+  "The block runs again",
+  "It raises `RuntimeError`",
 ]
 correct = 1
-explanation = "Un valor verdadero le indica a Python que la excepción ya se manejó y no hay que propagarla. Casi nunca es lo que querés."
+explanation = "A truthy value tells Python the exception has been handled and shouldn't propagate. It's almost never what you want."
 
 [[questions]]
-text = "En un `@contextmanager`, ¿por qué hay que envolver el `yield` en `try/finally`?"
+text = "In a `@contextmanager`, why do you need to wrap the `yield` in `try/finally`?"
 options = [
-  "Porque si no, el generador no compila",
-  "Porque una excepción del bloque `with` se re-levanta en el `yield` y sin `finally` la limpieza no corre",
-  "Porque `yield` solo funciona dentro de `try`",
-  "No hace falta: `contextmanager` limpia solo",
+  "Because otherwise the generator doesn't compile",
+  "Because an exception from the `with` block is re-raised at the `yield`, and without `finally` the cleanup doesn't run",
+  "Because `yield` only works inside `try`",
+  "You don't: `contextmanager` cleans up on its own",
 ]
 correct = 1
-explanation = "Si el cuerpo del `with` falla, la excepción aparece en la línea del `yield`. El `finally` garantiza que el código de limpieza se ejecute igual."
+explanation = "If the body of the `with` fails, the exception shows up on the `yield` line. The `finally` guarantees the cleanup code runs anyway."
 
 [[questions]]
-text = "¿Qué herramienta de `contextlib` usás para abrir una cantidad **variable** de archivos en un solo `with`?"
+text = "Which `contextlib` tool do you use to open a **variable** number of files in a single `with`?"
 options = ["`suppress`", "`ExitStack`", "`closing`", "`nullcontext`"]
 correct = 1
-explanation = "`ExitStack` permite registrar context managers dinámicamente con `enter_context` y los cierra todos en orden inverso."
+explanation = "`ExitStack` lets you register context managers dynamically with `enter_context` and closes them all in reverse order."
 
 [[questions]]
-text = "¿Qué hace `with suppress(FileNotFoundError): os.remove(\"x\")`?"
+text = "What does `with suppress(FileNotFoundError): os.remove(\"x\")` do?"
 options = [
-  "Borra el archivo o levanta `FileNotFoundError`",
-  "Borra el archivo si existe y, si no existe, sigue sin error",
-  "Crea el archivo si no existe",
-  "Suprime cualquier excepción",
+  "Deletes the file or raises `FileNotFoundError`",
+  "Deletes the file if it exists and, if it doesn't, carries on without an error",
+  "Creates the file if it doesn't exist",
+  "Suppresses any exception",
 ]
 correct = 1
-explanation = "`suppress` ignora solo los tipos indicados. Otros errores (por ejemplo, `PermissionError`) se siguen propagando."
+explanation = "`suppress` ignores only the given types. Other errors (for example, `PermissionError`) still propagate."

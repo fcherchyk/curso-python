@@ -1,40 +1,40 @@
-"""Decoradores."""
+"""Decorators."""
 
 import functools  # noqa: F401
 from collections.abc import Callable
 from typing import Any
 
 
-def contar_llamadas(func: Callable[..., Any]) -> Callable[..., Any]:
-    """Decorador: cuenta las llamadas en el atributo `.llamadas` del wrapper.
+def count_calls(func: Callable[..., Any]) -> Callable[..., Any]:
+    """Decorator: counts calls in the wrapper's `.calls` attribute.
 
-    Tiene que preservar `__name__` y `__doc__` de la función original y devolver
-    su resultado.
+    It must preserve the original function's `__name__` and `__doc__` and return
+    its result.
     """
     raise NotImplementedError("TODO")
 
 
-def memoizar(func: Callable[..., Any]) -> Callable[..., Any]:
-    """Decorador de caché por argumentos posicionales (hashables).
+def memoize(func: Callable[..., Any]) -> Callable[..., Any]:
+    """Cache decorator keyed by positional (hashable) arguments.
 
-    Implementalo vos con un dict (en la vida real: `functools.cache`).
-    Exponé el dict como atributo `.cache` del wrapper.
+    Implement it yourself with a dict (in real life: `functools.cache`).
+    Expose the dict as the wrapper's `.cache` attribute.
     """
     raise NotImplementedError("TODO")
 
 
-MANEJADORES: dict[str, Callable[..., Any]] = {}
+HANDLERS: dict[str, Callable[..., Any]] = {}
 
 
-def manejador(func: Callable[..., Any]) -> Callable[..., Any]:
-    """Decorador de registro: guarda la función en MANEJADORES con su nombre como clave
-    y la devuelve SIN envolver.
+def handler(func: Callable[..., Any]) -> Callable[..., Any]:
+    """Registration decorator: stores the function in HANDLERS keyed by its name
+    and returns it WITHOUT wrapping.
     """
     raise NotImplementedError("TODO")
 
 
-def despachar(evento: str, *args: Any) -> Any:
-    """Llamá al manejador registrado para `evento` con `args`.
-    Si no hay ninguno, levantá KeyError con un mensaje claro.
+def dispatch(event: str, *args: Any) -> Any:
+    """Call the handler registered for `event` with `args`.
+    If there is none, raise KeyError with a clear message.
     """
     raise NotImplementedError("TODO")

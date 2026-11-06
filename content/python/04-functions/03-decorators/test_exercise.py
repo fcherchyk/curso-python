@@ -1,62 +1,62 @@
 import pytest
-from exercise import MANEJADORES, contar_llamadas, despachar, manejador, memoizar
+from exercise import HANDLERS, count_calls, dispatch, handler, memoize
 
 
-def test_contar_llamadas():
-    @contar_llamadas
-    def saludar(nombre):
-        """Saluda."""
-        return f"hola {nombre}"
+def test_count_calls():
+    @count_calls
+    def greet(name):
+        """Greets."""
+        return f"hello {name}"
 
-    assert saludar.llamadas == 0
-    assert saludar("ana") == "hola ana"
-    saludar(nombre="beto")
-    assert saludar.llamadas == 2
-    assert saludar.__name__ == "saludar"
-    assert saludar.__doc__ == "Saluda."
+    assert greet.calls == 0
+    assert greet("alice") == "hello alice"
+    greet(name="bob")
+    assert greet.calls == 2
+    assert greet.__name__ == "greet"
+    assert greet.__doc__ == "Greets."
 
 
-def test_memoizar():
-    llamadas = []
+def test_memoize():
+    calls = []
 
-    @memoizar
-    def lento(a, b):
-        llamadas.append((a, b))
+    @memoize
+    def slow(a, b):
+        calls.append((a, b))
         return a + b
 
-    assert lento(1, 2) == 3
-    assert lento(1, 2) == 3
-    assert lento(2, 1) == 3
-    assert llamadas == [(1, 2), (2, 1)]
-    assert len(lento.cache) == 2
-    assert lento.__name__ == "lento"
+    assert slow(1, 2) == 3
+    assert slow(1, 2) == 3
+    assert slow(2, 1) == 3
+    assert calls == [(1, 2), (2, 1)]
+    assert len(slow.cache) == 2
+    assert slow.__name__ == "slow"
 
 
-def test_memoizar_fibonacci_rapido():
-    @memoizar
+def test_memoize_fibonacci_fast():
+    @memoize
     def fib(n):
         return n if n < 2 else fib(n - 1) + fib(n - 2)
 
     assert fib(80) == 23416728348467685
 
 
-def test_manejador_registra_sin_envolver():
-    def al_iniciar(x):
+def test_handler_registers_without_wrapping():
+    def on_start(x):
         return x * 2
 
-    decorada = manejador(al_iniciar)
-    assert decorada is al_iniciar
-    assert MANEJADORES["al_iniciar"] is al_iniciar
+    decorated = handler(on_start)
+    assert decorated is on_start
+    assert HANDLERS["on_start"] is on_start
 
 
-def test_despachar():
-    @manejador
-    def sumar(a, b):
+def test_dispatch():
+    @handler
+    def add(a, b):
         return a + b
 
-    assert despachar("sumar", 2, 3) == 5
+    assert dispatch("add", 2, 3) == 5
 
 
-def test_despachar_inexistente():
+def test_dispatch_missing():
     with pytest.raises(KeyError):
-        despachar("no_existe")
+        dispatch("does_not_exist")

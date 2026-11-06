@@ -3,17 +3,17 @@ from collections.abc import Callable
 from typing import Any
 
 
-def contar_llamadas(func: Callable[..., Any]) -> Callable[..., Any]:
+def count_calls(func: Callable[..., Any]) -> Callable[..., Any]:
     @functools.wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
-        wrapper.llamadas += 1  # type: ignore[attr-defined]
+        wrapper.calls += 1  # type: ignore[attr-defined]
         return func(*args, **kwargs)
 
-    wrapper.llamadas = 0  # type: ignore[attr-defined]
+    wrapper.calls = 0  # type: ignore[attr-defined]
     return wrapper
 
 
-def memoizar(func: Callable[..., Any]) -> Callable[..., Any]:
+def memoize(func: Callable[..., Any]) -> Callable[..., Any]:
     cache: dict[tuple[Any, ...], Any] = {}
 
     @functools.wraps(func)
@@ -26,17 +26,17 @@ def memoizar(func: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
-MANEJADORES: dict[str, Callable[..., Any]] = {}
+HANDLERS: dict[str, Callable[..., Any]] = {}
 
 
-def manejador(func: Callable[..., Any]) -> Callable[..., Any]:
-    MANEJADORES[func.__name__] = func
+def handler(func: Callable[..., Any]) -> Callable[..., Any]:
+    HANDLERS[func.__name__] = func
     return func
 
 
-def despachar(evento: str, *args: Any) -> Any:
+def dispatch(event: str, *args: Any) -> Any:
     try:
-        funcion = MANEJADORES[evento]
+        function = HANDLERS[event]
     except KeyError:
-        raise KeyError(f"no hay manejador para el evento {evento!r}") from None
-    return funcion(*args)
+        raise KeyError(f"no handler for event {event!r}") from None
+    return function(*args)

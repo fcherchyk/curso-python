@@ -1,152 +1,151 @@
-# Decoradores con parámetros
+# Decorators with parameters
 
-`@lru_cache(maxsize=128)`, `@app.get("/usuarios")` o `@pytest.mark.parametrize(...)` son
-decoradores que **reciben argumentos**. El truco es que no son decoradores: son **fábricas
-que devuelven un decorador**. Eso agrega un nivel más de funciones anidadas, y vale la pena
-entender por qué.
+`@lru_cache(maxsize=128)`, `@app.get("/users")` and `@pytest.mark.parametrize(...)` are
+decorators that **take arguments**. The trick is that they aren't decorators: they're
+**factories that return a decorator**. That adds one more level of nested functions, and
+it's worth understanding why.
 
-## Por qué hace falta otro nivel
-
-```python
-@repetir(3)
-def saludar(): ...
-```
-
-equivale a:
+## Why you need another level
 
 ```python
-decorador = repetir(3)          # 1. se llama a la fábrica con los parámetros
-saludar = decorador(saludar)    # 2. el resultado decora la función
+@repeat(3)
+def greet(): ...
 ```
 
-Entonces `repetir(3)` tiene que devolver algo que reciba una función, es decir, un
-decorador. Quedan tres niveles:
+is equivalent to:
+
+```python
+decorator = repeat(3)           # 1. the factory is called with the parameters
+greet = decorator(greet)        # 2. the result decorates the function
+```
+
+So `repeat(3)` has to return something that receives a function, that is, a decorator.
+That makes three levels:
 
 ```python
 import functools
 import random
 
-def repetir(n):                         # nivel 1: fábrica (recibe los parámetros)
-    def decorador(func):                # nivel 2: decorador (recibe la función)
+def repeat(n):                          # level 1: factory (receives the parameters)
+    def decorator(func):                # level 2: decorator (receives the function)
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):   # nivel 3: wrapper (recibe los argumentos de la llamada)
+        def wrapper(*args, **kwargs):   # level 3: wrapper (receives the call's arguments)
             return [func(*args, **kwargs) for _ in range(n)]
         return wrapper
-    return decorador
+    return decorator
 
-@repetir(3)
-def tirar_dado():
+@repeat(3)
+def roll_die():
     return random.randint(1, 6)
 
-tirar_dado()     # [4, 1, 6]
+roll_die()     # [4, 1, 6]
 ```
 
-Cada nivel es una closure del anterior: `wrapper` ve tanto `func` como `n`.
+Each level is a closure over the previous one: `wrapper` sees both `func` and `n`.
 
-## Un ejemplo realista: reintentos
+## A realistic example: retries
 
 ```python
 import time
 
-def reintentar(veces, excepciones=(Exception,), espera=0.0):
-    def decorador(func):
+def retry(times, exceptions=(Exception,), delay=0.0):
+    def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            for intento in range(1, veces + 1):
+            for attempt in range(1, times + 1):
                 try:
                     return func(*args, **kwargs)
-                except excepciones:
-                    if intento == veces:
-                        raise                  # se agotaron: re-levantar la última
-                    time.sleep(espera)
+                except exceptions:
+                    if attempt == times:
+                        raise                  # out of attempts: re-raise the last one
+                    time.sleep(delay)
         return wrapper
-    return decorador
+    return decorator
 
-@reintentar(3, excepciones=(ConnectionError, TimeoutError), espera=0.5)
-def consultar_api(): ...
+@retry(3, exceptions=(ConnectionError, TimeoutError), delay=0.5)
+def call_api(): ...
 ```
 
-Detalles de diseño que conviene imitar:
+Design details worth copying:
 
-- Atrapar **solo** las excepciones indicadas: un `KeyError` por un bug no se tiene que
-  reintentar.
-- Re-levantar la **última** excepción con `raise` cuando se agotan los intentos.
-- En producción se agrega *backoff* exponencial y *jitter*, o se usa una librería como
+- Catch **only** the given exceptions: a `KeyError` caused by a bug shouldn't be retried.
+- Re-raise the **last** exception with `raise` when the attempts run out.
+- In production you add exponential *backoff* and *jitter*, or use a library like
   `tenacity`.
 
-## Errores comunes
+## Common mistakes
 
 ```python
-@repetir          # ✗ sin paréntesis: repetir recibe la FUNCIÓN como `n`
+@repeat           # ✗ no parentheses: repeat receives the FUNCTION as `n`
 def f(): ...
 
-@reintentar()     # ✗ con paréntesis pero sin el argumento obligatorio → TypeError
+@retry()          # ✗ parentheses but missing the required argument → TypeError
 def g(): ...
 ```
 
-Si tu decorador tiene parámetros, **siempre** se usa con paréntesis, aunque todos tengan
-default: `@lru_cache()` (o `@lru_cache`, que se permite desde 3.8 por el truco que sigue).
+If your decorator takes parameters, it's **always** used with parentheses, even if they all
+have defaults: `@lru_cache()` (or `@lru_cache`, allowed since 3.8 thanks to the trick below).
 
-## Decoradores con paréntesis opcionales
+## Decorators with optional parentheses
 
-Algunos decoradores funcionan de las dos formas, `@deco` y `@deco(opcion=...)`. El truco es
-mirar si el primer argumento es la función:
+Some decorators work both ways, `@deco` and `@deco(option=...)`. The trick is to check
+whether the first argument is the function:
 
 ```python
 import warnings
 
-def deprecado(func=None, *, reemplazo=None):
-    def decorador(f):
+def deprecated(func=None, *, replacement=None):
+    def decorator(f):
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
-            msg = f"{f.__name__} está deprecada"
-            if reemplazo:
-                msg += f"; usá {reemplazo}"
+            msg = f"{f.__name__} is deprecated"
+            if replacement:
+                msg += f"; use {replacement}"
             warnings.warn(msg, DeprecationWarning, stacklevel=2)
             return f(*args, **kwargs)
         return wrapper
 
-    if func is not None:        # se usó como @deprecado (sin paréntesis)
-        return decorador(func)
-    return decorador            # se usó como @deprecado(reemplazo="...")
+    if func is not None:        # used as @deprecated (no parentheses)
+        return decorator(func)
+    return decorator            # used as @deprecated(replacement="...")
 ```
 
-El `*` hace que las opciones sean **solo keyword**, así no hay ambigüedad entre "me pasaron
-una función" y "me pasaron una opción posicional". `stacklevel=2` hace que la advertencia
-apunte a quien llamó a la función deprecada y no al wrapper.
+The `*` makes the options **keyword-only**, so there's no ambiguity between "I got a
+function" and "I got a positional option". `stacklevel=2` makes the warning point to the
+caller of the deprecated function instead of the wrapper.
 
-## Alternativa: una clase como decorador
+## Alternative: a class as a decorator
 
-Cuando el decorador tiene mucho estado o configuración, se puede escribir como clase:
+When the decorator has a lot of state or configuration, you can write it as a class:
 
 ```python
-class Limitador:
-    def __init__(self, por_segundo):
-        self.por_segundo = por_segundo
+class RateLimiter:
+    def __init__(self, per_second):
+        self.per_second = per_second
 
-    def __call__(self, func):              # la instancia actúa como decorador
+    def __call__(self, func):              # the instance acts as the decorator
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             ...
         return wrapper
 
-@Limitador(por_segundo=5)
-def enviar(): ...
+@RateLimiter(per_second=5)
+def send(): ...
 ```
 
-## Resumen
+## Summary
 
-- `@fabrica(args)` → `fabrica(args)` devuelve el decorador → el decorador devuelve el wrapper.
-- Son tres niveles de funciones; cada uno ve las variables del anterior.
-- Siempre `functools.wraps` en el wrapper.
-- Con parámetros, se usa con paréntesis. Para que los paréntesis sean opcionales:
-  `func=None` y opciones solo keyword.
-- Si hay mucho estado, una clase con `__call__`.
+- `@factory(args)` → `factory(args)` returns the decorator → the decorator returns the wrapper.
+- That's three levels of functions; each one sees the variables of the previous one.
+- Always `functools.wraps` on the wrapper.
+- With parameters, use parentheses. To make the parentheses optional: `func=None` and
+  keyword-only options.
+- If there's a lot of state, a class with `__call__`.
 
-## Ejercicio
+## Exercise
 
-Cuatro decoradores con parámetros: repetir, reintentar, acotar el resultado y deprecar con
-paréntesis opcionales.
+Four decorators with parameters: repeat, retry, clamp the result and deprecate with
+optional parentheses.
 
-**Para profundizar:** *Python Cookbook* (Beazley & Jones), cap. 9,
+**Further reading:** *Python Cookbook* (Beazley & Jones), ch. 9,
 [warnings](https://docs.python.org/3/library/warnings.html), [tenacity](https://tenacity.readthedocs.io/).

@@ -1,162 +1,162 @@
-# Closures y scopes
+# Closures and scopes
 
-Una **closure** es una función que recuerda variables del lugar donde se definió, aunque ese
-lugar ya haya terminado de ejecutarse. Es el mecanismo que hace posibles los decoradores,
-las fábricas de funciones y buena parte del estado "privado" en Python sin escribir clases.
+A **closure** is a function that remembers variables from the place where it was defined,
+even after that place has finished running. It's the mechanism behind decorators, function
+factories and much of the "private" state in Python without writing classes.
 
-## La regla LEGB
+## The LEGB rule
 
-Cuando Python encuentra un nombre, lo busca en este orden:
+When Python encounters a name, it looks it up in this order:
 
-1. **L**ocal: la función actual.
-2. **E**nclosing: las funciones que la contienen, de adentro hacia afuera.
-3. **G**lobal: el módulo.
+1. **L**ocal: the current function.
+2. **E**nclosing: the functions that contain it, from the inside out.
+3. **G**lobal: the module.
 4. **B**uilt-in: `len`, `print`, `range`…
 
 ```python
 x = "global"
 
-def externa():
+def outer():
     x = "enclosing"
-    def interna():
-        return x            # no está en local → la encuentra en enclosing
-    return interna
+    def inner():
+        return x            # not local → found in enclosing
+    return inner
 
-externa()()                 # 'enclosing'
+outer()()                   # 'enclosing'
 ```
 
-## Qué es una closure
+## What a closure is
 
 ```python
-def crear_multiplicador(k):
-    def multiplicar(x):
-        return x * k        # k es una variable "libre": viene de afuera
-    return multiplicar
+def make_multiplier(k):
+    def multiply(x):
+        return x * k        # k is a "free" variable: it comes from outside
+    return multiply
 
-doble = crear_multiplicador(2)
-triple = crear_multiplicador(3)
-doble(5), triple(5)         # (10, 15)
+double = make_multiplier(2)
+triple = make_multiplier(3)
+double(5), triple(5)        # (10, 15)
 ```
 
-Cuando `crear_multiplicador` termina, su variable `k` debería desaparecer. Pero `multiplicar`
-la usa, así que Python la conserva en una **celda** asociada a la función:
+When `make_multiplier` returns, its variable `k` should go away. But `multiply` uses it, so
+Python keeps it in a **cell** attached to the function:
 
 ```python
-doble.__closure__[0].cell_contents   # 2
+double.__closure__[0].cell_contents   # 2
 ```
 
-Cada llamada a `crear_multiplicador` crea un scope nuevo, así que `doble` y `triple` tienen
-cada una su propio `k`.
+Each call to `make_multiplier` creates a new scope, so `double` and `triple` each have their
+own `k`.
 
-## Modificar variables de afuera: `nonlocal`
+## Modifying outer variables: `nonlocal`
 
-Leer una variable del scope externo funciona solo. **Asignarla** no, porque cualquier
-asignación dentro de una función crea una variable **local**:
+Reading a variable from the outer scope just works. **Assigning** it doesn't, because any
+assignment inside a function creates a **local** variable:
 
 ```python
-def crear_contador():
+def make_counter():
     total = 0
-    def incrementar():
-        total += 1          # UnboundLocalError: `total` es local y se lee antes de asignarse
+    def increment():
+        total += 1          # UnboundLocalError: `total` is local and read before assignment
         return total
-    return incrementar
+    return increment
 ```
 
-`nonlocal` le avisa a Python que el nombre pertenece al scope que la contiene:
+`nonlocal` tells Python that the name belongs to the enclosing scope:
 
 ```python
-def crear_contador():
+def make_counter():
     total = 0
-    def incrementar():
+    def increment():
         nonlocal total
         total += 1
         return total
-    return incrementar
+    return increment
 
-c = crear_contador()
+c = make_counter()
 c(), c(), c()               # (1, 2, 3)
 ```
 
-Si lo que capturás es un objeto **mutable** y solo lo modificás (sin reasignar el nombre),
-no hace falta `nonlocal`:
+If what you capture is a **mutable** object and you only modify it (without reassigning the
+name), you don't need `nonlocal`:
 
 ```python
-def crear_historial():
-    eventos = []
-    def registrar(e):
-        eventos.append(e)   # muta el objeto, no reasigna el nombre
-        return list(eventos)
-    return registrar
+def make_history():
+    events = []
+    def record(e):
+        events.append(e)    # mutates the object, doesn't reassign the name
+        return list(events)
+    return record
 ```
 
-Su pariente `global` hace lo mismo con variables del módulo. Casi nunca es buena idea: el
-estado global complica los tests y el razonamiento sobre el código.
+Its relative `global` does the same for module variables. It's almost never a good idea:
+global state makes testing and reasoning about the code harder.
 
-## La trampa clásica: *late binding*
+## The classic trap: *late binding*
 
-Las closures capturan **variables, no valores**. El valor se busca **cuando se llama** a la
-función, no cuando se crea:
+Closures capture **variables, not values**. The value is looked up **when the function is
+called**, not when it's created:
 
 ```python
-funciones = [lambda: i for i in range(3)]
-[f() for f in funciones]    # [2, 2, 2]  ← ¡no [0, 1, 2]!
+functions = [lambda: i for i in range(3)]
+[f() for f in functions]    # [2, 2, 2]  ← not [0, 1, 2]!
 ```
 
-Las tres lambdas comparten la misma variable `i`, que al final del bucle vale 2. Dos
-soluciones:
+All three lambdas share the same variable `i`, which is 2 at the end of the loop. Two
+fixes:
 
 ```python
-# 1. Default argument: se evalúa al DEFINIR, así que congela el valor actual
-funciones = [lambda i=i: i for i in range(3)]
+# 1. Default argument: evaluated at DEFINITION time, so it freezes the current value
+functions = [lambda i=i: i for i in range(3)]
 
-# 2. Una fábrica: cada llamada crea un scope nuevo con su propio valor
-def crear(i):
+# 2. A factory: each call creates a new scope with its own value
+def make(i):
     return lambda: i
-funciones = [crear(i) for i in range(3)]
+functions = [make(i) for i in range(3)]
 ```
 
-Esta trampa aparece también con callbacks creados en un bucle (botones de una interfaz,
-tareas programadas, etc.).
+This trap also shows up with callbacks created in a loop (UI buttons, scheduled tasks,
+etc.).
 
-## Closure o clase
+## Closure or class
 
-Una closure con estado es, en el fondo, un objeto con un solo método:
+A stateful closure is, at heart, an object with a single method:
 
 ```python
 # Closure
-def crear_promediador():
-    valores = []
-    def agregar(x):
-        valores.append(x)
-        return sum(valores) / len(valores)
-    return agregar
+def make_averager():
+    values = []
+    def add(x):
+        values.append(x)
+        return sum(values) / len(values)
+    return add
 
-# Clase equivalente
-class Promediador:
+# Equivalent class
+class Averager:
     def __init__(self):
-        self.valores = []
+        self.values = []
     def __call__(self, x):
-        self.valores.append(x)
-        return sum(self.valores) / len(self.valores)
+        self.values.append(x)
+        return sum(self.values) / len(self.values)
 ```
 
-Usá una **closure** cuando hay una sola operación y poco estado. Pasá a una **clase** cuando
-hacen falta varios métodos, cuando querés inspeccionar el estado desde afuera o cuando el
-estado crece.
+Use a **closure** when there's a single operation and little state. Switch to a **class**
+when you need several methods, when you want to inspect the state from outside, or when the
+state grows.
 
-## Resumen
+## Summary
 
 - LEGB: local → enclosing → global → built-in.
-- Una closure conserva las variables del scope donde se definió.
-- Para **reasignar** una variable externa hace falta `nonlocal`; para mutar un objeto, no.
-- *Late binding*: las closures ven el valor al momento de **llamarse**. Solución: un default
-  argument o una fábrica.
-- Una closure con estado es un objeto con un solo método; si crece, usá una clase.
+- A closure keeps the variables of the scope where it was defined.
+- To **reassign** an outer variable you need `nonlocal`; to mutate an object, you don't.
+- *Late binding*: closures see the value at the time they're **called**. Fix: a default
+  argument or a factory.
+- A stateful closure is an object with a single method; if it grows, use a class.
 
-## Ejercicio
+## Exercise
 
-Un contador con `nonlocal`, multiplicadores creados en un bucle (esquivando la trampa del
-*late binding*) y un promediador acumulativo.
+A counter with `nonlocal`, multipliers created in a loop (dodging the *late binding* trap)
+and a running averager.
 
-**Para profundizar:** [Naming and binding](https://docs.python.org/3/reference/executionmodel.html#naming-and-binding),
-*Fluent Python*, cap. 9.
+**Further reading:** [Naming and binding](https://docs.python.org/3/reference/executionmodel.html#naming-and-binding),
+*Fluent Python*, ch. 9.

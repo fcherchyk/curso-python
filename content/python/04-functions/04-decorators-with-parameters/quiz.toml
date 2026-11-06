@@ -1,44 +1,44 @@
 [[questions]]
-text = "¿A qué equivale `@repetir(3)` sobre `def f`?"
-options = ["`f = repetir(3, f)`", "`f = repetir(3)(f)`", "`f = repetir(f)(3)`", "`f = repetir(f(3))`"]
+text = "What is `@repeat(3)` above `def f` equivalent to?"
+options = ["`f = repeat(3, f)`", "`f = repeat(3)(f)`", "`f = repeat(f)(3)`", "`f = repeat(f(3))`"]
 correct = 1
-explanation = "Primero se llama a la fábrica con los parámetros, y lo que devuelve (el decorador) recibe la función."
+explanation = "First the factory is called with the parameters, and what it returns (the decorator) receives the function."
 
 [[questions]]
-text = "¿Cuántos niveles de funciones anidadas tiene un decorador con parámetros típico?"
+text = "How many levels of nested functions does a typical decorator with parameters have?"
 options = ["1", "2", "3", "4"]
 correct = 2
-explanation = "Fábrica (recibe los parámetros), decorador (recibe la función) y wrapper (recibe los argumentos de cada llamada)."
+explanation = "Factory (receives the parameters), decorator (receives the function) and wrapper (receives the arguments of each call)."
 
 [[questions]]
-text = "¿Qué pasa si usás `@repetir` (sin paréntesis) cuando la firma es `def repetir(n)`?"
+text = "What happens if you use `@repeat` (without parentheses) when the signature is `def repeat(n)`?"
 options = [
-  "Funciona con `n` por defecto",
-  "`repetir` recibe la función como `n` y lo que queda asignado es el decorador interno, no un wrapper",
-  "Levanta `SyntaxError`",
-  "Python agrega los paréntesis automáticamente",
+  "It works with a default `n`",
+  "`repeat` receives the function as `n`, and what ends up bound is the inner decorator, not a wrapper",
+  "It raises `SyntaxError`",
+  "Python adds the parentheses automatically",
 ]
 correct = 1
-explanation = "Sin paréntesis, `repetir(f)` se ejecuta con `n = f` y devuelve `decorador`. Al llamar a `f()` después, estarías llamando a `decorador()` sin argumentos, y falla."
+explanation = "Without parentheses, `repeat(f)` runs with `n = f` and returns `decorator`. When you later call `f()`, you'd be calling `decorator()` with no arguments, and it fails."
 
 [[questions]]
-text = "En `reintentar(veces, excepciones=(ConnectionError,))`, ¿qué debería pasar si la función levanta `KeyError`?"
+text = "In `retry(times, exceptions=(ConnectionError,))`, what should happen if the function raises `KeyError`?"
 options = [
-  "Reintentar igual",
-  "Propagarse inmediatamente, sin reintentar",
-  "Devolver `None`",
-  "Convertirse en `ConnectionError`",
+  "Retry anyway",
+  "Propagate immediately, without retrying",
+  "Return `None`",
+  "Turn into a `ConnectionError`",
 ]
 correct = 1
-explanation = "Solo se reintentan los errores transitorios esperados. Un `KeyError` suele ser un bug y reintentarlo solo lo oculta y demora."
+explanation = "Only expected transient errors are retried. A `KeyError` is usually a bug, and retrying it only hides it and delays things."
 
 [[questions]]
-text = "Para que un decorador funcione como `@deco` y como `@deco(opcion=1)`, ¿qué se hace?"
+text = "To make a decorator work both as `@deco` and as `@deco(option=1)`, what do you do?"
 options = [
-  "Es imposible en Python",
-  "Primer parámetro `func=None` y opciones solo keyword; si `func` no es `None`, se decora directamente",
-  "Se usa `*args` y se adivina el tipo",
-  "Se definen dos funciones con el mismo nombre",
+  "It's impossible in Python",
+  "First parameter `func=None` and keyword-only options; if `func` isn't `None`, decorate it directly",
+  "Use `*args` and guess the type",
+  "Define two functions with the same name",
 ]
 correct = 1
-explanation = "Si se usó sin paréntesis, llega la función como primer argumento. Si no, llegan solo keywords y se devuelve el decorador."
+explanation = "If it was used without parentheses, the function arrives as the first argument. Otherwise only keywords arrive and you return the decorator."

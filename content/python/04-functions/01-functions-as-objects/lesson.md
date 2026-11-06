@@ -1,154 +1,154 @@
-# Funciones como objetos
+# Functions as objects
 
-En Python las funciones son **objetos de primera clase**: se pueden asignar a variables,
-guardar en estructuras, pasar como argumento y devolver desde otras funciones. Casi todo lo
-que viene en este módulo (closures, decoradores y los *callbacks* de los frameworks) se apoya
-en esta idea.
+In Python, functions are **first-class objects**: you can assign them to variables, store
+them in data structures, pass them as arguments and return them from other functions. Almost
+everything in this module (closures, decorators and framework *callbacks*) builds on this
+idea.
 
-## Una función es un valor más
+## A function is just another value
 
 ```python
-def saludar(nombre):
-    return f"hola {nombre}"
+def greet(name):
+    return f"hello {name}"
 
-f = saludar              # sin paréntesis: la función, no su resultado
-f("ana")                 # 'hola ana'
-f.__name__               # 'saludar'
+f = greet                # no parentheses: the function, not its result
+f("alice")               # 'hello alice'
+f.__name__               # 'greet'
 type(f)                  # <class 'function'>
 
-acciones = [str.upper, str.lower, str.title]
-[accion("hOLA") for accion in acciones]    # ['HOLA', 'hola', 'Hola']
+actions = [str.upper, str.lower, str.title]
+[action("hELLO") for action in actions]    # ['HELLO', 'hello', 'Hello']
 ```
 
-Un error típico es pasar `func()` (su resultado) cuando se esperaba `func` (la función).
+A common mistake is passing `func()` (its result) when `func` (the function) was expected.
 
-## Funciones que reciben funciones
+## Functions that take functions
 
-Ya las usaste: `sorted(key=...)`, `max(key=...)`, `map`, `filter`. El patrón general es
-**separar el "qué" del "cómo"**:
+You've already used them: `sorted(key=...)`, `max(key=...)`, `map`, `filter`. The general
+pattern is **separating the "what" from the "how"**:
 
 ```python
-def aplicar_a_todos(func, xs):
+def apply_to_all(func, xs):
     return [func(x) for x in xs]
 
-aplicar_a_todos(len, ["a", "bcd"])      # [1, 3]
+apply_to_all(len, ["a", "bcd"])      # [1, 3]
 ```
 
-En Python moderno, `map` y `filter` suelen reemplazarse por comprehensions, que se leen
-mejor. Donde las funciones como argumento brillan es en `key=`, en los callbacks y en la
-inyección de comportamiento: "cómo reintentar", "cómo formatear", "qué hacer al terminar".
+In modern Python, `map` and `filter` are usually replaced by comprehensions, which read
+better. Where functions as arguments really shine is `key=`, callbacks and behavior
+injection: "how to retry", "how to format", "what to do when done".
 
-## Despacho con dicts: reemplazar cadenas de `if`
+## Dispatching with dicts: replacing `if` chains
 
 ```python
 import operator
 
-OPERACIONES = {
+OPERATIONS = {
     "+": operator.add,
     "-": operator.sub,
     "*": operator.mul,
     "/": operator.truediv,
 }
 
-def calcular(op, a, b):
+def calculate(op, a, b):
     try:
-        return OPERACIONES[op](a, b)
+        return OPERATIONS[op](a, b)
     except KeyError:
-        raise ValueError(f"operación desconocida: {op!r}") from None
+        raise ValueError(f"unknown operation: {op!r}") from None
 ```
 
-Agregar una operación es agregar una entrada, sin tocar la lógica. El módulo `operator` trae
-versiones en forma de función de todos los operadores (`add`, `mul`, `itemgetter`,
-`attrgetter`, `methodcaller`…).
+Adding an operation means adding an entry, without touching the logic. The `operator` module
+provides function versions of every operator (`add`, `mul`, `itemgetter`, `attrgetter`,
+`methodcaller`…).
 
-## `lambda`: funciones anónimas de una expresión
+## `lambda`: anonymous single-expression functions
 
 ```python
-sorted(personas, key=lambda p: p.edad)
+sorted(people, key=lambda p: p.age)
 ```
 
-Una `lambda` es solo una forma corta de escribir una función de **una expresión**. Úsala
-para argumentos cortos, como en `key=`. Si necesitás asignarla a un nombre
-(`doble = lambda x: x * 2`), escribí un `def`: tiene nombre en los tracebacks, admite
-docstring y ruff te lo va a marcar (regla E731).
+A `lambda` is just a short way to write a function made of **one expression**. Use it for
+short arguments, like `key=`. If you need to assign it to a name (`double = lambda x: x * 2`),
+write a `def`: it has a name in tracebacks, supports a docstring, and ruff will flag the
+lambda anyway (rule E731).
 
-## Funciones que devuelven funciones
+## Functions that return functions
 
 ```python
-def crear_multiplicador(k):
-    def multiplicar(x):
+def make_multiplier(k):
+    def multiply(x):
         return x * k
-    return multiplicar
+    return multiply
 
-doble = crear_multiplicador(2)
-doble(21)    # 42
+double = make_multiplier(2)
+double(21)    # 42
 ```
 
-`multiplicar` "recuerda" el `k` con que se creó: es una **closure**, el tema del próximo
-capítulo.
+`multiply` "remembers" the `k` it was created with: it's a **closure**, the topic of the next
+chapter.
 
-## `functools.partial`: fijar argumentos
+## `functools.partial`: fixing arguments
 
 ```python
 from functools import partial
 
-int_binario = partial(int, base=2)
-int_binario("1010")                 # 10
+int_binary = partial(int, base=2)
+int_binary("1010")                  # 10
 
 log_error = partial(print, "[ERROR]", sep=" ")
-log_error("falló la conexión")      # [ERROR] falló la conexión
+log_error("connection failed")      # [ERROR] connection failed
 ```
 
-`partial` crea una función nueva con algunos argumentos ya puestos. Es muy útil para adaptar
-una función a la firma que espera otro código (un callback sin argumentos, un `key=` de un
-solo argumento, etc.).
+`partial` creates a new function with some arguments already filled in. It's very handy for
+adapting a function to the signature other code expects (a no-argument callback, a
+single-argument `key=`, etc.).
 
-## Componer funciones
+## Composing functions
 
 ```python
 from functools import reduce
 
-def componer(*funcs):
-    """componer(f, g, h)(x) == f(g(h(x)))"""
+def compose(*funcs):
+    """compose(f, g, h)(x) == f(g(h(x)))"""
     return reduce(lambda f, g: lambda x: f(g(x)), funcs, lambda x: x)
 
-limpiar = componer(str.title, str.strip)
-limpiar("  ana pérez ")    # 'Ana Pérez'
+clean = compose(str.title, str.strip)
+clean("  alice smith ")    # 'Alice Smith'
 ```
 
-`reduce` combina los elementos de a pares de izquierda a derecha. Es poco común en código de
-aplicación (un `for` suele leerse mejor), pero aparece en utilidades como esta.
+`reduce` combines the elements pairwise from left to right. It's uncommon in application
+code (a `for` loop usually reads better), but it shows up in utilities like this one.
 
-## Los *callables*: no solo funciones
+## *Callables*: not just functions
 
-Cualquier objeto con `__call__` se puede "llamar": las clases (llamarlas crea instancias),
-los métodos, los objetos `partial` y las instancias de clases propias que definan `__call__`.
-`callable(obj)` pregunta si algo se puede llamar.
+Any object with `__call__` can be "called": classes (calling them creates instances),
+methods, `partial` objects and instances of your own classes that define `__call__`.
+`callable(obj)` tells you whether something can be called.
 
 ```python
-class Contador:
+class Counter:
     def __init__(self):
         self.n = 0
     def __call__(self):
         self.n += 1
         return self.n
 
-c = Contador()
+c = Counter()
 c(), c()     # (1, 2)
 ```
 
-## Resumen
+## Summary
 
-- Las funciones son valores: pasalas sin paréntesis.
-- Dict de funciones en lugar de `if/elif` para despachar según un valor.
-- `lambda` solo para expresiones cortas pasadas como argumento.
-- `functools.partial` fija argumentos; `operator` da los operadores como funciones.
-- Cualquier objeto con `__call__` es un *callable*.
+- Functions are values: pass them without parentheses.
+- Use a dict of functions instead of `if/elif` to dispatch on a value.
+- `lambda` only for short expressions passed as arguments.
+- `functools.partial` fixes arguments; `operator` gives you operators as functions.
+- Any object with `__call__` is a *callable*.
 
-## Ejercicio
+## Exercise
 
-Composición de funciones, aplicación repetida, despacho con un dict de operadores y
+Function composition, repeated application, dispatching with a dict of operators, and
 `partial`.
 
-**Para profundizar:** [functools](https://docs.python.org/3/library/functools.html),
-[operator](https://docs.python.org/3/library/operator.html), *Fluent Python*, cap. 7.
+**Further reading:** [functools](https://docs.python.org/3/library/functools.html),
+[operator](https://docs.python.org/3/library/operator.html), *Fluent Python*, ch. 7.

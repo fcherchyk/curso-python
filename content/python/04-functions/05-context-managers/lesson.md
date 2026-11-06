@@ -1,133 +1,133 @@
 # Context managers
 
-`with` garantiza que algo se **limpie** (se cierre, se libere, se restaure o se confirme)
-pase lo que pase dentro del bloque, incluso si hay una excepción o un `return`. Archivos,
-locks, conexiones, transacciones, directorios temporales, mocks en tests: todos se manejan
-con context managers.
+`with` guarantees that something gets **cleaned up** (closed, released, restored or
+committed) no matter what happens inside the block, even if there's an exception or a
+`return`. Files, locks, connections, transactions, temporary directories, mocks in tests:
+all of them are handled with context managers.
 
-## El problema que resuelven
+## The problem they solve
 
 ```python
-f = open("datos.txt")
-procesar(f)          # si esto falla...
-f.close()            # ...esto nunca se ejecuta
+f = open("data.txt")
+process(f)           # if this fails...
+f.close()            # ...this never runs
 ```
 
-La versión correcta sin `with` necesita `try/finally`:
+The correct version without `with` needs `try/finally`:
 
 ```python
-f = open("datos.txt")
+f = open("data.txt")
 try:
-    procesar(f)
+    process(f)
 finally:
     f.close()
 ```
 
-`with` encapsula ese patrón:
+`with` wraps that pattern:
 
 ```python
-with open("datos.txt") as f:
-    procesar(f)
-# acá el archivo ya está cerrado, pase lo que pase
+with open("data.txt") as f:
+    process(f)
+# here the file is already closed, no matter what
 ```
 
-## El protocolo: `__enter__` y `__exit__`
+## The protocol: `__enter__` and `__exit__`
 
 ```python
-with expresion as nombre:
-    cuerpo
+with expression as name:
+    body
 ```
 
-hace, aproximadamente, esto:
+does, roughly, this:
 
 ```python
-cm = expresion
-nombre = cm.__enter__()
+cm = expression
+name = cm.__enter__()
 try:
-    cuerpo
+    body
 except BaseException as e:
     if not cm.__exit__(type(e), e, e.__traceback__):
-        raise                  # __exit__ devolvió False → la excepción sigue
+        raise                  # __exit__ returned False → the exception continues
 else:
     cm.__exit__(None, None, None)
 ```
 
-- `__enter__` prepara el recurso y lo que devuelve queda en la variable del `as`. Muchas veces
-  devuelve `self`, pero no siempre.
-- `__exit__` recibe la excepción (o tres `None`) y hace la limpieza. Si devuelve `True`, **la
-  excepción se suprime**. Casi siempre conviene devolver `None` o `False`.
+- `__enter__` sets up the resource, and whatever it returns goes into the `as` variable. It
+  often returns `self`, but not always.
+- `__exit__` receives the exception (or three `None`s) and does the cleanup. If it returns
+  `True`, **the exception is suppressed**. You almost always want to return `None` or `False`.
 
-## Con una clase
+## With a class
 
 ```python
 import time
 
-class Temporizador:
+class Timer:
     def __enter__(self):
-        self.inicio = time.perf_counter()
+        self.start = time.perf_counter()
         return self
 
     def __exit__(self, exc_type, exc, tb):
-        self.duracion = time.perf_counter() - self.inicio
-        # sin return → None → no suprime excepciones
+        self.duration = time.perf_counter() - self.start
+        # no return → None → doesn't suppress exceptions
 
-with Temporizador() as t:
-    hacer_algo()
-print(f"tardó {t.duracion:.3f}s")
+with Timer() as t:
+    do_something()
+print(f"took {t.duration:.3f}s")
 ```
 
-Conviene escribirlo como clase cuando el objeto tiene **más usos** además del `with`, como
-atributos o métodos, o cuando se reutiliza.
+Writing it as a class makes sense when the object has **other uses** besides the `with`,
+such as attributes or methods, or when it's reused.
 
-## Con un generador: `@contextmanager`
+## With a generator: `@contextmanager`
 
-Para la mayoría de los casos, `contextlib.contextmanager` es más corto. Todo lo que va antes
-del `yield` es el `__enter__`, lo que se entrega con `yield` va al `as`, y lo que va después
-es el `__exit__`:
+For most cases, `contextlib.contextmanager` is shorter. Everything before the `yield` is the
+`__enter__`, whatever you `yield` goes to the `as`, and everything after it is the
+`__exit__`:
 
 ```python
 from contextlib import contextmanager
 import os
 
 @contextmanager
-def en_directorio(ruta):
-    anterior = os.getcwd()
-    os.chdir(ruta)
+def in_directory(path):
+    previous = os.getcwd()
+    os.chdir(path)
     try:
-        yield ruta
+        yield path
     finally:
-        os.chdir(anterior)         # se ejecuta aunque el bloque falle
+        os.chdir(previous)         # runs even if the block fails
 ```
 
-**El `try/finally` alrededor del `yield` es fundamental.** Si el bloque del `with` levanta una
-excepción, se re-levanta **en la línea del `yield`**. Sin `finally`, la limpieza no se
-ejecuta.
+**The `try/finally` around the `yield` is essential.** If the `with` block raises an
+exception, it's re-raised **at the `yield` line**. Without `finally`, the cleanup doesn't
+run.
 
-### Manejar la excepción del bloque
+### Handling the block's exception
 
 ```python
 @contextmanager
-def transaccion(conexion):
-    conexion.begin()
+def transaction(connection):
+    connection.begin()
     try:
-        yield conexion
+        yield connection
     except Exception:
-        conexion.rollback()
-        raise                      # re-levantar: que quien llama se entere
+        connection.rollback()
+        raise                      # re-raise: let the caller know
     else:
-        conexion.commit()
+        connection.commit()
 ```
 
-Si en el `except` **no** re-levantás, la excepción queda suprimida. A veces es lo que se
-busca (ver `suppress` más abajo), pero tiene que ser una decisión consciente.
+If you **don't** re-raise in the `except`, the exception is suppressed. Sometimes that's
+what you want (see `suppress` below), but it has to be a deliberate decision.
 
-## Varios a la vez
+## Several at once
 
 ```python
-with open("entrada.txt") as src, open("salida.txt", "w") as dst:
+with open("input.txt") as src, open("output.txt", "w") as dst:
     dst.write(src.read())
 
-# 3.10+: entre paréntesis, uno por línea
+# 3.10+: in parentheses, one per line
 with (
     open("a.txt") as a,
     open("b.txt") as b,
@@ -135,51 +135,52 @@ with (
     ...
 ```
 
-Se entran de izquierda a derecha y se salen en orden inverso.
+They're entered left to right and exited in reverse order.
 
-## La caja de herramientas de `contextlib`
+## The `contextlib` toolbox
 
 ```python
 from contextlib import suppress, ExitStack, closing, redirect_stdout, nullcontext
 
-with suppress(FileNotFoundError):          # ignorar una excepción concreta
-    os.remove("temporal.txt")
+with suppress(FileNotFoundError):          # ignore one specific exception
+    os.remove("temp.txt")
 
-with ExitStack() as stack:                 # cantidad dinámica de recursos
-    archivos = [stack.enter_context(open(r)) for r in rutas]
+with ExitStack() as stack:                 # a dynamic number of resources
+    files = [stack.enter_context(open(p)) for p in paths]
 
-with closing(urlopen(url)) as pagina:      # objetos con .close() pero sin protocolo with
+with closing(urlopen(url)) as page:        # objects with .close() but no with protocol
     ...
 
-with redirect_stdout(io.StringIO()) as buf:   # capturar prints
-    print("hola")
+with redirect_stdout(io.StringIO()) as buf:   # capture prints
+    print("hello")
 
-cm = lock if usar_lock else nullcontext()  # un "with que no hace nada"
+cm = lock if use_lock else nullcontext()   # a "with that does nothing"
 ```
 
-Y en el mundo `async` existen `async with` y `@asynccontextmanager` (módulo de concurrencia).
+And in the `async` world there are `async with` and `@asynccontextmanager` (concurrency
+module).
 
-## Dónde los vas a ver
+## Where you'll see them
 
 - `open()`, `tempfile.TemporaryDirectory()`, `zipfile.ZipFile()`.
-- `threading.Lock()`: `with lock:` adquiere y libera.
+- `threading.Lock()`: `with lock:` acquires and releases.
 - SQLAlchemy: `with Session(engine) as session, session.begin():`.
 - pytest: `with pytest.raises(ValueError):`, `with pytest.warns(...)`, `mock.patch(...)`.
 - `decimal.localcontext()`, `warnings.catch_warnings()`.
 
-## Resumen
+## Summary
 
-- `with` garantiza la limpieza aunque haya excepciones o `return`.
-- Protocolo: `__enter__` devuelve lo del `as`; `__exit__` limpia y, si devuelve `True`, suprime
-  la excepción.
-- `@contextmanager`: antes del `yield` es el setup y después, la limpieza. **Siempre** con
-  `try/finally` alrededor del `yield`.
+- `with` guarantees cleanup even if there are exceptions or a `return`.
+- Protocol: `__enter__` returns what goes to `as`; `__exit__` cleans up and, if it returns
+  `True`, suppresses the exception.
+- `@contextmanager`: before the `yield` is the setup and after it, the cleanup. **Always**
+  with `try/finally` around the `yield`.
 - `contextlib`: `suppress`, `ExitStack`, `closing`, `redirect_stdout`, `nullcontext`.
 
-## Ejercicio
+## Exercise
 
-Un temporizador como clase, un cambio de directorio que se restaura siempre y un context
-manager que captura ciertas excepciones y las entrega en una lista.
+A timer as a class, a directory change that's always restored and a context manager that
+captures certain exceptions and hands them over in a list.
 
-**Para profundizar:** [contextlib](https://docs.python.org/3/library/contextlib.html),
-[PEP 343 — The "with" statement](https://peps.python.org/pep-0343/), *Fluent Python*, cap. 18.
+**Further reading:** [contextlib](https://docs.python.org/3/library/contextlib.html),
+[PEP 343 — The "with" statement](https://peps.python.org/pep-0343/), *Fluent Python*, ch. 18.

@@ -3,62 +3,62 @@ import warnings
 from collections.abc import Callable
 from typing import Any
 
-Decorador = Callable[[Callable[..., Any]], Callable[..., Any]]
+Decorator = Callable[[Callable[..., Any]], Callable[..., Any]]
 
 
-def repetir(n: int) -> Decorador:
-    def decorador(func: Callable[..., Any]) -> Callable[..., Any]:
+def repeat(n: int) -> Decorator:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> list[Any]:
             return [func(*args, **kwargs) for _ in range(n)]
 
         return wrapper
 
-    return decorador
+    return decorator
 
 
-def reintentar(
-    veces: int, excepciones: tuple[type[BaseException], ...] = (Exception,)
-) -> Decorador:
-    def decorador(func: Callable[..., Any]) -> Callable[..., Any]:
+def retry(
+    times: int, exceptions: tuple[type[BaseException], ...] = (Exception,)
+) -> Decorator:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            for intento in range(1, veces + 1):
+            for attempt in range(1, times + 1):
                 try:
                     return func(*args, **kwargs)
-                except excepciones:
-                    if intento == veces:
+                except exceptions:
+                    if attempt == times:
                         raise
-            raise AssertionError("inalcanzable")
+            raise AssertionError("unreachable")
 
         return wrapper
 
-    return decorador
+    return decorator
 
 
-def acotar(minimo: float, maximo: float) -> Decorador:
-    def decorador(func: Callable[..., Any]) -> Callable[..., Any]:
+def clamp(minimum: float, maximum: float) -> Decorator:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> float:
-            return max(minimo, min(maximo, func(*args, **kwargs)))
+            return max(minimum, min(maximum, func(*args, **kwargs)))
 
         return wrapper
 
-    return decorador
+    return decorator
 
 
-def deprecado(func: Callable[..., Any] | None = None, *, reemplazo: str | None = None) -> Any:
-    def decorador(f: Callable[..., Any]) -> Callable[..., Any]:
+def deprecated(func: Callable[..., Any] | None = None, *, replacement: str | None = None) -> Any:
+    def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(f)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            mensaje = f"{f.__name__} está deprecada"
-            if reemplazo:
-                mensaje += f"; usá {reemplazo}"
-            warnings.warn(mensaje, DeprecationWarning, stacklevel=2)
+            message = f"{f.__name__} is deprecated"
+            if replacement:
+                message += f"; use {replacement}"
+            warnings.warn(message, DeprecationWarning, stacklevel=2)
             return f(*args, **kwargs)
 
         return wrapper
 
-    if func is not None:  # usado como @deprecado, sin paréntesis
-        return decorador(func)
-    return decorador
+    if func is not None:  # used as @deprecated, without parentheses
+        return decorator(func)
+    return decorator

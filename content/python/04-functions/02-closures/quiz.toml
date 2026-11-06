@@ -1,17 +1,17 @@
 [[questions]]
-text = "¿Qué devuelve `[f() for f in [lambda: i for i in range(3)]]`?"
-options = ["`[0, 1, 2]`", "`[2, 2, 2]`", "`[0, 0, 0]`", "Levanta `NameError`"]
+text = "What does `[f() for f in [lambda: i for i in range(3)]]` return?"
+options = ["`[0, 1, 2]`", "`[2, 2, 2]`", "`[0, 0, 0]`", "Raises `NameError`"]
 correct = 1
-explanation = "Las lambdas capturan la **variable** `i`, no su valor. Cuando se llaman, el bucle ya terminó y `i` vale 2."
+explanation = "The lambdas capture the **variable** `i`, not its value. By the time they're called, the loop has finished and `i` is 2."
 
 [[questions]]
-text = "Dentro de una función interna, `total += 1` sobre una variable de la función externa levanta…"
-options = ["`NameError`", "`UnboundLocalError`", "`SyntaxError`", "Nada: funciona"]
+text = "Inside an inner function, `total += 1` on a variable from the outer function raises…"
+options = ["`NameError`", "`UnboundLocalError`", "`SyntaxError`", "Nothing: it works"]
 correct = 1
-explanation = "La asignación convierte a `total` en local de la función interna, y se lee antes de asignarse. Hace falta `nonlocal total`."
+explanation = "The assignment makes `total` local to the inner function, and it's read before being assigned. You need `nonlocal total`."
 
 [[questions]]
-text = "¿En qué orden busca Python un nombre?"
+text = "In what order does Python look up a name?"
 options = [
   "Global, local, built-in",
   "Local, enclosing, global, built-in",
@@ -19,21 +19,21 @@ options = [
   "Enclosing, local, global, built-in",
 ]
 correct = 1
-explanation = "Es la regla LEGB: de lo más cercano a lo más general."
+explanation = "It's the LEGB rule: from the closest scope to the most general."
 
 [[questions]]
-text = "Una closure hace `eventos.append(e)` sobre una lista externa, sin reasignarla. ¿Necesita `nonlocal`?"
+text = "A closure does `events.append(e)` on an outer list, without reassigning it. Does it need `nonlocal`?"
 options = [
-  "Sí, siempre que modifique algo externo",
-  "No: muta el objeto sin reasignar el nombre",
-  "Sí, pero `global`, no `nonlocal`",
-  "No, porque las listas son globales",
+  "Yes, whenever it modifies something outside",
+  "No: it mutates the object without reassigning the name",
+  "Yes, but `global`, not `nonlocal`",
+  "No, because lists are global",
 ]
 correct = 1
-explanation = "`nonlocal` solo hace falta para **reasignar** el nombre. Llamar a un método que muta el objeto no es una asignación."
+explanation = "`nonlocal` is only needed to **reassign** the name. Calling a method that mutates the object isn't an assignment."
 
 [[questions]]
-text = "¿Cuál es una forma correcta de crear `[lambda: 0, lambda: 1, lambda: 2]` con un bucle?"
+text = "Which is a correct way to build `[lambda: 0, lambda: 1, lambda: 2]` with a loop?"
 options = [
   "`[lambda: i for i in range(3)]`",
   "`[lambda i=i: i for i in range(3)]`",
@@ -41,4 +41,4 @@ options = [
   "`[lambda: copy(i) for i in range(3)]`",
 ]
 correct = 1
-explanation = "El default argument se evalúa al **definir** la lambda, así que cada una congela el valor de `i` en ese momento."
+explanation = "The default argument is evaluated when the lambda is **defined**, so each one freezes the value `i` had at that moment."

@@ -1,49 +1,49 @@
 [[questions]]
-text = "¿Qué le estás pasando a `sorted` con `sorted(xs, key=len())`?"
+text = "What are you passing to `sorted` with `sorted(xs, key=len())`?"
 options = [
-  "La función `len`",
-  "El resultado de llamar a `len` sin argumentos, que levanta `TypeError`",
-  "Una lambda",
-  "Nada: `key` se ignora",
+  "The `len` function",
+  "The result of calling `len` with no arguments, which raises `TypeError`",
+  "A lambda",
+  "Nothing: `key` is ignored",
 ]
 correct = 1
-explanation = "Con paréntesis se *llama* a la función. `key` espera la función en sí: `key=len`."
+explanation = "Parentheses *call* the function. `key` expects the function itself: `key=len`."
 
 [[questions]]
-text = "¿Qué devuelve `partial(int, base=16)(\"ff\")`?"
-options = ["`'ff'`", "`255`", "`16`", "Levanta `TypeError`"]
+text = "What does `partial(int, base=16)(\"ff\")` return?"
+options = ["`'ff'`", "`255`", "`16`", "Raises `TypeError`"]
 correct = 1
-explanation = "`partial` fija `base=16`, así que la llamada equivale a `int(\"ff\", base=16)`, que es 255."
+explanation = "`partial` fixes `base=16`, so the call is equivalent to `int(\"ff\", base=16)`, which is 255."
 
 [[questions]]
-text = "¿Por qué no conviene escribir `doble = lambda x: x * 2`?"
+text = "Why shouldn't you write `double = lambda x: x * 2`?"
 options = [
-  "Porque las lambdas son más lentas",
-  "Porque si la vas a nombrar, un `def` da nombre en los tracebacks, admite docstring y es lo idiomático",
-  "Porque las lambdas no pueden devolver valores",
-  "Porque es un error de sintaxis",
+  "Because lambdas are slower",
+  "Because if you're going to name it, a `def` shows its name in tracebacks, supports a docstring and is the idiomatic choice",
+  "Because lambdas can't return values",
+  "Because it's a syntax error",
 ]
 correct = 1
-explanation = "Las lambdas son para funciones cortas pasadas como argumento. Asignada a un nombre, es un `def` peor (ruff la marca con E731)."
+explanation = "Lambdas are for short functions passed as arguments. Assigned to a name, it's a worse `def` (ruff flags it with E731)."
 
 [[questions]]
-text = "¿Qué ventaja tiene despachar con `OPERACIONES[op](a, b)` frente a una cadena de `if/elif`?"
+text = "What's the advantage of dispatching with `OPERATIONS[op](a, b)` over an `if/elif` chain?"
 options = [
-  "Es la única forma de usar el módulo `operator`",
-  "Agregar un caso es agregar una entrada al dict, sin tocar la lógica",
-  "Evita tener que manejar errores",
-  "Es obligatorio en Python 3",
+  "It's the only way to use the `operator` module",
+  "Adding a case means adding an entry to the dict, without touching the logic",
+  "It avoids having to handle errors",
+  "It's required in Python 3",
 ]
 correct = 1
-explanation = "Separa los datos (la tabla de operaciones) de la lógica. Además, el dict se puede extender o inyectar desde afuera."
+explanation = "It separates the data (the operations table) from the logic. Plus, the dict can be extended or injected from outside."
 
 [[questions]]
-text = "¿Qué hace que un objeto sea *callable*?"
+text = "What makes an object *callable*?"
 options = [
-  "Heredar de `function`",
-  "Tener un método `__call__`",
-  "Estar decorado con `@callable`",
-  "Tener un atributo `__name__`",
+  "Inheriting from `function`",
+  "Having a `__call__` method",
+  "Being decorated with `@callable`",
+  "Having a `__name__` attribute",
 ]
 correct = 1
-explanation = "Cualquier objeto cuya clase define `__call__` se puede llamar con paréntesis. Las funciones, las clases y los `partial` lo cumplen."
+explanation = "Any object whose class defines `__call__` can be called with parentheses. Functions, classes and `partial` objects all qualify."

@@ -1,4 +1,4 @@
-"""Funciones como objetos."""
+"""Functions as objects."""
 
 import functools  # noqa: F401
 import operator  # noqa: F401
@@ -6,45 +6,45 @@ from collections.abc import Callable
 from typing import Any
 
 
-def componer(*funcs: Callable[[Any], Any]) -> Callable[[Any], Any]:
-    """Composición de derecha a izquierda: componer(f, g, h)(x) == f(g(h(x))).
+def compose(*funcs: Callable[[Any], Any]) -> Callable[[Any], Any]:
+    """Right-to-left composition: compose(f, g, h)(x) == f(g(h(x))).
 
-    Sin funciones, devuelve la identidad.
+    With no functions, return the identity.
 
-    >>> componer(str.title, str.strip)("  ana ")
-    'Ana'
+    >>> compose(str.title, str.strip)("  alice ")
+    'Alice'
     """
     raise NotImplementedError("TODO")
 
 
-def aplicar_n_veces(func: Callable[[Any], Any], n: int, x: Any) -> Any:
-    """Aplicá `func` sobre `x` n veces seguidas: func(func(...func(x))).
+def apply_n_times(func: Callable[[Any], Any], n: int, x: Any) -> Any:
+    """Apply `func` to `x` n times in a row: func(func(...func(x))).
 
-    >>> aplicar_n_veces(lambda v: v * 2, 3, 1)
+    >>> apply_n_times(lambda v: v * 2, 3, 1)
     8
     """
     raise NotImplementedError("TODO")
 
 
-def calcular(op: str, a: float, b: float) -> float:
-    """Calculadora con despacho por dict (nada de if/elif por operación).
+def calculate(op: str, a: float, b: float) -> float:
+    """Calculator with dict dispatch (no if/elif per operation).
 
-    Soporta "+", "-", "*", "/" y "**". Con otra operación, ValueError.
+    Supports "+", "-", "*", "/" and "**". Any other operation raises ValueError.
 
-    Pista: el módulo `operator`.
+    Hint: the `operator` module.
 
-    >>> calcular("**", 2, 10)
+    >>> calculate("**", 2, 10)
     1024
     """
     raise NotImplementedError("TODO")
 
 
-def parseador_de_base(base: int) -> Callable[[str], int]:
-    """Devolvé una función que convierte strings a int en la `base` dada.
+def base_parser(base: int) -> Callable[[str], int]:
+    """Return a function that converts strings to int in the given `base`.
 
-    Pista: `functools.partial`.
+    Hint: `functools.partial`.
 
-    >>> parseador_de_base(2)("1010")
+    >>> base_parser(2)("1010")
     10
     """
     raise NotImplementedError("TODO")

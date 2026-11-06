@@ -1,44 +1,44 @@
 [[questions]]
-text = "¿A qué equivale `@deco` sobre `def f(): ...`?"
+text = "What is `@deco` above `def f(): ...` equivalent to?"
 options = ["`f = deco`", "`f = deco(f)`", "`f = deco(f())`", "`deco = f(deco)`"]
 correct = 1
-explanation = "El decorador recibe la función y lo que devuelve reemplaza al nombre original."
+explanation = "The decorator receives the function, and whatever it returns replaces the original name."
 
 [[questions]]
-text = "Un decorador sin `functools.wraps`: ¿qué devuelve `funcion_decorada.__name__`?"
+text = "A decorator without `functools.wraps`: what does `decorated_function.__name__` return?"
 options = [
-  "El nombre original",
-  "El nombre de la función interna, por ejemplo `'wrapper'`",
+  "The original name",
+  "The inner function's name, for example `'wrapper'`",
   "`None`",
-  "Levanta `AttributeError`",
+  "Raises `AttributeError`",
 ]
 correct = 1
-explanation = "Sin `wraps`, lo que queda es el wrapper con sus propios metadatos. `wraps` copia `__name__`, `__doc__` y los demás desde la original."
+explanation = "Without `wraps`, what you're left with is the wrapper with its own metadata. `wraps` copies `__name__`, `__doc__` and the rest from the original."
 
 [[questions]]
-text = "Una función decorada empezó a devolver `None` en lugar de su resultado. ¿Cuál es la causa más probable?"
+text = "A decorated function started returning `None` instead of its result. What's the most likely cause?"
 options = [
-  "Falta `functools.wraps`",
-  "El wrapper llama a `func(*args, **kwargs)` pero no hace `return` del resultado",
-  "Faltan los `**kwargs`",
-  "El decorador se aplicó dos veces",
+  "`functools.wraps` is missing",
+  "The wrapper calls `func(*args, **kwargs)` but doesn't `return` the result",
+  "The `**kwargs` are missing",
+  "The decorator was applied twice",
 ]
 correct = 1
-explanation = "El wrapper tiene que devolver lo que devuelve la función original. Si no lo hace, devuelve `None`."
+explanation = "The wrapper has to return whatever the original function returns. If it doesn't, it returns `None`."
 
 [[questions]]
-text = "Con `@a` arriba y `@b` abajo, sobre `def f`, ¿qué se obtiene?"
-options = ["`f = b(a(f))`", "`f = a(b(f))`", "`f = a(f); f = b(f)` en paralelo", "Error: no se pueden apilar"]
+text = "With `@a` on top and `@b` below, over `def f`, what do you get?"
+options = ["`f = b(a(f))`", "`f = a(b(f))`", "`f = a(f); f = b(f)` in parallel", "Error: they can't be stacked"]
 correct = 1
-explanation = "Se aplican de abajo hacia arriba: primero `b`, y el resultado se le pasa a `a`."
+explanation = "They're applied bottom to top: first `b`, and the result is passed to `a`."
 
 [[questions]]
-text = "¿Qué requisito tienen los argumentos de una función decorada con `@functools.cache`?"
+text = "What requirement do the arguments of a function decorated with `@functools.cache` have?"
 options = [
-  "Tienen que ser números",
-  "Tienen que ser hashables",
-  "Tienen que pasarse por nombre",
-  "Ninguno",
+  "They must be numbers",
+  "They must be hashable",
+  "They must be passed by keyword",
+  "None",
 ]
 correct = 1
-explanation = "Los argumentos forman la clave del diccionario del caché, así que tienen que ser hashables. Una lista como argumento levanta `TypeError`."
+explanation = "The arguments form the key of the cache dictionary, so they must be hashable. A list as an argument raises `TypeError`."

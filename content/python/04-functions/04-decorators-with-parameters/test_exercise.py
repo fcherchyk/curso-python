@@ -1,86 +1,86 @@
 import itertools
 
 import pytest
-from exercise import acotar, deprecado, reintentar, repetir
+from exercise import clamp, deprecated, repeat, retry
 
 
-def test_repetir():
-    contador = itertools.count(1)
+def test_repeat():
+    counter = itertools.count(1)
 
-    @repetir(3)
-    def siguiente():
+    @repeat(3)
+    def next_value():
         """Doc."""
-        return next(contador)
+        return next(counter)
 
-    assert siguiente() == [1, 2, 3]
-    assert siguiente.__name__ == "siguiente"
+    assert next_value() == [1, 2, 3]
+    assert next_value.__name__ == "next_value"
 
 
-def test_reintentar_hasta_exito():
-    intentos = []
+def test_retry_until_success():
+    attempts = []
 
-    @reintentar(3, excepciones=(ConnectionError,))
-    def inestable():
-        intentos.append(1)
-        if len(intentos) < 3:
+    @retry(3, exceptions=(ConnectionError,))
+    def flaky():
+        attempts.append(1)
+        if len(attempts) < 3:
             raise ConnectionError
         return "ok"
 
-    assert inestable() == "ok"
-    assert len(intentos) == 3
+    assert flaky() == "ok"
+    assert len(attempts) == 3
 
 
-def test_reintentar_agota_y_relevanta():
-    intentos = []
+def test_retry_exhausts_and_reraises():
+    attempts = []
 
-    @reintentar(2)
-    def siempre_falla():
-        intentos.append(1)
-        raise ValueError("nop")
+    @retry(2)
+    def always_fails():
+        attempts.append(1)
+        raise ValueError("nope")
 
-    with pytest.raises(ValueError, match="nop"):
-        siempre_falla()
-    assert len(intentos) == 2
+    with pytest.raises(ValueError, match="nope"):
+        always_fails()
+    assert len(attempts) == 2
 
 
-def test_reintentar_no_captura_otras():
-    intentos = []
+def test_retry_does_not_catch_others():
+    attempts = []
 
-    @reintentar(5, excepciones=(ConnectionError,))
-    def falla_distinto():
-        intentos.append(1)
+    @retry(5, exceptions=(ConnectionError,))
+    def fails_differently():
+        attempts.append(1)
         raise KeyError
 
     with pytest.raises(KeyError):
-        falla_distinto()
-    assert len(intentos) == 1
+        fails_differently()
+    assert len(attempts) == 1
 
 
-def test_acotar():
-    @acotar(0, 100)
-    def porcentaje(x):
+def test_clamp():
+    @clamp(0, 100)
+    def percentage(x):
         return x * 100
 
-    assert porcentaje(0.5) == 50
-    assert porcentaje(1.5) == 100
-    assert porcentaje(-2) == 0
-    assert porcentaje.__name__ == "porcentaje"
+    assert percentage(0.5) == 50
+    assert percentage(1.5) == 100
+    assert percentage(-2) == 0
+    assert percentage.__name__ == "percentage"
 
 
-def test_deprecado_sin_parentesis():
-    @deprecado
-    def vieja(x):
+def test_deprecated_without_parentheses():
+    @deprecated
+    def old(x):
         return x + 1
 
-    with pytest.warns(DeprecationWarning, match="vieja está deprecada"):
-        assert vieja(1) == 2
-    assert vieja.__name__ == "vieja"
+    with pytest.warns(DeprecationWarning, match="old is deprecated"):
+        assert old(1) == 2
+    assert old.__name__ == "old"
 
 
-def test_deprecado_con_reemplazo():
-    @deprecado(reemplazo="nueva")
-    def vieja():
+def test_deprecated_with_replacement():
+    @deprecated(replacement="new")
+    def old():
         return "ok"
 
-    with pytest.warns(DeprecationWarning, match="usá nueva"):
-        assert vieja() == "ok"
+    with pytest.warns(DeprecationWarning, match="use new"):
+        assert old() == "ok"

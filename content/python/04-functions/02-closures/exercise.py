@@ -1,49 +1,49 @@
-"""Closures y scopes."""
+"""Closures and scopes."""
 
 from collections.abc import Callable
 
 
-def crear_contador(inicio: int = 0) -> Callable[[], int]:
-    """Devolvé una función que, cada vez que se llama, devuelve el siguiente entero
-    empezando en `inicio`. Cada contador es independiente.
+def make_counter(start: int = 0) -> Callable[[], int]:
+    """Return a function that, each time it's called, returns the next integer
+    starting at `start`. Each counter is independent.
 
-    Pista: closure + `nonlocal`.
+    Hint: closure + `nonlocal`.
 
-    >>> c = crear_contador(5)
+    >>> c = make_counter(5)
     >>> c(), c()
     (5, 6)
     """
     raise NotImplementedError("TODO")
 
 
-def multiplicadores(n: int) -> list[Callable[[int], int]]:
-    """Lista de `n` funciones: la i-ésima multiplica su argumento por i.
+def multipliers(n: int) -> list[Callable[[int], int]]:
+    """List of `n` functions: the i-th one multiplies its argument by i.
 
-    ¡Cuidado con el late binding!
+    Watch out for late binding!
 
-    >>> [f(10) for f in multiplicadores(3)]
+    >>> [f(10) for f in multipliers(3)]
     [0, 10, 20]
     """
     raise NotImplementedError("TODO")
 
 
-def crear_promediador() -> Callable[[float], float]:
-    """Devolvé una función que acumula valores y devuelve el promedio de todos los
-    que recibió hasta el momento.
+def make_averager() -> Callable[[float], float]:
+    """Return a function that accumulates values and returns the average of all
+    the values it has received so far.
 
-    >>> p = crear_promediador()
-    >>> p(10), p(20), p(60)
+    >>> avg = make_averager()
+    >>> avg(10), avg(20), avg(60)
     (10.0, 15.0, 30.0)
     """
     raise NotImplementedError("TODO")
 
 
-def crear_limitador(max_llamadas: int) -> Callable[[], bool]:
-    """Devolvé una función que devuelve True las primeras `max_llamadas` veces que se
-    la llama, y False después (como un rate limiter simple).
+def make_limiter(max_calls: int) -> Callable[[], bool]:
+    """Return a function that returns True the first `max_calls` times it's
+    called, and False afterwards (like a simple rate limiter).
 
-    >>> puede = crear_limitador(2)
-    >>> puede(), puede(), puede()
+    >>> allowed = make_limiter(2)
+    >>> allowed(), allowed(), allowed()
     (True, True, False)
     """
     raise NotImplementedError("TODO")
