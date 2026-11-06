@@ -4,65 +4,65 @@ from datetime import date
 import pandas as pd
 import pytest
 from exercise import (
-    cargar_precios,
-    cierres_mensuales,
-    cruces_alcistas,
-    rendimiento_por_anio,
-    retornos_mensuales,
+    bullish_crossovers,
+    load_prices,
+    monthly_closes,
+    monthly_returns,
+    yearly_performance,
 )
 
-# Referencia en Python puro: fecha → precio de ACME
-with open("precios.csv", newline="", encoding="utf-8") as f:
-    ACME = [(date.fromisoformat(r["fecha"]), float(r["ACME"])) for r in csv.DictReader(f)]
+# Pure Python reference: date → ACME price
+with open("prices.csv", newline="", encoding="utf-8") as f:
+    ACME = [(date.fromisoformat(r["date"]), float(r["ACME"])) for r in csv.DictReader(f)]
 
 
-def ultimo_de(anio: int, mes: int | None = None) -> float:
-    return [p for d, p in ACME if d.year == anio and (mes is None or d.month == mes)][-1]
+def last_of(year: int, month: int | None = None) -> float:
+    return [p for d, p in ACME if d.year == year and (month is None or d.month == month)][-1]
 
 
 @pytest.fixture(scope="module")
-def precios():
-    return cargar_precios("precios.csv")
+def prices():
+    return load_prices("prices.csv")
 
 
-def test_cargar_precios(precios):
-    assert isinstance(precios.index, pd.DatetimeIndex)
-    assert precios.index.name == "fecha"
-    assert list(precios.columns) == ["ACME", "BETA", "CIRC", "DELTA", "INDICE"]
+def test_load_prices(prices):
+    assert isinstance(prices.index, pd.DatetimeIndex)
+    assert prices.index.name == "date"
+    assert list(prices.columns) == ["ACME", "BETA", "CIRC", "DELTA", "INDEX"]
 
 
-def test_cierres_mensuales(precios):
-    m = cierres_mensuales(precios)
+def test_monthly_closes(prices):
+    m = monthly_closes(prices)
     assert len(m) == 36
-    assert m.loc["2024-03", "ACME"].iloc[0] == ultimo_de(2024, 3)
+    assert m.loc["2024-03", "ACME"].iloc[0] == last_of(2024, 3)
 
 
-def test_retornos_mensuales(precios):
-    r = retornos_mensuales(precios)
+def test_monthly_returns(prices):
+    r = monthly_returns(prices)
     assert len(r) == 35
     assert not r.isna().any().any()
-    esperado = ultimo_de(2024, 3) / ultimo_de(2024, 2) - 1
-    assert r.loc["2024-03", "ACME"].iloc[0] == pytest.approx(esperado)
+    expected = last_of(2024, 3) / last_of(2024, 2) - 1
+    assert r.loc["2024-03", "ACME"].iloc[0] == pytest.approx(expected)
 
 
-def test_rendimiento_por_anio(precios):
-    r = rendimiento_por_anio(precios, "ACME")
+def test_yearly_performance(prices):
+    r = yearly_performance(prices, "ACME")
     assert set(r) == {2023, 2024, 2025}
-    assert r[2023] == round(ultimo_de(2023) / ACME[0][1] - 1, 4)
-    assert r[2025] == round(ultimo_de(2025) / ultimo_de(2024) - 1, 4)
+    assert r[2023] == round(last_of(2023) / ACME[0][1] - 1, 4)
+    assert r[2025] == round(last_of(2025) / last_of(2024) - 1, 4)
 
 
-def test_cruces_alcistas(precios):
-    cruces = cruces_alcistas(precios["ACME"], 20, 50)
-    assert cruces, "tiene que haber al menos un cruce"
-    fechas = [d for d, _ in ACME]
-    valores = [p for _, p in ACME]
+def test_bullish_crossovers(prices):
+    crossovers = bullish_crossovers(prices["ACME"], 20, 50)
+    assert crossovers, "there must be at least one crossover"
+    dates = [d for d, _ in ACME]
+    values = [p for _, p in ACME]
 
-    def media(fin: int, n: int) -> float:
-        return sum(valores[fin - n + 1 : fin + 1]) / n
+    def mean(end: int, n: int) -> float:
+        return sum(values[end - n + 1 : end + 1]) / n
 
-    for c in cruces:
-        i = fechas.index(c.date())
-        assert i >= 50, "no puede haber cruces antes de tener 50 datos"
-        assert media(i, 20) > media(i, 50)
-        assert media(i - 1, 20) <= media(i - 1, 50)
+    for c in crossovers:
+        i = dates.index(c.date())
+        assert i >= 50, "there can't be crossovers before having 50 data points"
+        assert mean(i, 20) > mean(i, 50)
+        assert mean(i - 1, 20) <= mean(i - 1, 50)

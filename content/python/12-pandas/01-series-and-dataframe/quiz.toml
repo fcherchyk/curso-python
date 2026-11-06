@@ -1,44 +1,44 @@
 [[questions]]
-text = "Con `a = pd.Series({\"x\": 1, \"y\": 2})` y `b = pd.Series({\"y\": 10, \"z\": 20})`, ¿qué da `a + b`?"
+text = "With `a = pd.Series({\"x\": 1, \"y\": 2})` and `b = pd.Series({\"y\": 10, \"z\": 20})`, what is `a + b`?"
 options = [
-  "`[11, 22]` (por posición)",
-  "`x: NaN, y: 12, z: NaN` (alinea por etiqueta)",
-  "Un error de tamaño",
-  "`y: 12` solamente",
+  "`[11, 22]` (by position)",
+  "`x: NaN, y: 12, z: NaN` (aligns by label)",
+  "A size error",
+  "Only `y: 12`",
 ]
 correct = 1
-explanation = "pandas alinea por índice. Las etiquetas que están en una sola Series dan `NaN`."
+explanation = "pandas aligns by index. Labels that appear in only one Series give `NaN`."
 
 [[questions]]
-text = "¿Qué devuelve `df[[\"producto\", \"stock\"]]`?"
-options = ["Una Series", "Un DataFrame con esas dos columnas", "Una lista", "Un error"]
+text = "What does `df[[\"product\", \"stock\"]]` return?"
+options = ["A Series", "A DataFrame with those two columns", "A list", "An error"]
 correct = 1
-explanation = "Con una lista de columnas (doble corchete) se obtiene un DataFrame. Con un solo nombre, una Series."
+explanation = "A list of columns (double brackets) gives you a DataFrame. A single name gives you a Series."
 
 [[questions]]
-text = "¿Para qué sirve `parse_dates=[\"fecha\"]` en `read_csv`?"
+text = "What is `parse_dates=[\"date\"]` for in `read_csv`?"
 options = [
-  "Para ordenar por fecha",
-  "Para convertir esa columna a `datetime64` en lugar de dejarla como texto",
-  "Para usarla como índice",
-  "Para filtrar fechas inválidas",
+  "To sort by date",
+  "To convert that column to `datetime64` instead of leaving it as text",
+  "To use it as the index",
+  "To filter out invalid dates",
 ]
 correct = 1
-explanation = "Sin eso, las fechas quedan como strings y no se pueden usar operaciones de fecha (`.dt`, `resample`, filtros por rango)."
+explanation = "Without it, dates stay as strings and you can't use date operations (`.dt`, `resample`, range filters)."
 
 [[questions]]
-text = "¿Qué devuelve `df[\"total\"].idxmax()`?"
+text = "What does `df[\"total\"].idxmax()` return?"
 options = [
-  "El valor máximo",
-  "La etiqueta del índice de la fila con el máximo",
-  "La posición numérica del máximo",
-  "La columna con el máximo",
+  "The maximum value",
+  "The index label of the row with the maximum",
+  "The numeric position of the maximum",
+  "The column with the maximum",
 ]
 correct = 1
-explanation = "`idxmax` devuelve la etiqueta. Si el índice es `id`, devuelve el id de esa fila."
+explanation = "`idxmax` returns the label. If the index is `id`, it returns that row's id."
 
 [[questions]]
-text = "¿Qué formato se recomienda para guardar datos intermedios en pandas?"
+text = "Which format is recommended for storing intermediate data in pandas?"
 options = ["CSV", "Parquet", "Excel", "JSON"]
 correct = 1
-explanation = "Parquet es columnar, comprimido y conserva los tipos (fechas, categorías). El CSV pierde los tipos y es más lento."
+explanation = "Parquet is columnar, compressed and preserves the types (dates, categories). CSV loses the types and is slower."

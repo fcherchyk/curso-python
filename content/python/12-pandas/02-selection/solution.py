@@ -1,29 +1,29 @@
 import pandas as pd
 
 
-def ventas_grandes_de(ventas: pd.DataFrame, sucursal: str, minimo: float) -> pd.DataFrame:
-    mascara = (ventas["sucursal"] == sucursal) & (ventas["total"] >= minimo)
-    return ventas.loc[mascara, ["producto", "total"]].sort_values("total", ascending=False)
+def large_sales_at(sales: pd.DataFrame, branch: str, minimum: float) -> pd.DataFrame:
+    mask = (sales["branch"] == branch) & (sales["total"] >= minimum)
+    return sales.loc[mask, ["product", "total"]].sort_values("total", ascending=False)
 
 
-def de_productos(ventas: pd.DataFrame, productos: list[str]) -> pd.Series:
-    return ventas.loc[ventas["producto"].isin(productos), "cantidad"]
+def for_products(sales: pd.DataFrame, products: list[str]) -> pd.Series:
+    return sales.loc[sales["product"].isin(products), "quantity"]
 
 
-def consulta(ventas: pd.DataFrame, categoria: str, minima_cantidad: int) -> list[int]:
-    resultado = ventas.query("categoria == @categoria and cantidad >= @minima_cantidad")
-    return sorted(resultado.index.tolist())
+def lookup(sales: pd.DataFrame, category: str, min_quantity: int) -> list[int]:
+    result = sales.query("category == @category and quantity >= @min_quantity")
+    return sorted(result.index.tolist())
 
 
-def top_y_primera_etiqueta(ventas: pd.DataFrame) -> tuple[int, int]:
-    ordenado = ventas.sort_values("total", ascending=False)
-    return int(ordenado.index[0]), int(ordenado.loc[ventas.index.min(), "cantidad"])
+def top_and_first_label(sales: pd.DataFrame) -> tuple[int, int]:
+    ordered = sales.sort_values("total", ascending=False)
+    return int(ordered.index[0]), int(ordered.loc[sales.index.min(), "quantity"])
 
 
-def con_descuento(ventas: pd.DataFrame, categoria: str, pct: float) -> pd.DataFrame:
-    resultado = ventas.copy()
-    mascara = resultado["categoria"] == categoria
-    resultado["precio_unitario"] = resultado["precio_unitario"].astype(float)
-    resultado["total"] = resultado["total"].astype(float)
-    resultado.loc[mascara, ["precio_unitario", "total"]] *= 1 - pct
-    return resultado
+def with_discount(sales: pd.DataFrame, category: str, pct: float) -> pd.DataFrame:
+    result = sales.copy()
+    mask = result["category"] == category
+    result["unit_price"] = result["unit_price"].astype(float)
+    result["total"] = result["total"].astype(float)
+    result.loc[mask, ["unit_price", "total"]] *= 1 - pct
+    return result

@@ -1,119 +1,119 @@
-# Series de tiempo
+# Time series
 
-Precios, ventas diarias, métricas de un servidor, sensores: muchos datos tienen una **fecha** como
-eje principal. pandas nació en un fondo de inversión precisamente para esto, y tiene
-herramientas de primera para series de tiempo: un índice de fechas que se puede rebanar por
-período, cambio de frecuencia (`resample`), ventanas móviles (`rolling`), desplazamientos
-(`shift`) y variaciones (`pct_change`). Es la base del módulo de finanzas.
+Prices, daily sales, server metrics, sensors: a lot of data has a **date** as its main axis.
+pandas was born at an investment fund precisely for this, and it has first-class tools for time
+series: a date index you can slice by period, frequency changes (`resample`), rolling windows
+(`rolling`), shifts (`shift`) and changes (`pct_change`). It's the foundation of the finance
+module.
 
-## El `DatetimeIndex`
-
-```python
-precios = pd.read_csv("precios.csv", index_col="fecha", parse_dates=True)
-precios.index            # DatetimeIndex(['2023-01-02', ...], dtype='datetime64[ns]')
-precios.index.min(), precios.index.max()
-```
-
-Con un índice de fechas, rebanar es muy natural:
+## The `DatetimeIndex`
 
 ```python
-precios.loc["2024"]                       # todo 2024
-precios.loc["2024-03"]                    # marzo de 2024
-precios.loc["2024-03-01":"2024-06-30"]    # un rango (inclusivo)
-precios.loc[precios.index.dayofweek == 0] # solo los lunes
+prices = pd.read_csv("prices.csv", index_col="date", parse_dates=True)
+prices.index             # DatetimeIndex(['2023-01-02', ...], dtype='datetime64[ns]')
+prices.index.min(), prices.index.max()
 ```
 
-Atributos útiles: `.year`, `.month`, `.day`, `.dayofweek`, `.quarter` y `.is_month_end` (en una
-columna de fechas se accede con `.dt`, por ejemplo `df["fecha"].dt.month`).
-
-## Cambiar la frecuencia: `resample`
-
-`resample` es un `groupby` por períodos de tiempo:
+With a date index, slicing feels very natural:
 
 ```python
-precios.resample("ME").last()        # el último precio de cada mes (ME = month end)
-precios.resample("W").mean()         # promedio semanal
-ventas.resample("D").sum()           # total diario
-precios.resample("YE").agg(["first", "last", "max"])
+prices.loc["2024"]                        # all of 2024
+prices.loc["2024-03"]                     # March 2024
+prices.loc["2024-03-01":"2024-06-30"]     # a range (inclusive)
+prices.loc[prices.index.dayofweek == 0]   # Mondays only
 ```
 
-Frecuencias habituales: `"D"` (día), `"B"` (día hábil), `"W"` (semana), `"ME"` (fin de mes),
-`"QE"` (fin de trimestre) y `"YE"` (fin de año). Para precios de cierre, el valor representativo
-del período es el **último** (`last()`), no el promedio.
+Useful attributes: `.year`, `.month`, `.day`, `.dayofweek`, `.quarter` and `.is_month_end` (on a
+date column you access them through `.dt`, for example `df["date"].dt.month`).
 
-## Desplazar: `shift`
+## Changing the frequency: `resample`
+
+`resample` is a `groupby` over time periods:
 
 ```python
-precios["ACME"].shift(1)        # el valor del día ANTERIOR, alineado con hoy
-precios["ACME"].shift(-1)       # el del día siguiente (¡cuidado: es mirar el futuro!)
+prices.resample("ME").last()         # the last price of each month (ME = month end)
+prices.resample("W").mean()          # weekly average
+sales.resample("D").sum()            # daily total
+prices.resample("YE").agg(["first", "last", "max"])
 ```
 
-`shift` mueve los datos y mantiene el índice: en cada fecha queda el valor de la fecha anterior.
-Es la herramienta para comparar con "ayer" y, en finanzas, para **evitar usar información que
-todavía no existía** (el *look-ahead bias*, lo vemos en backtesting).
+Common frequencies: `"D"` (day), `"B"` (business day), `"W"` (week), `"ME"` (month end), `"QE"`
+(quarter end) and `"YE"` (year end). For closing prices, the representative value of the period
+is the **last** one (`last()`), not the average.
 
-## Variaciones: `pct_change` y `diff`
+## Shifting: `shift`
 
 ```python
-precios.pct_change()            # (hoy / ayer) - 1  ← retornos diarios
-precios.diff()                  # hoy - ayer
-precios.pct_change(periods=5)   # contra hace 5 días
-(1 + retornos).cumprod()        # retorno acumulado: crecimiento de 1 peso invertido
+prices["ACME"].shift(1)         # the PREVIOUS day's value, aligned with today
+prices["ACME"].shift(-1)        # the next day's (careful: that's looking into the future!)
 ```
 
-`pct_change()` es exactamente `precios / precios.shift(1) - 1`. La primera fila queda `NaN`
-porque no hay día anterior; se descarta con `.dropna()`.
+`shift` moves the data and keeps the index: each date ends up holding the previous date's value.
+It's the tool for comparing with "yesterday" and, in finance, for **avoiding information that
+didn't exist yet** (*look-ahead bias*, which we'll see in backtesting).
 
-## Ventanas móviles: `rolling`
+## Changes: `pct_change` and `diff`
 
 ```python
-precios["ACME"].rolling(20).mean()      # media móvil de 20 días
-retornos.rolling(60).std()              # volatilidad móvil
-precios.rolling("30D").max()            # ventana por TIEMPO (30 días calendario)
-precios.expanding().max()               # máximo histórico hasta cada fecha
+prices.pct_change()             # (today / yesterday) - 1  ← daily returns
+prices.diff()                   # today - yesterday
+prices.pct_change(periods=5)    # versus 5 days ago
+(1 + returns).cumprod()         # cumulative return: growth of 1 dollar invested
 ```
 
-Las primeras `ventana - 1` filas quedan en `NaN`, porque todavía no hay datos suficientes (se
-puede cambiar con `min_periods`). `expanding()` es una ventana que va creciendo: útil para
-"máximo hasta hoy" o drawdowns.
+`pct_change()` is exactly `prices / prices.shift(1) - 1`. The first row is `NaN` because there's
+no previous day; drop it with `.dropna()`.
 
-## Combinar herramientas: cruces de medias móviles
-
-"¿En qué días la media corta cruzó por **encima** de la larga?"
+## Rolling windows: `rolling`
 
 ```python
-corta = precio.rolling(20).mean()
-larga = precio.rolling(50).mean()
-arriba = corta > larga
-cruce = arriba & ~arriba.shift(1, fill_value=False)    # hoy arriba y ayer no
-precio.index[cruce]
+prices["ACME"].rolling(20).mean()       # 20-day moving average
+returns.rolling(60).std()               # rolling volatility
+prices.rolling("30D").max()             # window by TIME (30 calendar days)
+prices.expanding().max()                # all-time high up to each date
 ```
 
-Comparar una condición con su propio `shift` detecta **cambios de estado**. Es un patrón que vas a
-reutilizar mucho.
+The first `window - 1` rows are `NaN`, because there isn't enough data yet (you can change that
+with `min_periods`). `expanding()` is a window that keeps growing: useful for "highest so far" or
+drawdowns.
 
-## Zonas horarias
+## Combining tools: moving average crossovers
+
+"On which days did the short average cross **above** the long one?"
 
 ```python
-idx.tz_localize("UTC").tz_convert("America/Argentina/Buenos_Aires")
+short = price.rolling(20).mean()
+long = price.rolling(50).mean()
+above = short > long
+crossover = above & ~above.shift(1, fill_value=False)   # above today and not yesterday
+price.index[crossover]
 ```
 
-Igual que con `datetime`: guardá en UTC y convertí para mostrar.
+Comparing a condition with its own `shift` detects **state changes**. It's a pattern you'll reuse
+a lot.
 
-## Resumen
+## Time zones
 
-- `read_csv(..., index_col="fecha", parse_dates=True)` da un `DatetimeIndex`; `loc["2024-03"]`
-  rebana por período.
-- `resample("ME").last()` y compañía para cambiar la frecuencia.
-- `shift` para comparar con el pasado; `pct_change`/`diff` para las variaciones; `cumprod` para
-  acumular.
-- `rolling(n)` para ventanas móviles; `expanding()` para acumulados históricos.
-- Condición + `shift` para detectar cambios de estado (cruces).
+```python
+idx.tz_localize("UTC").tz_convert("America/New_York")
+```
 
-## Ejercicio
+Same as with `datetime`: store in UTC and convert for display.
 
-Sobre `precios.csv` (precios diarios de ACME, BETA, CIRC, DELTA y un INDICE, de 2023 a 2025):
-cierres mensuales, retornos, medias móviles, rendimiento por año y los cruces alcistas de medias.
+## Summary
 
-**Para profundizar:** [Time series / date functionality](https://pandas.pydata.org/docs/user_guide/timeseries.html),
+- `read_csv(..., index_col="date", parse_dates=True)` gives you a `DatetimeIndex`;
+  `loc["2024-03"]` slices by period.
+- `resample("ME").last()` and friends to change the frequency.
+- `shift` to compare with the past; `pct_change`/`diff` for changes; `cumprod` to accumulate.
+- `rolling(n)` for rolling windows; `expanding()` for all-time cumulative values.
+- Condition + `shift` to detect state changes (crossovers).
+
+## Exercise
+
+On `prices.csv` (daily prices for ACME, BETA, CIRC, DELTA and an INDEX, from 2023 to 2025):
+monthly closes, returns, moving averages, yearly performance and the bullish moving average
+crossovers.
+
+**Further reading:** [Time series / date functionality](https://pandas.pydata.org/docs/user_guide/timeseries.html),
 [Windowing operations](https://pandas.pydata.org/docs/user_guide/window.html).

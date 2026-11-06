@@ -1,16 +1,16 @@
 [[questions]]
-text = "Con un `DatetimeIndex`, ¿qué devuelve `precios.loc[\"2024-03\"]`?"
+text = "With a `DatetimeIndex`, what does `prices.loc[\"2024-03\"]` return?"
 options = [
-  "La fila del 3 de 2024",
-  "Todas las filas de marzo de 2024",
-  "Un error",
-  "La fila del 1 de marzo",
+  "The row for day 3 of 2024",
+  "All the rows from March 2024",
+  "An error",
+  "The row for March 1",
 ]
 correct = 1
-explanation = "El indexado parcial por fechas selecciona todo el período indicado (un año, un mes o un día)."
+explanation = "Partial date indexing selects the whole period given (a year, a month or a day)."
 
 [[questions]]
-text = "¿Cuál es el valor representativo de un mes para precios de cierre diarios?"
+text = "What's the representative monthly value for daily closing prices?"
 options = [
   "`resample(\"ME\").mean()`",
   "`resample(\"ME\").last()`",
@@ -18,32 +18,32 @@ options = [
   "`resample(\"ME\").max()`",
 ]
 correct = 1
-explanation = "El cierre mensual es el último precio del mes. Sumar precios no tiene sentido, y el promedio suaviza y cambia los retornos."
+explanation = "The monthly close is the last price of the month. Summing prices makes no sense, and the average smooths and changes the returns."
 
 [[questions]]
-text = "¿A qué es equivalente `s.pct_change()`?"
+text = "What is `s.pct_change()` equivalent to?"
 options = ["`s.diff()`", "`s / s.shift(1) - 1`", "`s.shift(-1) / s`", "`s.cumprod()`"]
 correct = 1
-explanation = "Es el cambio relativo respecto del período anterior. La primera fila queda `NaN`."
+explanation = "It's the relative change from the previous period. The first row is `NaN`."
 
 [[questions]]
-text = "En una media móvil `rolling(20).mean()`, ¿qué tienen las primeras 19 filas?"
+text = "In a moving average `rolling(20).mean()`, what do the first 19 rows contain?"
 options = [
-  "La media de los datos disponibles",
-  "`NaN`, porque no hay 20 datos todavía (salvo que uses `min_periods`)",
-  "Ceros",
-  "El primer precio",
+  "The average of the available data",
+  "`NaN`, because there aren't 20 data points yet (unless you use `min_periods`)",
+  "Zeros",
+  "The first price",
 ]
 correct = 1
-explanation = "La ventana necesita la cantidad completa de observaciones, salvo que `min_periods` indique otra cosa."
+explanation = "The window needs the full number of observations, unless `min_periods` says otherwise."
 
 [[questions]]
-text = "¿Qué detecta `cond & ~cond.shift(1, fill_value=False)`?"
+text = "What does `cond & ~cond.shift(1, fill_value=False)` detect?"
 options = [
-  "Los días en que la condición es falsa",
-  "Los días en que la condición pasa de falsa a verdadera (cambio de estado)",
-  "Los días en que la condición es siempre verdadera",
-  "Nada: es un error",
+  "The days when the condition is false",
+  "The days when the condition goes from false to true (a state change)",
+  "The days when the condition is always true",
+  "Nothing: it's a bug",
 ]
 correct = 1
-explanation = "Es verdadero hoy y era falso ayer. Así se detectan los cruces de medias, las rupturas de umbrales, etc."
+explanation = "It's true today and was false yesterday. That's how you detect moving average crossovers, threshold breakouts, etc."

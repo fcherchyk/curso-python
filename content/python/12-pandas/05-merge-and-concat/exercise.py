@@ -1,29 +1,29 @@
-"""Combinar tablas: merge, join y concat."""
+"""Combining tables: merge, join and concat."""
 
 import pandas as pd
 
 
-def enriquecer(ventas: pd.DataFrame, productos: pd.DataFrame) -> pd.DataFrame:
-    """Agregá a cada venta la categoría y el precio_unitario del catálogo, SIN perder ventas
-    (las de productos fuera del catálogo quedan con nulos). Validá que la relación sea
-    muchos-a-uno (si el catálogo tiene productos repetidos, tiene que levantar MergeError).
-    Agregá también "total" = cantidad * precio_unitario.
+def enrich(sales: pd.DataFrame, products: pd.DataFrame) -> pd.DataFrame:
+    """Add the category and unit_price from the catalog to each sale, WITHOUT losing sales
+    (sales of products outside the catalog end up with nulls). Validate that the relationship
+    is many-to-one (if the catalog has repeated products, it must raise MergeError).
+    Also add "total" = quantity * unit_price.
     """
     raise NotImplementedError("TODO")
 
 
-def productos_fuera_de_catalogo(ventas: pd.DataFrame, productos: pd.DataFrame) -> list[str]:
-    """Productos vendidos que no están en el catálogo, sin repetir y ordenados (indicator=True)."""
+def products_not_in_catalog(sales: pd.DataFrame, products: pd.DataFrame) -> list[str]:
+    """Products sold that aren't in the catalog, without repeats and sorted (indicator=True)."""
     raise NotImplementedError("TODO")
 
 
-def facturacion_por_categoria(ventas: pd.DataFrame, productos: pd.DataFrame) -> dict[str, float]:
-    """Suma de total por categoría, solo para ventas con producto en catálogo (inner)."""
+def revenue_by_category(sales: pd.DataFrame, products: pd.DataFrame) -> dict[str, float]:
+    """Sum of total per category, only for sales whose product is in the catalog (inner)."""
     raise NotImplementedError("TODO")
 
 
-def apilar(partes: dict[str, pd.DataFrame]) -> pd.DataFrame:
-    """Concatená los DataFrames uno debajo del otro, con una columna "lote" (la clave del dict)
-    como PRIMERA columna y un índice 0..n-1.
+def stack(parts: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    """Concatenate the DataFrames one below the other, with a "batch" column (the dict key)
+    as the FIRST column and an index 0..n-1.
     """
     raise NotImplementedError("TODO")

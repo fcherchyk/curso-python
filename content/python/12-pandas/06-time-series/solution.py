@@ -3,32 +3,32 @@ from pathlib import Path
 import pandas as pd
 
 
-def cargar_precios(ruta: Path | str) -> pd.DataFrame:
-    return pd.read_csv(ruta, index_col="fecha", parse_dates=True)
+def load_prices(path: Path | str) -> pd.DataFrame:
+    return pd.read_csv(path, index_col="date", parse_dates=True)
 
 
-def cierres_mensuales(precios: pd.DataFrame) -> pd.DataFrame:
-    return precios.resample("ME").last()
+def monthly_closes(prices: pd.DataFrame) -> pd.DataFrame:
+    return prices.resample("ME").last()
 
 
-def retornos_mensuales(precios: pd.DataFrame) -> pd.DataFrame:
-    return cierres_mensuales(precios).pct_change().dropna()
+def monthly_returns(prices: pd.DataFrame) -> pd.DataFrame:
+    return monthly_closes(prices).pct_change().dropna()
 
 
-def rendimiento_por_anio(precios: pd.DataFrame, columna: str) -> dict[int, float]:
-    serie = precios[columna]
-    cierres = serie.resample("YE").last()
-    # Base: el cierre del año anterior; para el primer año, el primer precio.
-    bases = cierres.shift(1).fillna(serie.iloc[0])
-    rend = (cierres / bases - 1).round(4)
-    return {fecha.year: float(valor) for fecha, valor in rend.items()}
+def yearly_performance(prices: pd.DataFrame, column: str) -> dict[int, float]:
+    series = prices[column]
+    closes = series.resample("YE").last()
+    # Base: the previous year's close; for the first year, the first price.
+    bases = closes.shift(1).fillna(series.iloc[0])
+    perf = (closes / bases - 1).round(4)
+    return {date.year: float(value) for date, value in perf.items()}
 
 
-def cruces_alcistas(precio: pd.Series, corta: int, larga: int) -> list[pd.Timestamp]:
-    media_corta = precio.rolling(corta).mean()
-    media_larga = precio.rolling(larga).mean()
-    arriba = (media_corta > media_larga) & media_larga.notna()
-    cruce = arriba & ~arriba.shift(1, fill_value=False)
-    # El primer día con media larga no es un cruce: no sabemos dónde estaba antes.
-    cruce &= media_larga.shift(1).notna()
-    return list(precio.index[cruce])
+def bullish_crossovers(price: pd.Series, short: int, long: int) -> list[pd.Timestamp]:
+    short_ma = price.rolling(short).mean()
+    long_ma = price.rolling(long).mean()
+    above = (short_ma > long_ma) & long_ma.notna()
+    crossover = above & ~above.shift(1, fill_value=False)
+    # The first day with a long average isn't a crossover: we don't know where it was before.
+    crossover &= long_ma.shift(1).notna()
+    return list(price.index[crossover])

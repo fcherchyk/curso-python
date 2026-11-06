@@ -1,34 +1,34 @@
-"""Limpieza de datos. Todo vectorizado (.str, to_numeric), sin bucles ni apply."""
+"""Data cleaning. Everything vectorized (.str, to_numeric), no loops or apply."""
 
 import pandas as pd
 
 
-def normalizar_nombres(s: pd.Series) -> pd.Series:
-    """Sin espacios alrededor, espacios internos colapsados a uno y en Title Case.
+def normalize_names(s: pd.Series) -> pd.Series:
+    """No surrounding spaces, inner spaces collapsed to one, and in Title Case.
 
-    "  ana   PÉREZ " → "Ana Pérez". Los nulos siguen siendo nulos.
+    "  alice   SMITH " → "Alice Smith". Nulls stay null.
     """
     raise NotImplementedError("TODO")
 
 
-def convertir_montos(s: pd.Series) -> pd.Series:
-    """"$ 1.234,50" → 1234.5 (float). Vacíos o inválidos → NaN."""
+def parse_amounts(s: pd.Series) -> pd.Series:
+    """"$ 1.234,50" → 1234.5 (float). Empty or invalid → NaN."""
     raise NotImplementedError("TODO")
 
 
-def nulos_por_columna(df: pd.DataFrame) -> dict[str, int]:
-    """Cantidad de nulos por columna, solo las columnas que tienen alguno."""
+def nulls_per_column(df: pd.DataFrame) -> dict[str, int]:
+    """Number of nulls per column, only for columns that have any."""
     raise NotImplementedError("TODO")
 
 
-def limpiar_clientes(crudo: pd.DataFrame) -> pd.DataFrame:
-    """Pipeline completo (no modifiques `crudo`):
-    1. email: strip + minúsculas; descartá las filas sin email
-    2. nombre: normalizar_nombres
-    3. edad: numérica, inválidas → nulo, dtype "Int64"
-    4. saldo: convertir_montos
-    5. ciudad: strip + Title Case; nulos → "Desconocida"
-    6. sin duplicados por email (quedate con el primero)
-    7. índice 0..n-1
+def clean_customers(raw: pd.DataFrame) -> pd.DataFrame:
+    """Full pipeline (don't modify `raw`):
+    1. email: strip + lowercase; drop the rows without an email
+    2. name: normalize_names
+    3. age: numeric, invalid → null, dtype "Int64"
+    4. balance: parse_amounts
+    5. city: strip + Title Case; nulls → "Unknown"
+    6. no duplicates by email (keep the first)
+    7. index 0..n-1
     """
     raise NotImplementedError("TODO")

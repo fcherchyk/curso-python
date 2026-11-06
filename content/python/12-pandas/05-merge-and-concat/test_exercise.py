@@ -3,61 +3,61 @@ from collections import defaultdict
 
 import pandas as pd
 import pytest
-from exercise import apilar, enriquecer, facturacion_por_categoria, productos_fuera_de_catalogo
+from exercise import enrich, products_not_in_catalog, revenue_by_category, stack
 
-with open("ventas.csv", newline="", encoding="utf-8") as f:
-    VENTAS = list(csv.DictReader(f))
-with open("productos.csv", newline="", encoding="utf-8") as f:
-    CATALOGO = {p["producto"]: p for p in csv.DictReader(f)}
-
-
-@pytest.fixture
-def ventas():
-    return pd.read_csv("ventas.csv")
+with open("sales.csv", newline="", encoding="utf-8") as f:
+    SALES = list(csv.DictReader(f))
+with open("products.csv", newline="", encoding="utf-8") as f:
+    CATALOG = {p["product"]: p for p in csv.DictReader(f)}
 
 
 @pytest.fixture
-def productos():
-    return pd.read_csv("productos.csv")
+def sales():
+    return pd.read_csv("sales.csv")
 
 
-def test_enriquecer_no_pierde_filas(ventas, productos):
-    r = enriquecer(ventas, productos)
-    assert len(r) == len(ventas)
-    assert {"categoria", "precio_unitario", "total"} <= set(r.columns)
-    con_catalogo = next(v for v in VENTAS if v["producto"] in CATALOGO)
-    fila = r[r["id"] == int(con_catalogo["id"])].iloc[0]
-    esperado = int(con_catalogo["cantidad"]) * int(CATALOGO[con_catalogo["producto"]]["precio_unitario"])
-    assert fila["total"] == esperado
-    assert r.loc[r["producto"] == "mate", "categoria"].isna().all()
+@pytest.fixture
+def products():
+    return pd.read_csv("products.csv")
 
 
-def test_enriquecer_valida_claves_duplicadas(ventas, productos):
-    duplicado = pd.concat([productos, productos.head(1)], ignore_index=True)
+def test_enrich_keeps_all_rows(sales, products):
+    result = enrich(sales, products)
+    assert len(result) == len(sales)
+    assert {"category", "unit_price", "total"} <= set(result.columns)
+    in_catalog = next(s for s in SALES if s["product"] in CATALOG)
+    row = result[result["id"] == int(in_catalog["id"])].iloc[0]
+    expected = int(in_catalog["quantity"]) * int(CATALOG[in_catalog["product"]]["unit_price"])
+    assert row["total"] == expected
+    assert result.loc[result["product"] == "mug", "category"].isna().all()
+
+
+def test_enrich_validates_duplicate_keys(sales, products):
+    duplicated = pd.concat([products, products.head(1)], ignore_index=True)
     with pytest.raises(pd.errors.MergeError):
-        enriquecer(ventas, duplicado)
+        enrich(sales, duplicated)
 
 
-def test_productos_fuera_de_catalogo(ventas, productos):
-    esperado = sorted({v["producto"] for v in VENTAS} - set(CATALOGO))
-    assert productos_fuera_de_catalogo(ventas, productos) == esperado == ["mate"]
+def test_products_not_in_catalog(sales, products):
+    expected = sorted({s["product"] for s in SALES} - set(CATALOG))
+    assert products_not_in_catalog(sales, products) == expected == ["mug"]
 
 
-def test_facturacion_por_categoria(ventas, productos):
-    esperado: dict[str, int] = defaultdict(int)
-    for v in VENTAS:
-        if v["producto"] in CATALOGO:
-            p = CATALOGO[v["producto"]]
-            esperado[p["categoria"]] += int(v["cantidad"]) * int(p["precio_unitario"])
-    r = facturacion_por_categoria(ventas, productos)
-    assert r == pytest.approx(dict(esperado))
+def test_revenue_by_category(sales, products):
+    expected: dict[str, int] = defaultdict(int)
+    for s in SALES:
+        if s["product"] in CATALOG:
+            p = CATALOG[s["product"]]
+            expected[p["category"]] += int(s["quantity"]) * int(p["unit_price"])
+    result = revenue_by_category(sales, products)
+    assert result == pytest.approx(dict(expected))
 
 
-def test_apilar():
-    ene = pd.DataFrame({"producto": ["a", "b"], "cantidad": [1, 2]})
-    feb = pd.DataFrame({"producto": ["c"], "cantidad": [3]})
-    r = apilar({"ene": ene, "feb": feb})
-    assert list(r.columns) == ["lote", "producto", "cantidad"]
-    assert r["lote"].tolist() == ["ene", "ene", "feb"]
-    assert r.index.tolist() == [0, 1, 2]
-    assert r["cantidad"].sum() == 6
+def test_stack():
+    jan = pd.DataFrame({"product": ["a", "b"], "quantity": [1, 2]})
+    feb = pd.DataFrame({"product": ["c"], "quantity": [3]})
+    result = stack({"jan": jan, "feb": feb})
+    assert list(result.columns) == ["batch", "product", "quantity"]
+    assert result["batch"].tolist() == ["jan", "jan", "feb"]
+    assert result.index.tolist() == [0, 1, 2]
+    assert result["quantity"].sum() == 6

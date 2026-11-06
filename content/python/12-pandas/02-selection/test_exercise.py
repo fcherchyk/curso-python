@@ -3,60 +3,60 @@ import csv
 import pandas as pd
 import pytest
 from exercise import (
-    con_descuento,
-    consulta,
-    de_productos,
-    top_y_primera_etiqueta,
-    ventas_grandes_de,
+    for_products,
+    large_sales_at,
+    lookup,
+    top_and_first_label,
+    with_discount,
 )
 
-with open("ventas.csv", newline="", encoding="utf-8") as f:
-    FILAS = [
-        {**f_, "id": int(f_["id"]), "cantidad": int(f_["cantidad"]), "precio": int(f_["precio_unitario"])}
-        for f_ in csv.DictReader(f)
+with open("sales.csv", newline="", encoding="utf-8") as f:
+    ROWS = [
+        {**r, "id": int(r["id"]), "quantity": int(r["quantity"]), "price": int(r["unit_price"])}
+        for r in csv.DictReader(f)
     ]
-for f_ in FILAS:
-    f_["total"] = f_["cantidad"] * f_["precio"]
+for r in ROWS:
+    r["total"] = r["quantity"] * r["price"]
 
 
 @pytest.fixture
-def ventas():
-    df = pd.read_csv("ventas.csv", index_col="id", parse_dates=["fecha"])
-    df["total"] = df["cantidad"] * df["precio_unitario"]
+def sales():
+    df = pd.read_csv("sales.csv", index_col="id", parse_dates=["date"])
+    df["total"] = df["quantity"] * df["unit_price"]
     return df
 
 
-def test_ventas_grandes_de(ventas):
-    r = ventas_grandes_de(ventas, "Centro", 10_000)
-    esperado = sorted(
-        (f for f in FILAS if f["sucursal"] == "Centro" and f["total"] >= 10_000),
-        key=lambda f: -f["total"],
+def test_large_sales_at(sales):
+    result = large_sales_at(sales, "Central", 10_000)
+    expected = sorted(
+        (r for r in ROWS if r["branch"] == "Central" and r["total"] >= 10_000),
+        key=lambda r: -r["total"],
     )
-    assert list(r.columns) == ["producto", "total"]
-    assert r["total"].tolist() == [f["total"] for f in esperado]
+    assert list(result.columns) == ["product", "total"]
+    assert result["total"].tolist() == [r["total"] for r in expected]
 
 
-def test_de_productos(ventas):
-    r = de_productos(ventas, ["yerba", "mate"])
-    assert r.sum() == sum(f["cantidad"] for f in FILAS if f["producto"] in ("yerba", "mate"))
+def test_for_products(sales):
+    result = for_products(sales, ["cocoa", "mug"])
+    assert result.sum() == sum(r["quantity"] for r in ROWS if r["product"] in ("cocoa", "mug"))
 
 
-def test_consulta(ventas):
-    esperado = sorted(f["id"] for f in FILAS if f["categoria"] == "infusiones" and f["cantidad"] >= 5)
-    assert consulta(ventas, "infusiones", 5) == esperado
+def test_lookup(sales):
+    expected = sorted(r["id"] for r in ROWS if r["category"] == "beverages" and r["quantity"] >= 5)
+    assert lookup(sales, "beverages", 5) == expected
 
 
-def test_top_y_primera_etiqueta(ventas):
-    top = max(FILAS, key=lambda f: f["total"])
-    assert top_y_primera_etiqueta(ventas) == (top["id"], FILAS[0]["cantidad"])
+def test_top_and_first_label(sales):
+    top = max(ROWS, key=lambda r: r["total"])
+    assert top_and_first_label(sales) == (top["id"], ROWS[0]["quantity"])
 
 
-def test_con_descuento_no_muta(ventas):
-    antes = ventas.copy()
-    r = con_descuento(ventas, "infusiones", 0.1)
-    pd.testing.assert_frame_equal(ventas, antes)
-    infusion = next(f for f in FILAS if f["categoria"] == "infusiones")
-    otra = next(f for f in FILAS if f["categoria"] != "infusiones")
-    assert r.loc[infusion["id"], "precio_unitario"] == pytest.approx(infusion["precio"] * 0.9)
-    assert r.loc[infusion["id"], "total"] == pytest.approx(infusion["total"] * 0.9)
-    assert r.loc[otra["id"], "total"] == otra["total"]
+def test_with_discount_does_not_mutate(sales):
+    before = sales.copy()
+    result = with_discount(sales, "beverages", 0.1)
+    pd.testing.assert_frame_equal(sales, before)
+    beverage = next(r for r in ROWS if r["category"] == "beverages")
+    other = next(r for r in ROWS if r["category"] != "beverages")
+    assert result.loc[beverage["id"], "unit_price"] == pytest.approx(beverage["price"] * 0.9)
+    assert result.loc[beverage["id"], "total"] == pytest.approx(beverage["total"] * 0.9)
+    assert result.loc[other["id"], "total"] == other["total"]

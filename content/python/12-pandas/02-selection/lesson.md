@@ -1,129 +1,129 @@
-# Seleccionar y filtrar: loc, iloc, máscaras y copy-on-write
+# Selecting and filtering: loc, iloc, masks and copy-on-write
 
-Elegir filas y columnas es lo que más vas a hacer con pandas, y también donde más confusión hay:
-`[]`, `loc` e `iloc` se parecen pero no son lo mismo, y modificar un subconjunto de datos solía
-dar el famoso `SettingWithCopyWarning`. En pandas 3 la regla quedó simple gracias a
-**copy-on-write**. En este capítulo armamos un modelo mental claro.
+Picking rows and columns is what you'll do most with pandas, and also where the most confusion
+lives: `[]`, `loc` and `iloc` look alike but aren't the same, and modifying a subset of the data
+used to trigger the infamous `SettingWithCopyWarning`. In pandas 3 the rule became simple thanks
+to **copy-on-write**. In this chapter we build a clear mental model.
 
-## `loc`: por etiquetas
-
-```python
-df.loc[5]                         # la fila con índice 5 → Series
-df.loc[5, "producto"]             # un valor
-df.loc[[1, 5, 9], ["producto", "total"]]     # filas y columnas por etiqueta
-df.loc[10:20]                     # ¡INCLUYE el 20! (los slices por etiqueta son inclusivos)
-df.loc[:, "fecha":"producto"]     # rango de columnas, también inclusivo
-```
-
-## `iloc`: por posiciones
+## `loc`: by labels
 
 ```python
-df.iloc[0]                        # la primera fila, sea cual sea su etiqueta
-df.iloc[0, 2]                     # fila 0, columna 2
-df.iloc[:5]                       # las primeras 5 (excluye la 5, como en Python)
-df.iloc[-3:, [0, 1]]              # las últimas 3 filas, columnas 0 y 1
+df.loc[5]                         # the row with index 5 → Series
+df.loc[5, "product"]              # a single value
+df.loc[[1, 5, 9], ["product", "total"]]      # rows and columns by label
+df.loc[10:20]                     # INCLUDES 20! (label slices are inclusive)
+df.loc[:, "date":"product"]       # a range of columns, also inclusive
 ```
 
-**Regla:** `loc` = etiquetas (inclusivo), `iloc` = posiciones (exclusivo, como Python). Si el
-índice es 0, 1, 2… parecen iguales, pero después de filtrar u ordenar dejan de coincidir:
+## `iloc`: by positions
 
 ```python
-ordenado = df.sort_values("total", ascending=False)
-ordenado.loc[0]     # la fila con ETIQUETA 0, esté donde esté
-ordenado.iloc[0]    # la PRIMERA fila: la de mayor total
+df.iloc[0]                        # the first row, whatever its label
+df.iloc[0, 2]                     # row 0, column 2
+df.iloc[:5]                       # the first 5 (excludes 5, like Python)
+df.iloc[-3:, [0, 1]]              # the last 3 rows, columns 0 and 1
 ```
 
-## Filtrar con máscaras booleanas
+**Rule:** `loc` = labels (inclusive), `iloc` = positions (exclusive, like Python). If the index
+is 0, 1, 2… they look the same, but after filtering or sorting they stop matching:
 
-Igual que en NumPy, pero las columnas tienen nombre:
+```python
+ordered = df.sort_values("total", ascending=False)
+ordered.loc[0]      # the row with LABEL 0, wherever it is
+ordered.iloc[0]     # the FIRST row: the one with the largest total
+```
+
+## Filtering with boolean masks
+
+Same as in NumPy, but the columns have names:
 
 ```python
 df[df["total"] > 10_000]
-df[(df["sucursal"] == "Centro") & (df["cantidad"] >= 5)]       # & | ~ con paréntesis
-df[df["producto"].isin(["yerba", "mate"])]
-df[df["fecha"].between("2025-02-01", "2025-02-28")]
-df.loc[df["total"] > 10_000, ["producto", "total"]]   # filtrar Y elegir columnas
+df[(df["branch"] == "Central") & (df["quantity"] >= 5)]       # & | ~ with parentheses
+df[df["product"].isin(["cocoa", "mug"])]
+df[df["date"].between("2025-02-01", "2025-02-28")]
+df.loc[df["total"] > 10_000, ["product", "total"]]   # filter AND pick columns
 ```
 
-### `query`: el mismo filtro como texto
+### `query`: the same filter as text
 
 ```python
-df.query("total > 10_000 and sucursal == 'Centro'")
-minimo = 5
-df.query("cantidad >= @minimo")          # @ para usar variables de Python
+df.query("total > 10_000 and branch == 'Central'")
+minimum = 5
+df.query("quantity >= @minimum")         # @ to use Python variables
 ```
 
-`query` se lee bien en filtros largos. Funciona sobre las columnas por nombre (los nombres con
-espacios van entre backticks).
+`query` reads well for long filters. It works on columns by name (names with spaces go between
+backticks).
 
-## Copy-on-write: la regla de pandas 3
+## Copy-on-write: the pandas 3 rule
 
-**Todo resultado de una selección se comporta como una copia.** Modificarlo nunca cambia el
-DataFrame original:
-
-```python
-centro = df[df["sucursal"] == "Centro"]
-centro["total"] = 0               # modifica `centro`, NO `df` (y sin warnings)
-```
-
-Para modificar el **original**, hay que hacerlo en **un solo paso**, con `loc` sobre el propio
+**Every result of a selection behaves like a copy.** Modifying it never changes the original
 DataFrame:
 
 ```python
-df.loc[df["sucursal"] == "Centro", "total"] = 0       # ✓ modifica df
-df["total"][df["sucursal"] == "Centro"] = 0           # ✗ asignación encadenada: NO hace nada
-                                                       #   (pandas 3 levanta ChainedAssignmentError)
+central = df[df["branch"] == "Central"]
+central["total"] = 0              # modifies `central`, NOT `df` (and no warnings)
 ```
 
-Internamente, pandas comparte los datos y solo copia cuando alguien escribe, por eso se llama
-*copy-on-write*. Eso lo hace eficiente.
-
-> En pandas 1.x y 2.x el comportamiento dependía de si el resultado era una "vista" o una
-> "copia", y de ahí venía el `SettingWithCopyWarning`. En código y tutoriales viejos vas a ver
-> `.copy()` por todos lados "por las dudas": en pandas 3 ya no hace falta.
-
-## Funciones que no mutan
-
-Un buen hábito en análisis de datos es escribir funciones que **reciben un DataFrame y devuelven
-otro**, sin modificar la entrada. Así las celdas de un notebook se pueden re-ejecutar y los
-pasos se encadenan:
+To modify the **original**, do it in **a single step**, with `loc` on the DataFrame itself:
 
 ```python
-def con_descuento(df: pd.DataFrame, categoria: str, pct: float) -> pd.DataFrame:
-    resultado = df.copy()         # explícito: vamos a escribir
-    mascara = resultado["categoria"] == categoria
-    resultado.loc[mascara, "precio_unitario"] *= 1 - pct
-    return resultado
+df.loc[df["branch"] == "Central", "total"] = 0        # ✓ modifies df
+df["total"][df["branch"] == "Central"] = 0            # ✗ chained assignment: does NOTHING
+                                                       #   (pandas 3 raises ChainedAssignmentError)
 ```
 
-O con `assign`, que siempre devuelve un DataFrame nuevo:
+Internally, pandas shares the data and only copies when someone writes, which is why it's called
+*copy-on-write*. That makes it efficient.
+
+> In pandas 1.x and 2.x the behavior depended on whether the result was a "view" or a "copy",
+> and that's where `SettingWithCopyWarning` came from. In old code and tutorials you'll see
+> `.copy()` everywhere "just in case": in pandas 3 you no longer need it.
+
+## Functions that don't mutate
+
+A good habit in data analysis is to write functions that **take a DataFrame and return another
+one**, without modifying the input. That way notebook cells can be re-run and the steps chain
+together:
 
 ```python
-df.assign(total=lambda d: d["cantidad"] * d["precio_unitario"])
+def with_discount(df: pd.DataFrame, category: str, pct: float) -> pd.DataFrame:
+    result = df.copy()            # explicit: we're about to write
+    mask = result["category"] == category
+    result.loc[mask, "unit_price"] *= 1 - pct
+    return result
 ```
 
-## Elegir columnas
+Or with `assign`, which always returns a new DataFrame:
+
+```python
+df.assign(total=lambda d: d["quantity"] * d["unit_price"])
+```
+
+## Picking columns
 
 ```python
 df[["a", "b"]]
 df.drop(columns=["c"])
-df.filter(like="precio")              # columnas cuyo nombre contiene "precio"
-df.select_dtypes("number")            # solo columnas numéricas
-df.rename(columns={"cant": "cantidad"})
+df.filter(like="price")               # columns whose name contains "price"
+df.select_dtypes("number")            # numeric columns only
+df.rename(columns={"qty": "quantity"})
 ```
 
-## Resumen
+## Summary
 
-- `loc` por etiquetas (inclusivo); `iloc` por posiciones (exclusivo).
-- Máscaras con `&`, `|` y `~` entre paréntesis; `isin` y `between`; `query` para filtros legibles.
-- Copy-on-write: una selección nunca modifica el original; para escribir, `df.loc[mascara, col] = v`
-  en un paso; nunca asignación encadenada.
-- Las funciones de análisis reciben y devuelven DataFrames sin mutar la entrada (`copy()` o `assign`).
+- `loc` by labels (inclusive); `iloc` by positions (exclusive).
+- Masks with `&`, `|` and `~` in parentheses; `isin` and `between`; `query` for readable filters.
+- Copy-on-write: a selection never modifies the original; to write, `df.loc[mask, col] = v`
+  in one step; never chained assignment.
+- Analysis functions take and return DataFrames without mutating the input (`copy()` or `assign`).
 
-## Ejercicio
+## Exercise
 
-Filtros por condiciones combinadas, `query` con variables, la diferencia entre `loc` e `iloc`
-después de ordenar y una función que aplica un descuento sin modificar el DataFrame original.
+Filters with combined conditions, `query` with variables, the difference between `loc` and
+`iloc` after sorting, and a function that applies a discount without modifying the original
+DataFrame.
 
-**Para profundizar:** [Indexing and selecting data](https://pandas.pydata.org/docs/user_guide/indexing.html),
+**Further reading:** [Indexing and selecting data](https://pandas.pydata.org/docs/user_guide/indexing.html),
 [Copy-on-Write](https://pandas.pydata.org/docs/user_guide/copy_on_write.html).

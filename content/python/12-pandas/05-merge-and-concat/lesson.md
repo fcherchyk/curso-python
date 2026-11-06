@@ -1,114 +1,112 @@
-# Combinar tablas: merge, join y concat
+# Combining tables: merge, join and concat
 
-Los datos casi nunca vienen en una sola tabla: las ventas por un lado, el catálogo de productos
-por otro, cada mes en un archivo distinto. pandas combina tablas de dos formas: **por clave**
-(`merge`, el `JOIN` de SQL) y **apilando** (`concat`, el `UNION`). La parte difícil no es la
-sintaxis, sino **no perder ni duplicar filas sin darte cuenta**, y para eso pandas tiene
-herramientas de validación que conviene usar siempre.
+Data almost never comes in a single table: sales in one place, the product catalog in another,
+each month in a separate file. pandas combines tables in two ways: **by key** (`merge`, SQL's
+`JOIN`) and **by stacking** (`concat`, the `UNION`). The hard part isn't the syntax, it's **not
+losing or duplicating rows without noticing**, and for that pandas has validation tools you
+should always use.
 
-## `merge`: unir por columnas clave
+## `merge`: joining on key columns
 
 ```python
-ventas.merge(productos, on="producto", how="left")
+sales.merge(products, on="product", how="left")
 ```
 
-| `how`     | Qué filas quedan                                         | SQL                 |
+| `how`     | Which rows remain                                        | SQL                 |
 |-----------|----------------------------------------------------------|---------------------|
-| `"inner"` | solo las que tienen clave en **ambas** tablas (default)  | `INNER JOIN`        |
-| `"left"`  | **todas** las de la izquierda; sin match → NaN           | `LEFT JOIN`         |
-| `"right"` | todas las de la derecha                                  | `RIGHT JOIN`        |
-| `"outer"` | todas las de las dos                                      | `FULL OUTER JOIN`   |
-| `"cross"` | producto cartesiano                                       | `CROSS JOIN`        |
+| `"inner"` | only those with a key in **both** tables (default)       | `INNER JOIN`        |
+| `"left"`  | **all** rows from the left; no match → NaN               | `LEFT JOIN`         |
+| `"right"` | all rows from the right                                  | `RIGHT JOIN`        |
+| `"outer"` | all rows from both                                       | `FULL OUTER JOIN`   |
+| `"cross"` | Cartesian product                                        | `CROSS JOIN`        |
 
-Para enriquecer una tabla de hechos (ventas) con atributos (el catálogo), lo habitual es
-**`left`**: no querés perder ventas por un producto que falta en el catálogo.
+To enrich a fact table (sales) with attributes (the catalog), the usual choice is **`left`**: you
+don't want to lose sales because a product is missing from the catalog.
 
 ```python
-# Claves con nombres distintos
-pedidos.merge(clientes, left_on="cliente_id", right_on="id", suffixes=("", "_cliente"))
-# Varias claves
-a.merge(b, on=["sucursal", "fecha"])
+# Keys with different names
+orders.merge(customers, left_on="customer_id", right_on="id", suffixes=("", "_customer"))
+# Several keys
+a.merge(b, on=["branch", "date"])
 ```
 
-## Las trampas: filas que se pierden o se multiplican
+## The traps: rows that get lost or multiplied
 
-1. **Con `inner`, perdés filas en silencio** si alguna clave no está en la otra tabla.
-2. **Si la clave se repite en la tabla de la derecha, las filas de la izquierda se
-   multiplican.** Un producto duplicado en el catálogo duplica todas sus ventas, y los totales
-   quedan inflados sin ningún error.
+1. **With `inner`, you silently lose rows** if some key isn't in the other table.
+2. **If the key repeats in the right table, the left rows get multiplied.** A product duplicated
+   in the catalog duplicates all its sales, and the totals come out inflated without any error.
 
-### `validate`: que pandas verifique tus supuestos
+### `validate`: let pandas check your assumptions
 
 ```python
-ventas.merge(productos, on="producto", how="left", validate="many_to_one")
+sales.merge(products, on="product", how="left", validate="many_to_one")
 ```
 
-Con `validate`, pandas **levanta `MergeError`** si la relación no es la que declaraste:
-`"one_to_one"`, `"one_to_many"`, `"many_to_one"` o `"many_to_many"`. Es una línea que te ahorra
-horas de buscar por qué los números no cierran. Usalo siempre.
+With `validate`, pandas **raises `MergeError`** if the relationship isn't the one you declared:
+`"one_to_one"`, `"one_to_many"`, `"many_to_one"` or `"many_to_many"`. It's one line that saves
+you hours of hunting for why the numbers don't add up. Always use it.
 
-### `indicator`: ¿de dónde vino cada fila?
+### `indicator`: where did each row come from?
 
 ```python
-r = ventas.merge(productos, on="producto", how="left", indicator=True)
+r = sales.merge(products, on="product", how="left", indicator=True)
 r["_merge"].value_counts()      # both / left_only / right_only
-r.loc[r["_merge"] == "left_only", "producto"].unique()   # ventas sin producto en catálogo
+r.loc[r["_merge"] == "left_only", "product"].unique()   # sales with no product in the catalog
 ```
 
-Es la forma idiomática de encontrar las claves "huérfanas" (el *anti-join*).
+It's the idiomatic way to find "orphan" keys (the *anti-join*).
 
-### Verificá antes y después
+### Check before and after
 
 ```python
-assert productos["producto"].is_unique                     # la clave es única
-assert len(resultado) == len(ventas)                       # un left many-to-one no agrega filas
+assert products["product"].is_unique                      # the key is unique
+assert len(result) == len(sales)                           # a many-to-one left join adds no rows
 ```
 
-## `join`: merge por índice
+## `join`: merge on the index
 
 ```python
-ventas.join(productos.set_index("producto"), on="producto")
-df1.join(df2)                   # índice contra índice
+sales.join(products.set_index("product"), on="product")
+df1.join(df2)                   # index against index
 ```
 
-Es un atajo de `merge` cuando la clave de la derecha es su índice.
+It's a shortcut for `merge` when the right-hand key is its index.
 
-## `concat`: apilar
+## `concat`: stacking
 
 ```python
-enero = pd.read_csv("ventas_2025_01.csv")
-febrero = pd.read_csv("ventas_2025_02.csv")
+january = pd.read_csv("sales_2025_01.csv")
+february = pd.read_csv("sales_2025_02.csv")
 
-pd.concat([enero, febrero], ignore_index=True)         # una debajo de la otra
-pd.concat({"ene": enero, "feb": febrero})               # con un nivel de índice que indica el origen
-pd.concat([a, b], axis=1)                               # lado a lado (alineando por índice)
+pd.concat([january, february], ignore_index=True)       # one below the other
+pd.concat({"jan": january, "feb": february})            # with an index level that marks the source
+pd.concat([a, b], axis=1)                               # side by side (aligning on the index)
 ```
 
-- `ignore_index=True` renumera el índice (si no, quedan índices repetidos).
-- Pasar un **dict** agrega una etiqueta de origen, que se convierte en columna con
-  `.reset_index(level=0)`.
-- Si las columnas no coinciden, las que faltan quedan con `NaN`.
-- **No hagas `concat` dentro de un bucle** (es cuadrático): juntá los DataFrames en una lista y
-  concatená una sola vez.
+- `ignore_index=True` renumbers the index (otherwise you get repeated index values).
+- Passing a **dict** adds a source label, which becomes a column with `.reset_index(level=0)`.
+- If the columns don't match, the missing ones are filled with `NaN`.
+- **Don't `concat` inside a loop** (it's quadratic): collect the DataFrames in a list and
+  concatenate once.
 
 ```python
-partes = [pd.read_csv(ruta) for ruta in sorted(Path("datos").glob("ventas_*.csv"))]
-todas = pd.concat(partes, ignore_index=True)
+parts = [pd.read_csv(path) for path in sorted(Path("data").glob("sales_*.csv"))]
+everything = pd.concat(parts, ignore_index=True)
 ```
 
-## Resumen
+## Summary
 
-- `merge(on=..., how=...)`: `left` para enriquecer sin perder filas.
-- **Siempre** `validate="many_to_one"` (o la relación que corresponda) para detectar claves
-  duplicadas.
-- `indicator=True` para encontrar las filas sin match.
-- `join` cuando la clave es el índice.
-- `concat` para apilar (con `ignore_index` o un dict para el origen); juntar en una lista y
-  concatenar una vez.
+- `merge(on=..., how=...)`: `left` to enrich without losing rows.
+- **Always** `validate="many_to_one"` (or whatever relationship applies) to catch duplicate
+  keys.
+- `indicator=True` to find rows with no match.
+- `join` when the key is the index.
+- `concat` to stack (with `ignore_index` or a dict for the source); collect in a list and
+  concatenate once.
 
-## Ejercicio
+## Exercise
 
-`ventas.csv` (id, fecha, sucursal, producto, cantidad) y `productos.csv` (producto, categoria,
-precio_unitario). En el catálogo **falta un producto** que sí aparece en las ventas.
+`sales.csv` (id, date, branch, product, quantity) and `products.csv` (product, category,
+unit_price). The catalog **is missing a product** that does appear in the sales.
 
-**Para profundizar:** [Merge, join, concatenate and compare](https://pandas.pydata.org/docs/user_guide/merging.html).
+**Further reading:** [Merge, join, concatenate and compare](https://pandas.pydata.org/docs/user_guide/merging.html).

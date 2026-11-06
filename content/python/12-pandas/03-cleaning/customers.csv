@@ -1,0 +1,8 @@
+name,email,age,balance,city
+  alice SMITH,ALICE@mail.com,31,"$ 1.234,50",Boston
+Bob jones ,bob@mail.com ,27,"$ 100,00",boston
+carol davis,carol@mail.com,unknown,,Denver
+alice smith,alice@mail.com,31,"$ 1.234,50",Boston
+Dave Brown,dave@mail.com,45,"$ 20.000,75",
+,x@mail.com,50,"$ 5,00",Austin
+eve wilson,,38,"$ 0,00",denver 

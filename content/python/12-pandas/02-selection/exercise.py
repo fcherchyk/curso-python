@@ -1,40 +1,40 @@
-"""Seleccionar y filtrar.
+"""Selecting and filtering.
 
-`ventas` es el DataFrame de ventas.csv con índice "id", "fecha" parseada y la columna
-"total" = cantidad * precio_unitario (como en el capítulo anterior; los tests lo arman).
+`sales` is the DataFrame from sales.csv with index "id", "date" parsed and the column
+"total" = quantity * unit_price (as in the previous chapter; the tests build it).
 """
 
 import pandas as pd
 
 
-def ventas_grandes_de(ventas: pd.DataFrame, sucursal: str, minimo: float) -> pd.DataFrame:
-    """Ventas de esa sucursal con total >= minimo, solo las columnas producto y total,
-    ordenadas por total descendente.
+def large_sales_at(sales: pd.DataFrame, branch: str, minimum: float) -> pd.DataFrame:
+    """Sales from that branch with total >= minimum, only the product and total columns,
+    sorted by total descending.
     """
     raise NotImplementedError("TODO")
 
 
-def de_productos(ventas: pd.DataFrame, productos: list[str]) -> pd.Series:
-    """Cantidades (columna "cantidad") de las ventas de esos productos (isin)."""
+def for_products(sales: pd.DataFrame, products: list[str]) -> pd.Series:
+    """Quantities (column "quantity") of the sales of those products (isin)."""
     raise NotImplementedError("TODO")
 
 
-def consulta(ventas: pd.DataFrame, categoria: str, minima_cantidad: int) -> list[int]:
-    """Ids de las ventas de esa categoría con cantidad >= minima_cantidad, usando df.query
-    con variables (@). Ordenados.
+def lookup(sales: pd.DataFrame, category: str, min_quantity: int) -> list[int]:
+    """Ids of the sales in that category with quantity >= min_quantity, using df.query
+    with variables (@). Sorted.
     """
     raise NotImplementedError("TODO")
 
 
-def top_y_primera_etiqueta(ventas: pd.DataFrame) -> tuple[int, int]:
-    """Ordená por total descendente y devolvé (id de la PRIMERA fila del orden, cantidad de
-    la venta cuyo id es el MÁS CHICO). Usá iloc y loc respectivamente.
+def top_and_first_label(sales: pd.DataFrame) -> tuple[int, int]:
+    """Sort by total descending and return (id of the FIRST row in that order, quantity of
+    the sale whose id is the SMALLEST). Use iloc and loc respectively.
     """
     raise NotImplementedError("TODO")
 
 
-def con_descuento(ventas: pd.DataFrame, categoria: str, pct: float) -> pd.DataFrame:
-    """DataFrame NUEVO con precio_unitario y total reducidos un `pct` (0.1 = 10 %) en las
-    ventas de esa categoría. NO modifiques `ventas`.
+def with_discount(sales: pd.DataFrame, category: str, pct: float) -> pd.DataFrame:
+    """A NEW DataFrame with unit_price and total reduced by `pct` (0.1 = 10 %) for the
+    sales in that category. Do NOT modify `sales`.
     """
     raise NotImplementedError("TODO")

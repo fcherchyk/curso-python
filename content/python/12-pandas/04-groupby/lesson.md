@@ -1,132 +1,130 @@
-# groupby: agrupar y agregar
+# groupby: grouping and aggregating
 
-"¿Cuánto vendió cada sucursal?", "¿Cuál es el ticket promedio por categoría?", "¿Qué
-participación tiene cada venta dentro de su sucursal?" Casi toda pregunta de negocio es una
-**agregación por grupos**. En pandas se resuelve con `groupby`, que sigue el patrón
-**split-apply-combine**: separar las filas en grupos, aplicar una operación a cada grupo y
-combinar los resultados.
+"How much did each branch sell?", "What's the average ticket per category?", "What share does
+each sale have within its branch?" Almost every business question is an **aggregation by
+groups**. In pandas you answer it with `groupby`, which follows the **split-apply-combine**
+pattern: split the rows into groups, apply an operation to each group and combine the results.
 
-## Lo básico
+## The basics
 
 ```python
-ventas.groupby("sucursal")["total"].sum()
-# sucursal
-# Centro    230900
-# Norte     245400
-# Sur       380300
+sales.groupby("branch")["total"].sum()
+# branch
+# Central    230900
+# North      245400
+# South      380300
 # Name: total, dtype: int64
 
-ventas.groupby("sucursal")["total"].agg(["sum", "mean", "count"])
-ventas.groupby(["sucursal", "categoria"])["cantidad"].sum()   # varias claves → MultiIndex
-ventas.groupby("sucursal").size()          # cantidad de filas por grupo
+sales.groupby("branch")["total"].agg(["sum", "mean", "count"])
+sales.groupby(["branch", "category"])["quantity"].sum()   # several keys → MultiIndex
+sales.groupby("branch").size()             # number of rows per group
 ```
 
-- Las claves del grupo pasan a ser el **índice** del resultado. Con `as_index=False`, o con
-  `.reset_index()`, quedan como columnas.
-- Agregaciones comunes: `sum`, `mean`, `median`, `count` (no nulos), `size` (filas), `min`, `max`,
-  `std`, `nunique`, `first` y `last`.
-- Es el equivalente directo del `GROUP BY` de SQL.
+- The group keys become the **index** of the result. With `as_index=False`, or with
+  `.reset_index()`, they stay as columns.
+- Common aggregations: `sum`, `mean`, `median`, `count` (non-null), `size` (rows), `min`, `max`,
+  `std`, `nunique`, `first` and `last`.
+- It's the direct equivalent of SQL's `GROUP BY`.
 
-## Agregaciones con nombre: el estilo recomendado
+## Named aggregations: the recommended style
 
 ```python
-resumen = ventas.groupby("categoria").agg(
-    unidades=("cantidad", "sum"),
-    facturacion=("total", "sum"),
-    ticket_promedio=("total", "mean"),
-    productos_distintos=("producto", "nunique"),
-).sort_values("facturacion", ascending=False)
+summary = sales.groupby("category").agg(
+    units=("quantity", "sum"),
+    revenue=("total", "sum"),
+    average_ticket=("total", "mean"),
+    distinct_products=("product", "nunique"),
+).sort_values("revenue", ascending=False)
 ```
 
-Cada argumento es `nombre_de_salida=(columna, función)`. El resultado tiene columnas con nombres
-claros y no un MultiIndex de columnas difícil de manejar. La función también puede ser una propia:
+Each argument is `output_name=(column, function)`. The result has clearly named columns instead
+of a hard-to-handle column MultiIndex. The function can also be your own:
 `("total", lambda s: s.quantile(0.9))`.
 
-## `transform`: el resultado del grupo, en cada fila
+## `transform`: the group's result, on every row
 
-`agg` **reduce** cada grupo a una fila. `transform` devuelve un valor **por cada fila original**,
-alineado con el DataFrame. Es lo que hace falta para comparar cada fila con su grupo:
-
-```python
-total_sucursal = ventas.groupby("sucursal")["total"].transform("sum")
-ventas["participacion"] = ventas["total"] / total_sucursal
-
-# Desvío respecto del promedio de la categoría
-ventas["vs_promedio"] = ventas["total"] - ventas.groupby("categoria")["total"].transform("mean")
-```
-
-Sin `transform`, habría que agregar, hacer un merge del resultado de vuelta a las filas y
-después dividir.
-
-## `filter` y `apply`
+`agg` **reduces** each group to one row. `transform` returns a value **for each original row**,
+aligned with the DataFrame. It's what you need to compare each row with its group:
 
 ```python
-# Solo los grupos (sucursales) con más de 20 ventas
-ventas.groupby("sucursal").filter(lambda g: len(g) > 20)
+branch_total = sales.groupby("branch")["total"].transform("sum")
+sales["share"] = sales["total"] / branch_total
 
-# apply: una función arbitraria por grupo (flexible pero más lenta)
-ventas.groupby("sucursal").apply(lambda g: g.nlargest(2, "total"))
+# Deviation from the category average
+sales["vs_average"] = sales["total"] - sales.groupby("category")["total"].transform("mean")
 ```
 
-Preferí `agg`/`transform` con funciones con nombre (`"sum"`, `"mean"`): están optimizadas. Usá
-`apply` solo cuando no hay alternativa.
+Without `transform`, you'd have to aggregate, merge the result back onto the rows and then
+divide.
 
-## "El mayor de cada grupo"
-
-Un patrón muy común: el producto más vendido **de cada** sucursal.
+## `filter` and `apply`
 
 ```python
-unidades = ventas.groupby(["sucursal", "producto"])["cantidad"].sum()
-idx = unidades.groupby(level="sucursal").idxmax()      # (sucursal, producto) del máximo
-unidades.loc[idx]
+# Only the groups (branches) with more than 20 sales
+sales.groupby("branch").filter(lambda g: len(g) > 20)
+
+# apply: an arbitrary function per group (flexible but slower)
+sales.groupby("branch").apply(lambda g: g.nlargest(2, "total"))
 ```
 
-Otra forma: `sort_values` + `groupby(...).head(1)`, o `.nlargest(1)` dentro del grupo.
+Prefer `agg`/`transform` with named functions (`"sum"`, `"mean"`): they're optimized. Use `apply`
+only when there's no alternative.
 
-## Tablas dinámicas: `pivot_table`
+## "The largest in each group"
 
-La tabla dinámica de las planillas de cálculo:
+A very common pattern: the best-selling product **in each** branch.
+
+```python
+units = sales.groupby(["branch", "product"])["quantity"].sum()
+idx = units.groupby(level="branch").idxmax()      # (branch, product) of the maximum
+units.loc[idx]
+```
+
+Another way: `sort_values` + `groupby(...).head(1)`, or `.nlargest(1)` within the group.
+
+## Pivot tables: `pivot_table`
+
+The spreadsheet pivot table:
 
 ```python
 pd.pivot_table(
-    ventas,
+    sales,
     values="total",
-    index="sucursal",          # filas
-    columns="categoria",       # columnas
+    index="branch",            # rows
+    columns="category",        # columns
     aggfunc="sum",
     fill_value=0,
-    margins=True,              # totales de fila y columna ("All")
+    margins=True,              # row and column totals ("All")
 )
 ```
 
-`pd.crosstab(ventas["sucursal"], ventas["categoria"])` cuenta frecuencias, y
-`.unstack()`/`.stack()` pasan un nivel del índice a columnas y viceversa.
+`pd.crosstab(sales["branch"], sales["category"])` counts frequencies, and
+`.unstack()`/`.stack()` move an index level to columns and back.
 
-## Agrupar por tiempo
+## Grouping by time
 
-Con fechas se puede agrupar por período:
+With dates you can group by period:
 
 ```python
-ventas.groupby(ventas["fecha"].dt.month)["total"].sum()
-ventas.groupby(pd.Grouper(key="fecha", freq="ME"))["total"].sum()    # por fin de mes
+sales.groupby(sales["date"].dt.month)["total"].sum()
+sales.groupby(pd.Grouper(key="date", freq="ME"))["total"].sum()    # by month end
 ```
 
-En el capítulo de series de tiempo lo vemos con `resample`.
+We'll see this with `resample` in the time series chapter.
 
-## Resumen
+## Summary
 
-- `groupby(clave)[col].agg(...)`: split-apply-combine, como el `GROUP BY` de SQL.
-- Agregaciones con nombre: `agg(salida=("columna", "función"))`.
-- `transform` devuelve un valor por fila (participaciones, desvíos respecto del grupo).
-- `filter` para descartar grupos; `apply` solo como último recurso.
-- El mayor por grupo: `groupby(...).idxmax()` o `sort_values` + `head(1)`.
-- `pivot_table` para tablas cruzadas.
+- `groupby(key)[col].agg(...)`: split-apply-combine, like SQL's `GROUP BY`.
+- Named aggregations: `agg(output=("column", "function"))`.
+- `transform` returns a value per row (shares, deviations from the group).
+- `filter` to discard groups; `apply` only as a last resort.
+- The largest per group: `groupby(...).idxmax()` or `sort_values` + `head(1)`.
+- `pivot_table` for cross tabulations.
 
-## Ejercicio
+## Exercise
 
-Sobre las ventas: totales por sucursal, un resumen por categoría con agregaciones con nombre,
-participación de cada venta en su sucursal, una tabla dinámica y el producto top de cada
-sucursal.
+On the sales data: totals per branch, a per-category summary with named aggregations, each
+sale's share within its branch, a pivot table and the top product in each branch.
 
-**Para profundizar:** [Group by: split-apply-combine](https://pandas.pydata.org/docs/user_guide/groupby.html),
+**Further reading:** [Group by: split-apply-combine](https://pandas.pydata.org/docs/user_guide/groupby.html),
 [Reshaping and pivot tables](https://pandas.pydata.org/docs/user_guide/reshaping.html).

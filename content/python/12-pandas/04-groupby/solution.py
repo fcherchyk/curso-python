@@ -1,33 +1,33 @@
 import pandas as pd
 
 
-def total_por_sucursal(ventas: pd.DataFrame) -> pd.Series:
-    return ventas.groupby("sucursal")["total"].sum().sort_values(ascending=False)
+def total_by_branch(sales: pd.DataFrame) -> pd.Series:
+    return sales.groupby("branch")["total"].sum().sort_values(ascending=False)
 
 
-def resumen_por_categoria(ventas: pd.DataFrame) -> pd.DataFrame:
-    resumen = ventas.groupby("categoria").agg(
-        unidades=("cantidad", "sum"),
-        facturacion=("total", "sum"),
-        ticket_promedio=("total", "mean"),
-        productos=("producto", "nunique"),
+def category_summary(sales: pd.DataFrame) -> pd.DataFrame:
+    summary = sales.groupby("category").agg(
+        units=("quantity", "sum"),
+        revenue=("total", "sum"),
+        average_ticket=("total", "mean"),
+        products=("product", "nunique"),
     )
-    return resumen.assign(ticket_promedio=resumen["ticket_promedio"].round(2)).sort_values(
-        "facturacion", ascending=False
+    return summary.assign(average_ticket=summary["average_ticket"].round(2)).sort_values(
+        "revenue", ascending=False
     )
 
 
-def participacion_en_sucursal(ventas: pd.DataFrame) -> pd.Series:
-    return ventas["total"] / ventas.groupby("sucursal")["total"].transform("sum")
+def share_of_branch(sales: pd.DataFrame) -> pd.Series:
+    return sales["total"] / sales.groupby("branch")["total"].transform("sum")
 
 
-def tabla_sucursal_categoria(ventas: pd.DataFrame) -> pd.DataFrame:
+def branch_category_table(sales: pd.DataFrame) -> pd.DataFrame:
     return pd.pivot_table(
-        ventas, values="total", index="sucursal", columns="categoria", aggfunc="sum", fill_value=0
+        sales, values="total", index="branch", columns="category", aggfunc="sum", fill_value=0
     )
 
 
-def producto_top_por_sucursal(ventas: pd.DataFrame) -> dict[str, str]:
-    unidades = ventas.groupby(["sucursal", "producto"])["cantidad"].sum()
-    maximos = unidades.groupby(level="sucursal").idxmax()  # tuplas (sucursal, producto)
-    return {sucursal: producto for sucursal, producto in maximos}
+def top_product_by_branch(sales: pd.DataFrame) -> dict[str, str]:
+    units = sales.groupby(["branch", "product"])["quantity"].sum()
+    maxima = units.groupby(level="branch").idxmax()  # (branch, product) tuples
+    return {branch: product for branch, product in maxima}

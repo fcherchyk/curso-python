@@ -1,39 +1,39 @@
 [[questions]]
-text = "Con un índice 0, 1, 2…, ¿cuántas filas devuelve `df.loc[0:3]`?"
-options = ["3", "4", "2", "Depende del orden"]
+text = "With an index 0, 1, 2…, how many rows does `df.loc[0:3]` return?"
+options = ["3", "4", "2", "It depends on the order"]
 correct = 1
-explanation = "Los slices de `loc` son por etiqueta e inclusivos: 0, 1, 2 y 3. `df.iloc[0:3]` devolvería 3 filas."
+explanation = "`loc` slices are by label and inclusive: 0, 1, 2 and 3. `df.iloc[0:3]` would return 3 rows."
 
 [[questions]]
-text = "Después de `o = df.sort_values(\"total\", ascending=False)`, ¿qué es `o.iloc[0]`?"
+text = "After `o = df.sort_values(\"total\", ascending=False)`, what is `o.iloc[0]`?"
 options = [
-  "La fila con etiqueta 0",
-  "La primera fila del resultado ordenado: la de mayor total",
-  "La columna 0",
-  "Un error",
+  "The row with label 0",
+  "The first row of the sorted result: the one with the largest total",
+  "Column 0",
+  "An error",
 ]
 correct = 1
-explanation = "`iloc` usa posiciones del DataFrame actual. `o.loc[0]` sería la fila cuya etiqueta es 0, esté donde esté."
+explanation = "`iloc` uses positions in the current DataFrame. `o.loc[0]` would be the row whose label is 0, wherever it is."
 
 [[questions]]
-text = "En pandas 3, ¿qué pasa con `df[\"total\"][df[\"cantidad\"] > 5] = 0`?"
+text = "In pandas 3, what happens with `df[\"total\"][df[\"quantity\"] > 5] = 0`?"
 options = [
-  "Modifica `df`",
-  "No modifica `df`: es asignación encadenada y pandas avisa con `ChainedAssignmentError`",
-  "Borra las filas",
-  "Modifica solo la primera fila",
+  "It modifies `df`",
+  "It doesn't modify `df`: it's chained assignment and pandas warns with `ChainedAssignmentError`",
+  "It deletes the rows",
+  "It modifies only the first row",
 ]
 correct = 1
-explanation = "Con copy-on-write, el resultado intermedio es una copia. La forma correcta es `df.loc[df[\"cantidad\"] > 5, \"total\"] = 0`."
+explanation = "With copy-on-write, the intermediate result is a copy. The correct way is `df.loc[df[\"quantity\"] > 5, \"total\"] = 0`."
 
 [[questions]]
-text = "¿Cómo se usa una variable de Python `minimo` dentro de `df.query(...)`?"
-options = ["`\"cantidad >= minimo\"`", "`\"cantidad >= @minimo\"`", "`\"cantidad >= {minimo}\"`", "No se puede"]
+text = "How do you use a Python variable `minimum` inside `df.query(...)`?"
+options = ["`\"quantity >= minimum\"`", "`\"quantity >= @minimum\"`", "`\"quantity >= {minimum}\"`", "You can't"]
 correct = 1
-explanation = "El `@` referencia variables del entorno de Python. Sin él, `query` busca una columna con ese nombre."
+explanation = "`@` references variables from the Python environment. Without it, `query` looks for a column with that name."
 
 [[questions]]
-text = "`centro = df[df[\"sucursal\"] == \"Centro\"]; centro[\"total\"] = 0`. ¿Cambia `df`?"
-options = ["Sí", "No: con copy-on-write la selección se comporta como una copia", "A veces", "Levanta un error"]
+text = "`central = df[df[\"branch\"] == \"Central\"]; central[\"total\"] = 0`. Does `df` change?"
+options = ["Yes", "No: with copy-on-write the selection behaves like a copy", "Sometimes", "It raises an error"]
 correct = 1
-explanation = "En pandas 3, las selecciones nunca modifican el original. Si querés cambiar `df`, usá `loc` sobre `df` mismo."
+explanation = "In pandas 3, selections never modify the original. If you want to change `df`, use `loc` on `df` itself."

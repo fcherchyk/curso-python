@@ -4,72 +4,72 @@ from collections import defaultdict
 import pandas as pd
 import pytest
 from exercise import (
-    participacion_en_sucursal,
-    producto_top_por_sucursal,
-    resumen_por_categoria,
-    tabla_sucursal_categoria,
-    total_por_sucursal,
+    branch_category_table,
+    category_summary,
+    share_of_branch,
+    top_product_by_branch,
+    total_by_branch,
 )
 
-# Referencias calculadas en Python puro (sin pandas)
-with open("ventas.csv", newline="", encoding="utf-8") as f:
-    FILAS = list(csv.DictReader(f))
-for fila in FILAS:
-    fila["total"] = int(fila["cantidad"]) * int(fila["precio_unitario"])
+# References computed in pure Python (no pandas)
+with open("sales.csv", newline="", encoding="utf-8") as f:
+    ROWS = list(csv.DictReader(f))
+for row in ROWS:
+    row["total"] = int(row["quantity"]) * int(row["unit_price"])
 
-POR_SUCURSAL: dict[str, int] = defaultdict(int)
-for fila in FILAS:
-    POR_SUCURSAL[fila["sucursal"]] += fila["total"]
+BY_BRANCH: dict[str, int] = defaultdict(int)
+for row in ROWS:
+    BY_BRANCH[row["branch"]] += row["total"]
 
 
 @pytest.fixture
-def ventas():
-    df = pd.read_csv("ventas.csv", index_col="id", parse_dates=["fecha"])
-    df["total"] = df["cantidad"] * df["precio_unitario"]
+def sales():
+    df = pd.read_csv("sales.csv", index_col="id", parse_dates=["date"])
+    df["total"] = df["quantity"] * df["unit_price"]
     return df
 
 
-def test_total_por_sucursal(ventas):
-    r = total_por_sucursal(ventas)
-    assert r.to_dict() == dict(POR_SUCURSAL)
-    assert r.is_monotonic_decreasing
+def test_total_by_branch(sales):
+    result = total_by_branch(sales)
+    assert result.to_dict() == dict(BY_BRANCH)
+    assert result.is_monotonic_decreasing
 
 
-def test_resumen_por_categoria(ventas):
-    r = resumen_por_categoria(ventas)
-    assert list(r.columns) == ["unidades", "facturacion", "ticket_promedio", "productos"]
-    assert r["facturacion"].is_monotonic_decreasing
-    infusiones = [f for f in FILAS if f["categoria"] == "infusiones"]
-    fila = r.loc["infusiones"]
-    assert fila["unidades"] == sum(int(f["cantidad"]) for f in infusiones)
-    assert fila["facturacion"] == sum(f["total"] for f in infusiones)
-    assert fila["ticket_promedio"] == round(sum(f["total"] for f in infusiones) / len(infusiones), 2)
-    assert fila["productos"] == len({f["producto"] for f in infusiones})
+def test_category_summary(sales):
+    result = category_summary(sales)
+    assert list(result.columns) == ["units", "revenue", "average_ticket", "products"]
+    assert result["revenue"].is_monotonic_decreasing
+    beverages = [r for r in ROWS if r["category"] == "beverages"]
+    row = result.loc["beverages"]
+    assert row["units"] == sum(int(r["quantity"]) for r in beverages)
+    assert row["revenue"] == sum(r["total"] for r in beverages)
+    assert row["average_ticket"] == round(sum(r["total"] for r in beverages) / len(beverages), 2)
+    assert row["products"] == len({r["product"] for r in beverages})
 
 
-def test_participacion_en_sucursal(ventas):
-    r = participacion_en_sucursal(ventas)
-    assert r.index.equals(ventas.index)
-    primera = FILAS[0]
-    assert r.loc[int(primera["id"])] == pytest.approx(primera["total"] / POR_SUCURSAL[primera["sucursal"]])
-    assert r.groupby(ventas["sucursal"]).sum().round(9).eq(1).all()
+def test_share_of_branch(sales):
+    result = share_of_branch(sales)
+    assert result.index.equals(sales.index)
+    first = ROWS[0]
+    assert result.loc[int(first["id"])] == pytest.approx(first["total"] / BY_BRANCH[first["branch"]])
+    assert result.groupby(sales["branch"]).sum().round(9).eq(1).all()
 
 
-def test_tabla_sucursal_categoria(ventas):
-    t = tabla_sucursal_categoria(ventas)
-    assert sorted(t.index) == sorted(POR_SUCURSAL)
-    assert t.sum(axis=1).to_dict() == dict(POR_SUCURSAL)
-    esperado = sum(f["total"] for f in FILAS if f["sucursal"] == "Sur" and f["categoria"] == "almacén")
-    assert t.loc["Sur", "almacén"] == esperado
-    assert (t >= 0).all().all()
+def test_branch_category_table(sales):
+    table = branch_category_table(sales)
+    assert sorted(table.index) == sorted(BY_BRANCH)
+    assert table.sum(axis=1).to_dict() == dict(BY_BRANCH)
+    expected = sum(r["total"] for r in ROWS if r["branch"] == "South" and r["category"] == "pantry")
+    assert table.loc["South", "pantry"] == expected
+    assert (table >= 0).all().all()
 
 
-def test_producto_top_por_sucursal(ventas):
-    unidades: dict[tuple[str, str], int] = defaultdict(int)
-    for f in FILAS:
-        unidades[(f["sucursal"], f["producto"])] += int(f["cantidad"])
-    esperado = {}
-    for suc in POR_SUCURSAL:
-        candidatos = {p: u for (s, p), u in unidades.items() if s == suc}
-        esperado[suc] = max(candidatos, key=candidatos.get)
-    assert producto_top_por_sucursal(ventas) == esperado
+def test_top_product_by_branch(sales):
+    units: dict[tuple[str, str], int] = defaultdict(int)
+    for r in ROWS:
+        units[(r["branch"], r["product"])] += int(r["quantity"])
+    expected = {}
+    for branch in BY_BRANCH:
+        candidates = {p: u for (b, p), u in units.items() if b == branch}
+        expected[branch] = max(candidates, key=candidates.get)
+    assert top_product_by_branch(sales) == expected

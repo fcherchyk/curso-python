@@ -1,39 +1,39 @@
 [[questions]]
-text = "¿Qué hace `pd.to_numeric(s, errors=\"coerce\")` con el valor `\"sin dato\"`?"
-options = ["Levanta `ValueError`", "Lo convierte en `NaN`", "Lo deja como texto", "Lo convierte en 0"]
+text = "What does `pd.to_numeric(s, errors=\"coerce\")` do with the value `\"unknown\"`?"
+options = ["Raises `ValueError`", "Converts it to `NaN`", "Leaves it as text", "Converts it to 0"]
 correct = 1
-explanation = "`coerce` convierte en nulo lo que no se puede parsear, y así un valor sucio no corta todo el proceso."
+explanation = "`coerce` turns anything that can't be parsed into a null, so one dirty value doesn't stop the whole process."
 
 [[questions]]
-text = "Una columna de enteros tiene un valor faltante. ¿Qué dtype permite mantener los enteros con el nulo?"
-options = ["`int64`", "`Int64` (con mayúscula)", "`float64`", "`object`"]
+text = "An integer column has a missing value. Which dtype lets you keep integers alongside the null?"
+options = ["`int64`", "`Int64` (capitalized)", "`float64`", "`object`"]
 correct = 1
-explanation = "`int64` no admite `NaN`, por eso pandas pasaría la columna a `float64`. `Int64` es el entero que admite nulos (`pd.NA`)."
+explanation = "`int64` doesn't allow `NaN`, so pandas would turn the column into `float64`. `Int64` is the integer type that allows nulls (`pd.NA`)."
 
 [[questions]]
-text = "¿Por qué hay que normalizar el email antes de `drop_duplicates(subset=[\"email\"])`?"
+text = "Why do you need to normalize the email before `drop_duplicates(subset=[\"email\"])`?"
 options = [
-  "Porque `drop_duplicates` no acepta strings",
-  "Porque \"ANA@mail.com\" y \"ana@mail.com \" son la misma persona, pero strings distintos",
-  "Por rendimiento",
-  "No hace falta",
+  "Because `drop_duplicates` doesn't accept strings",
+  "Because \"ALICE@mail.com\" and \"alice@mail.com \" are the same person but different strings",
+  "For performance",
+  "You don't need to",
 ]
 correct = 1
-explanation = "La deduplicación compara valores exactos. Primero hay que llevar los textos a una forma canónica (minúsculas y sin espacios)."
+explanation = "Deduplication compares exact values. First you have to bring the text to a canonical form (lowercase, no spaces)."
 
 [[questions]]
-text = "¿Dónde están las operaciones de texto vectorizadas de pandas?"
-options = ["En el módulo `re`", "En el accessor `.str` de una Series", "En `df.text`", "En `pd.strings`"]
+text = "Where do pandas' vectorized text operations live?"
+options = ["In the `re` module", "In a Series' `.str` accessor", "In `df.text`", "In `pd.strings`"]
 correct = 1
-explanation = "`s.str.strip()`, `s.str.lower()`, `s.str.replace(...)` y demás se aplican a toda la columna y respetan los nulos."
+explanation = "`s.str.strip()`, `s.str.lower()`, `s.str.replace(...)` and the rest apply to the whole column and respect nulls."
 
 [[questions]]
-text = "¿Qué ventaja tiene encadenar métodos (`df.assign(...).dropna(...).pipe(...)`)?"
+text = "What's the advantage of chaining methods (`df.assign(...).dropna(...).pipe(...)`)?"
 options = [
-  "Es más rápido en todos los casos",
-  "El pipeline se lee de arriba hacia abajo, sin variables intermedias, y cada paso devuelve un DataFrame nuevo",
-  "Modifica el original en el lugar",
-  "Es la única forma de usar `assign`",
+  "It's faster in every case",
+  "The pipeline reads from top to bottom, with no intermediate variables, and each step returns a new DataFrame",
+  "It modifies the original in place",
+  "It's the only way to use `assign`",
 ]
 correct = 1
-explanation = "El method chaining hace el proceso legible y reproducible. `pipe` permite insertar funciones propias en la cadena."
+explanation = "Method chaining makes the process readable and reproducible. `pipe` lets you insert your own functions into the chain."

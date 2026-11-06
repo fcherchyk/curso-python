@@ -1,36 +1,36 @@
-"""groupby: agrupar y agregar.
+"""groupby: grouping and aggregating.
 
-`ventas` tiene índice "id" y las columnas fecha, sucursal, producto, cantidad, categoria,
-precio_unitario y total (= cantidad * precio_unitario).
+`sales` has index "id" and the columns date, branch, product, quantity, category,
+unit_price and total (= quantity * unit_price).
 """
 
 import pandas as pd
 
 
-def total_por_sucursal(ventas: pd.DataFrame) -> pd.Series:
-    """Facturación (suma de total) por sucursal, de mayor a menor."""
+def total_by_branch(sales: pd.DataFrame) -> pd.Series:
+    """Revenue (sum of total) per branch, from highest to lowest."""
     raise NotImplementedError("TODO")
 
 
-def resumen_por_categoria(ventas: pd.DataFrame) -> pd.DataFrame:
-    """Por categoría, con agregaciones con nombre:
-    unidades (suma de cantidad), facturacion (suma de total), ticket_promedio (promedio de total,
-    redondeado a 2) y productos (cantidad de productos distintos).
-    Ordenado por facturacion descendente.
+def category_summary(sales: pd.DataFrame) -> pd.DataFrame:
+    """Per category, with named aggregations:
+    units (sum of quantity), revenue (sum of total), average_ticket (mean of total,
+    rounded to 2) and products (number of distinct products).
+    Sorted by revenue descending.
     """
     raise NotImplementedError("TODO")
 
 
-def participacion_en_sucursal(ventas: pd.DataFrame) -> pd.Series:
-    """Para cada venta, total / facturación de SU sucursal (transform). Mismo índice que ventas."""
+def share_of_branch(sales: pd.DataFrame) -> pd.Series:
+    """For each sale, total / revenue of ITS branch (transform). Same index as sales."""
     raise NotImplementedError("TODO")
 
 
-def tabla_sucursal_categoria(ventas: pd.DataFrame) -> pd.DataFrame:
-    """Tabla dinámica: filas = sucursal, columnas = categoría, celdas = suma de total, 0 si no hay."""
+def branch_category_table(sales: pd.DataFrame) -> pd.DataFrame:
+    """Pivot table: rows = branch, columns = category, cells = sum of total, 0 if none."""
     raise NotImplementedError("TODO")
 
 
-def producto_top_por_sucursal(ventas: pd.DataFrame) -> dict[str, str]:
-    """Para cada sucursal, el producto con más UNIDADES vendidas."""
+def top_product_by_branch(sales: pd.DataFrame) -> dict[str, str]:
+    """For each branch, the product with the most UNITS sold."""
     raise NotImplementedError("TODO")

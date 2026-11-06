@@ -1,54 +1,54 @@
 [[questions]]
-text = "Hacés `ventas.merge(productos, on=\"producto\")` sin `how`. ¿Qué pasa con las ventas de un producto que no está en el catálogo?"
+text = "You run `sales.merge(products, on=\"product\")` without `how`. What happens to the sales of a product that isn't in the catalog?"
 options = [
-  "Quedan con NaN en las columnas del catálogo",
-  "Desaparecen: el default es `inner`",
-  "Levanta un error",
-  "Se duplican",
+  "They get NaN in the catalog columns",
+  "They disappear: the default is `inner`",
+  "It raises an error",
+  "They get duplicated",
 ]
 correct = 1
-explanation = "El `how` por defecto es `inner`, que solo conserva las claves presentes en ambas tablas. Para no perder ventas, `how=\"left\"`."
+explanation = "The default `how` is `inner`, which only keeps keys present in both tables. To avoid losing sales, use `how=\"left\"`."
 
 [[questions]]
-text = "El catálogo tiene un producto repetido dos veces. ¿Qué pasa con un `left` merge de las ventas?"
+text = "The catalog has a product listed twice. What happens with a `left` merge of the sales?"
 options = [
-  "Nada",
-  "Las ventas de ese producto se duplican y los totales se inflan sin ningún error",
-  "Se usa la primera aparición",
-  "Levanta un error siempre",
+  "Nothing",
+  "That product's sales get duplicated and the totals get inflated without any error",
+  "The first occurrence is used",
+  "It always raises an error",
 ]
 correct = 1
-explanation = "Cada fila de la izquierda se combina con todas las coincidencias de la derecha. Con `validate=\"many_to_one\"`, pandas lo detecta y levanta `MergeError`."
+explanation = "Each left row is combined with every match on the right. With `validate=\"many_to_one\"`, pandas catches it and raises `MergeError`."
 
 [[questions]]
-text = "¿Para qué sirve `indicator=True` en un merge?"
+text = "What is `indicator=True` for in a merge?"
 options = [
-  "Para ordenar el resultado",
-  "Agrega una columna `_merge` que indica si cada fila vino de ambas tablas, solo de la izquierda o solo de la derecha",
-  "Para validar los tipos",
-  "Para acelerar el merge",
+  "To sort the result",
+  "It adds a `_merge` column saying whether each row came from both tables, only the left or only the right",
+  "To validate the types",
+  "To speed up the merge",
 ]
 correct = 1
-explanation = "Permite encontrar las claves sin pareja (anti-join), por ejemplo las ventas de productos que no están en el catálogo."
+explanation = "It lets you find keys with no match (anti-join), for example sales of products that aren't in the catalog."
 
 [[questions]]
-text = "¿Qué hace `ignore_index=True` en `pd.concat([a, b], ignore_index=True)`?"
+text = "What does `ignore_index=True` do in `pd.concat([a, b], ignore_index=True)`?"
 options = [
-  "Ignora las columnas",
-  "Renumera el índice 0..n-1 en lugar de conservar los índices originales (que podrían repetirse)",
-  "Descarta las filas con índice repetido",
-  "Une por índice",
+  "Ignores the columns",
+  "Renumbers the index 0..n-1 instead of keeping the original indexes (which could repeat)",
+  "Drops the rows with a repeated index",
+  "Joins on the index",
 ]
 correct = 1
-explanation = "Sin eso, el resultado puede tener índices repetidos (dos filas con índice 0, etc.)."
+explanation = "Without it, the result can have repeated index values (two rows with index 0, etc.)."
 
 [[questions]]
-text = "Tenés 100 CSV mensuales. ¿Cuál es la forma eficiente de juntarlos?"
+text = "You have 100 monthly CSVs. What's the efficient way to combine them?"
 options = [
-  "`df = pd.concat([df, nuevo])` dentro del bucle",
-  "Leerlos en una lista y hacer un solo `pd.concat(lista, ignore_index=True)`",
-  "Usar `merge` entre cada par",
-  "`df.append(nuevo)`",
+  "`df = pd.concat([df, new])` inside the loop",
+  "Read them into a list and do a single `pd.concat(lst, ignore_index=True)`",
+  "Use `merge` on each pair",
+  "`df.append(new)`",
 ]
 correct = 1
-explanation = "Concatenar dentro del bucle copia todo en cada vuelta (cuadrático). Un solo `concat` al final es lineal. (`DataFrame.append` ya no existe.)"
+explanation = "Concatenating inside the loop copies everything on each iteration (quadratic). A single `concat` at the end is linear. (`DataFrame.append` no longer exists.)"

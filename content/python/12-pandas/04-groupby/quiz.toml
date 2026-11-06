@@ -1,54 +1,54 @@
 [[questions]]
-text = "¿Qué diferencia hay entre `groupby(...).agg(\"sum\")` y `groupby(...).transform(\"sum\")`?"
+text = "What's the difference between `groupby(...).agg(\"sum\")` and `groupby(...).transform(\"sum\")`?"
 options = [
-  "Ninguna",
-  "`agg` reduce a una fila por grupo; `transform` devuelve el resultado del grupo repetido en cada fila original",
-  "`transform` es más rápido",
-  "`agg` solo funciona con una columna",
+  "None",
+  "`agg` reduces to one row per group; `transform` returns the group's result repeated on each original row",
+  "`transform` is faster",
+  "`agg` only works with one column",
 ]
 correct = 1
-explanation = "`transform` mantiene la forma original, ideal para calcular la participación de cada fila en su grupo."
+explanation = "`transform` keeps the original shape, ideal for computing each row's share of its group."
 
 [[questions]]
-text = "¿Qué produce `ventas.groupby(\"categoria\").agg(facturacion=(\"total\", \"sum\"))`?"
+text = "What does `sales.groupby(\"category\").agg(revenue=(\"total\", \"sum\"))` produce?"
 options = [
-  "Una Series",
-  "Un DataFrame indexado por categoría con una columna `facturacion`",
-  "Un MultiIndex de columnas",
-  "Un error de sintaxis",
+  "A Series",
+  "A DataFrame indexed by category with a `revenue` column",
+  "A column MultiIndex",
+  "A syntax error",
 ]
 correct = 1
-explanation = "Las agregaciones con nombre (`salida=(columna, función)`) dan columnas con nombres claros."
+explanation = "Named aggregations (`output=(column, function)`) give clearly named columns."
 
 [[questions]]
-text = "¿Cuál es la diferencia entre `size()` y `count()` en un groupby?"
+text = "What's the difference between `size()` and `count()` in a groupby?"
 options = [
-  "Son iguales",
-  "`size` cuenta filas (incluidos los nulos); `count` cuenta valores no nulos por columna",
-  "`count` es más rápido",
-  "`size` solo funciona con números",
+  "They're the same",
+  "`size` counts rows (including nulls); `count` counts non-null values per column",
+  "`count` is faster",
+  "`size` only works with numbers",
 ]
 correct = 1
-explanation = "Con valores faltantes los resultados difieren: `count` los excluye."
+explanation = "With missing values the results differ: `count` excludes them."
 
 [[questions]]
-text = "¿Qué hace `pd.pivot_table(df, values=\"total\", index=\"sucursal\", columns=\"categoria\", aggfunc=\"sum\")`?"
+text = "What does `pd.pivot_table(df, values=\"total\", index=\"branch\", columns=\"category\", aggfunc=\"sum\")` do?"
 options = [
-  "Ordena por sucursal",
-  "Arma una tabla con sucursales en las filas, categorías en las columnas y la suma de `total` en cada celda",
-  "Une dos DataFrames",
-  "Filtra las categorías",
+  "Sorts by branch",
+  "Builds a table with branches as rows, categories as columns and the sum of `total` in each cell",
+  "Joins two DataFrames",
+  "Filters the categories",
 ]
 correct = 1
-explanation = "Es la tabla dinámica de las planillas de cálculo. Con `fill_value=0` completa las combinaciones sin datos."
+explanation = "It's the spreadsheet pivot table. With `fill_value=0` it fills in the combinations that have no data."
 
 [[questions]]
-text = "¿Cuándo conviene `groupby(...).apply(func)`?"
+text = "When is `groupby(...).apply(func)` a good choice?"
 options = [
-  "Siempre, es lo más rápido",
-  "Solo cuando no se puede resolver con `agg`, `transform` o `filter`: es flexible pero mucho más lento",
-  "Para sumar",
-  "Nunca existe",
+  "Always, it's the fastest",
+  "Only when it can't be done with `agg`, `transform` or `filter`: it's flexible but much slower",
+  "For summing",
+  "It doesn't exist",
 ]
 correct = 1
-explanation = "Las agregaciones con nombre (`\"sum\"`, `\"mean\"`) están optimizadas. `apply` ejecuta Python por cada grupo."
+explanation = "Named aggregations (`\"sum\"`, `\"mean\"`) are optimized. `apply` runs Python code for each group."

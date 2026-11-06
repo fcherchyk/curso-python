@@ -1,127 +1,127 @@
-# Series y DataFrame
+# Series and DataFrame
 
-pandas es **la** herramienta de Python para datos tabulares: CSV, Excel, tablas de bases de
-datos, logs y series de tiempo. Agrega a NumPy dos cosas fundamentales: **etiquetas** (filas y
-columnas con nombre, no solo posiciones) y **tipos distintos por columna** (fechas, textos,
-números, categorías en la misma tabla). Si alguna vez armaste una planilla de cálculo con
-fórmulas, pandas es eso mismo, programable, reproducible y capaz de manejar millones de filas.
+pandas is **the** Python tool for tabular data: CSV, Excel, database tables, logs and time
+series. It adds two fundamental things to NumPy: **labels** (named rows and columns, not just
+positions) and **a different type per column** (dates, text, numbers and categories in the same
+table). If you've ever built a spreadsheet with formulas, pandas is the same idea, but
+programmable, reproducible and able to handle millions of rows.
 
 ```bash
 uv add pandas
 ```
 ```python
-import pandas as pd       # alias universal
+import pandas as pd       # the universal alias
 ```
 
-## Series: una columna con índice
+## Series: a column with an index
 
 ```python
-precios = pd.Series([3500, 9800, 1200], index=["yerba", "café", "té"], name="precio")
-precios["café"]           # 9800: acceso por etiqueta
-precios.iloc[0]           # 3500: acceso por posición
-precios * 1.21            # vectorizado, como NumPy
-precios[precios > 2000]   # máscaras, como NumPy
-precios.index             # Index(['yerba', 'café', 'té'])
-precios.values            # el array de NumPy subyacente (mejor: .to_numpy())
-pd.Series({"a": 1, "b": 2})   # desde un dict: las claves son el índice
+prices = pd.Series([3500, 9800, 1200], index=["cocoa", "coffee", "tea"], name="price")
+prices["coffee"]          # 9800: access by label
+prices.iloc[0]            # 3500: access by position
+prices * 1.21             # vectorized, like NumPy
+prices[prices > 2000]     # masks, like NumPy
+prices.index              # Index(['cocoa', 'coffee', 'tea'])
+prices.values             # the underlying NumPy array (better: .to_numpy())
+pd.Series({"a": 1, "b": 2})   # from a dict: the keys become the index
 ```
 
-Una Series es un array de NumPy **con un índice**. Las operaciones entre Series se **alinean por
-etiqueta**, no por posición:
+A Series is a NumPy array **with an index**. Operations between Series **align by label**, not
+by position:
 
 ```python
 a = pd.Series({"x": 1, "y": 2})
 b = pd.Series({"y": 10, "z": 20})
-a + b        # x: NaN, y: 12.0, z: NaN  ← alineó por etiqueta; donde falta uno, NaN
+a + b        # x: NaN, y: 12.0, z: NaN  ← aligned by label; where one is missing, NaN
 ```
 
-## DataFrame: una tabla
+## DataFrame: a table
 
-Un DataFrame es una colección de Series que **comparten el índice**: cada columna es una Series.
+A DataFrame is a collection of Series that **share the index**: each column is a Series.
 
 ```python
 df = pd.DataFrame({
-    "producto": ["yerba", "café", "té"],
-    "precio": [3500, 9800, 1200],
+    "product": ["cocoa", "coffee", "tea"],
+    "price": [3500, 9800, 1200],
     "stock": [10, 0, 25],
 })
 
-df["precio"]               # una columna → Series
-df[["producto", "stock"]]  # varias columnas → DataFrame (¡doble corchete!)
-df["total"] = df["precio"] * df["stock"]      # columna nueva, vectorizada
+df["price"]                # one column → Series
+df[["product", "stock"]]   # several columns → DataFrame (double brackets!)
+df["total"] = df["price"] * df["stock"]       # new column, vectorized
 df.shape                   # (3, 4)
 df.columns, df.index, df.dtypes
 len(df)
 ```
 
-Otras formas de crearlo:
+Other ways to create one:
 
 ```python
-pd.DataFrame([{"a": 1, "b": 2}, {"a": 3, "b": 4}])   # lista de dicts (registros)
-pd.DataFrame(matriz, columns=["x", "y"])             # desde NumPy
+pd.DataFrame([{"a": 1, "b": 2}, {"a": 3, "b": 4}])   # list of dicts (records)
+pd.DataFrame(matrix, columns=["x", "y"])             # from NumPy
 ```
 
-## Leer datos
+## Reading data
 
 ```python
-df = pd.read_csv("ventas.csv")
-df = pd.read_csv("ventas.csv", parse_dates=["fecha"], index_col="id")
-df = pd.read_csv("datos.csv", sep=";", decimal=",", encoding="latin-1")   # formato europeo
-pd.read_excel("archivo.xlsx", sheet_name="Hoja1")      # necesita openpyxl
-pd.read_json(...), pd.read_parquet(...), pd.read_sql(consulta, conexion)
-df.to_csv("salida.csv", index=False), df.to_parquet("salida.parquet")
+df = pd.read_csv("sales.csv")
+df = pd.read_csv("sales.csv", parse_dates=["date"], index_col="id")
+df = pd.read_csv("data.csv", sep=";", decimal=",", encoding="latin-1")   # European format
+pd.read_excel("file.xlsx", sheet_name="Sheet1")        # needs openpyxl
+pd.read_json(...), pd.read_parquet(...), pd.read_sql(query, connection)
+df.to_csv("output.csv", index=False), df.to_parquet("output.parquet")
 ```
 
-- `parse_dates` convierte columnas a fechas (`datetime64`); sin esto, quedan como texto.
-- `index_col` usa una columna como índice.
-- **Parquet** es el formato recomendado para guardar datos intermedios: rápido, comprimido y
-  conserva los tipos.
+- `parse_dates` converts columns to dates (`datetime64`); without it, they stay as text.
+- `index_col` uses a column as the index.
+- **Parquet** is the recommended format for storing intermediate data: fast, compressed, and it
+  preserves the types.
 
-## Explorar
+## Exploring
 
 ```python
 df.head(), df.tail(3), df.sample(5)
-df.info()              # columnas, tipos, no nulos y memoria
-df.describe()          # estadística de las columnas numéricas
-df["sucursal"].value_counts()      # frecuencia de cada valor
-df["sucursal"].unique(), df["sucursal"].nunique()
+df.info()              # columns, types, non-null counts and memory
+df.describe()          # statistics for the numeric columns
+df["branch"].value_counts()        # frequency of each value
+df["branch"].unique(), df["branch"].nunique()
 df.sort_values("total", ascending=False).head(10)
 df["total"].sum(), df["total"].mean(), df["total"].idxmax()
 ```
 
-`idxmax()` devuelve la **etiqueta** (no la posición) del máximo: el `argmax` de pandas.
+`idxmax()` returns the **label** (not the position) of the maximum: it's pandas' `argmax`.
 
-## dtypes en pandas 3
+## dtypes in pandas 3
 
-| Dato                  | dtype                                    |
+| Data                  | dtype                                    |
 |-----------------------|------------------------------------------|
-| enteros               | `int64` (o `Int64` si admite nulos)      |
-| decimales             | `float64`                                |
-| texto                 | `str` (el dtype de strings de pandas 3)  |
-| fechas                | `datetime64[ns]`                         |
-| verdadero/falso       | `bool` (o `boolean` con nulos)           |
-| pocos valores repetidos | `category` (ahorra memoria)            |
+| integers              | `int64` (or `Int64` if it allows nulls)  |
+| decimals              | `float64`                                |
+| text                  | `str` (pandas 3's string dtype)          |
+| dates                 | `datetime64[ns]`                         |
+| true/false            | `bool` (or `boolean` with nulls)         |
+| few repeated values   | `category` (saves memory)                |
 
-`df.astype({"stock": "int32"})` convierte y `pd.to_datetime`/`pd.to_numeric` son las
-conversiones "robustas" (las vemos en limpieza).
+`df.astype({"stock": "int32"})` converts, and `pd.to_datetime`/`pd.to_numeric` are the "robust"
+conversions (we'll see them in the cleaning chapter).
 
-> **pandas 3 (2026)** cambió dos cosas importantes respecto de pandas 1.x y 2.x, que es lo que
-> vas a ver en muchos tutoriales: **copy-on-write** está activado siempre (próximo capítulo) y
-> los textos tienen un dtype propio `str` en lugar de `object`.
+> **pandas 3 (2026)** changed two important things compared to pandas 1.x and 2.x, which is
+> what you'll see in many tutorials: **copy-on-write** is always on (next chapter), and text has
+> its own `str` dtype instead of `object`.
 
-## Resumen
+## Summary
 
-- Series = array con índice; DataFrame = columnas (Series) que comparten el índice.
-- Las operaciones se alinean por etiqueta; donde no hay par, `NaN`.
-- `df["col"]` da una Series, `df[["a", "b"]]` un DataFrame, y `df["nueva"] = ...` agrega columnas.
-- `read_csv` con `parse_dates` e `index_col`; Parquet para guardar.
-- `head`, `info`, `describe`, `value_counts`, `sort_values` e `idxmax` para explorar.
+- Series = array with an index; DataFrame = columns (Series) sharing the index.
+- Operations align by label; where there's no match, `NaN`.
+- `df["col"]` gives a Series, `df[["a", "b"]]` a DataFrame, and `df["new"] = ...` adds columns.
+- `read_csv` with `parse_dates` and `index_col`; Parquet for storage.
+- `head`, `info`, `describe`, `value_counts`, `sort_values` and `idxmax` for exploring.
 
-## Ejercicio
+## Exercise
 
-Crear Series y DataFrames, leer el CSV de ventas con los tipos correctos, agregar una columna
-calculada y armar un resumen. El archivo `ventas.csv` tiene las columnas `id, fecha, sucursal,
-producto, cantidad, categoria, precio_unitario`.
+Create Series and DataFrames, read the sales CSV with the right types, add a computed column and
+build a summary. The file `sales.csv` has the columns `id, date, branch, product, quantity,
+category, unit_price`.
 
-**Para profundizar:** [10 minutes to pandas](https://pandas.pydata.org/docs/user_guide/10min.html),
+**Further reading:** [10 minutes to pandas](https://pandas.pydata.org/docs/user_guide/10min.html),
 [IO tools](https://pandas.pydata.org/docs/user_guide/io.html).

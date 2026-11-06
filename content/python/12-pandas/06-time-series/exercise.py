@@ -1,34 +1,34 @@
-"""Series de tiempo sobre precios.csv (columnas: fecha, ACME, BETA, CIRC, DELTA, INDICE)."""
+"""Time series on prices.csv (columns: date, ACME, BETA, CIRC, DELTA, INDEX)."""
 
 from pathlib import Path
 
 import pandas as pd
 
 
-def cargar_precios(ruta: Path | str) -> pd.DataFrame:
-    """DataFrame con la fecha como DatetimeIndex (llamado "fecha")."""
+def load_prices(path: Path | str) -> pd.DataFrame:
+    """DataFrame with the date as a DatetimeIndex (named "date")."""
     raise NotImplementedError("TODO")
 
 
-def cierres_mensuales(precios: pd.DataFrame) -> pd.DataFrame:
-    """Último precio de cada mes (resample a fin de mes)."""
+def monthly_closes(prices: pd.DataFrame) -> pd.DataFrame:
+    """Last price of each month (resample to month end)."""
     raise NotImplementedError("TODO")
 
 
-def retornos_mensuales(precios: pd.DataFrame) -> pd.DataFrame:
-    """Retorno de cada mes a partir de los cierres mensuales, sin la primera fila NaN."""
+def monthly_returns(prices: pd.DataFrame) -> pd.DataFrame:
+    """Return of each month based on the monthly closes, without the first NaN row."""
     raise NotImplementedError("TODO")
 
 
-def rendimiento_por_anio(precios: pd.DataFrame, columna: str) -> dict[int, float]:
-    """Para cada año, (último precio del año / último precio del año ANTERIOR) - 1,
-    redondeado a 4 decimales. El primer año se mide contra su PRIMER precio.
+def yearly_performance(prices: pd.DataFrame, column: str) -> dict[int, float]:
+    """For each year, (last price of the year / last price of the PREVIOUS year) - 1,
+    rounded to 4 decimals. The first year is measured against its FIRST price.
     """
     raise NotImplementedError("TODO")
 
 
-def cruces_alcistas(precio: pd.Series, corta: int, larga: int) -> list[pd.Timestamp]:
-    """Fechas en que la media móvil corta pasa a estar POR ENCIMA de la larga
-    (hoy arriba y ayer no). Ignorá el período sin datos suficientes de la larga.
+def bullish_crossovers(price: pd.Series, short: int, long: int) -> list[pd.Timestamp]:
+    """Dates on which the short moving average moves ABOVE the long one
+    (above today and not yesterday). Ignore the period without enough data for the long one.
     """
     raise NotImplementedError("TODO")
