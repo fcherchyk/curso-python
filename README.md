@@ -6,10 +6,6 @@ but without XP, streaks or animations. Every chapter has three steps:
 **reading → quiz → coding exercise**, where the exercise is checked by real pytest tests
 running on your machine.
 
-The course content is written in Spanish; the code identifiers and file names are Spanish too
-(`contenido` = content, `leccion` = lesson, `ejercicio` = exercise, `solucion` = solution,
-`progreso` = progress).
-
 ## Course
 
 **Python**: 75 chapters in 14 modules, aimed at people who already program. It covers
@@ -43,14 +39,16 @@ uv sync                                   # installs Python 3.13 if needed and a
 uv run uvicorn app.main:app --reload      # then open http://localhost:8000
 ```
 
-Progress (read lessons, quiz scores, passed exercises and your code) is saved in `progreso.db`,
-which git ignores. Delete it to start over, or point `CURSO_DB=/path/to/file.db` at another file.
+Progress (read lessons, quiz scores, passed exercises and your code) is saved in `progress.db`,
+which git ignores. Delete it to start over, or point `COURSE_DB=/path/to/file.db` at another
+file. If you used the app when it was still in Spanish, your old `progreso.db` is imported
+automatically the first time the app starts with an empty `progress.db`.
 
 ## Running the tests
 
 ```bash
 uv run pytest tests                        # the app and ALL course content
-uv run ruff check app tests contenido      # lint
+uv run ruff check app tests content        # lint
 ```
 
 `tests/` checks the web app, the test runner and quiz grading. It also validates every chapter
@@ -62,20 +60,21 @@ reference solution passes** its tests and **the starter code fails** every one o
 ```
 curso-python/
 ├── app/                      # FastAPI web app
-│   ├── main.py               # app factory (crear_app) and HTTP routes
-│   ├── contenido.py          # loads courses/modules/chapters from contenido/
-│   ├── lenguajes.py          # per-language settings (Python)
+│   ├── main.py               # app factory (create_app) and HTTP routes
+│   ├── content.py            # loads courses/modules/chapters from content/
+│   ├── languages.py          # per-language settings (Python)
 │   ├── runner.py             # runs exercise tests with pytest in a temp dir
-│   ├── progreso.py           # progress store (SQLite)
+│   ├── progress.py           # progress store (SQLite)
 │   ├── quiz.py               # quiz grading
 │   ├── render.py             # Markdown → HTML with Pygments
+│   ├── legacy_ids.py         # old Spanish slugs → current ones (progress import, old URLs)
 │   ├── templates/            # Jinja2 pages and HTMX fragments (_*.html)
-│   └── static/               # app.css, app.js
-├── contenido/                # course content (see below)
+│   └── static/               # app.css, app.js, vendored HTMX and CodeMirror
+├── content/                  # course content (see below)
 │   └── python/
 ├── tests/                    # tests for the app and the content
 ├── docs/ARCHITECTURE.md      # how it all fits together
-├── semana1/, soluciones/     # legacy terminal-based exercises
+├── week1/, solutions/        # legacy terminal-based exercises
 └── pyproject.toml            # dependencies, pytest, ruff and mypy config
 ```
 
@@ -84,27 +83,77 @@ curso-python/
 Content is just files; the app picks up changes on the next request.
 
 ```
-contenido/<course>/
-  curso.toml                  # titulo, lenguaje (python), orden, descripcion
+content/<course>/
+  course.toml                 # title, language (python), order, description
   NN-module/
-    modulo.toml               # titulo, descripcion
+    module.toml               # title, description
     NN-chapter/
-      leccion.md              # first line "# Title" is the chapter title
-      quiz.toml               # [[preguntas]] texto, opciones, correcta (0-based), explicacion
-      ejercicio.py            # starter code shown in the editor
-      test_ejercicio.py       # the exercise's tests
-      solucion.py             # reference solution
+      lesson.md               # first line "# Title" is the chapter title
+      quiz.toml               # [[questions]] text, options, correct (0-based), explanation
+      exercise.py             # starter code shown in the editor
+      test_exercise.py        # the exercise's tests (import from `exercise`)
+      solution.py             # reference solution
       ...                     # optional support files or folders needed by the tests
 ```
 
 Then run `uv run pytest tests -k <chapter>`: the solution must pass and the starter code must
 fail. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#content-model) for the conventions.
 
+## Roadmap
+
+Planned features, roughly in order. None of them is implemented yet.
+
+### 1. Learner dashboard: progress, quality and engagement metrics
+A dashboard page per course that turns the stored history into metrics:
+
+- **Progress**: chapters and modules completed, completion per step (reading / quiz / code),
+  what is left, and progress over time.
+- **Quality**: first-try pass rate for quizzes and exercises, average and best quiz scores,
+  attempts needed to solve, how many steps were *marked as solved* instead of actually passed
+  (today the database can't tell these apart, so this needs its own flag).
+- **Engagement**: active days, time between sessions, last activity, chapters started but not
+  finished. No streaks or gamification, just information.
+
+Depends on the attempt history below as its data source.
+
+### 2. Attempt history
+Record every attempt instead of only the latest state:
+
+- **Attempt counts** for every quiz and exercise, both for solved ones and for those that were
+  *tried but are still unsolved*, visible on the chapter page and in the course index.
+- **Code version history**: every test run stores the submitted code and its result (tests
+  passed / failed, error). In the code tab you can browse earlier versions, see what each one
+  scored, diff two versions, and restore one into the editor.
+
+Sketch: new tables `quiz_attempts(chapter_id, at, score, passed)` and
+`code_attempts(chapter_id, at, code, passed, passed_count, total)`, written by the existing
+`/quiz` and `/tests` routes.
+
+### 3. Content search
+Search across the course, which the app can't do today: lesson text, quiz questions and
+explanations, and exercise instructions. Results link to the chapter (and section) where the
+match is, with a highlighted snippet. Sketch: an SQLite FTS5 index built from `content/` at
+startup (and rebuilt when content changes), plus a search box in the top bar.
+
+### 4. Failed-question review
+Store the result of **each question** in every quiz attempt, not just the overall score, and
+link every question to the lesson section it is about (e.g. a `section = "mutable-defaults"`
+key in `quiz.toml` pointing at a heading anchor in `lesson.md`). After a failed quiz the app
+builds a **review sheet**: the questions you missed, and links to exactly the parts of the
+lesson to reread before retaking it. Missed questions also feed the quality metrics of the
+dashboard.
+
+### 5. Hints for code exercises
+Optional hints per exercise (e.g. `[[hints]]` in a `hints.toml` next to the exercise), hidden
+by default in the code tab and **revealed one at a time on demand** when you are stuck, going
+from a gentle nudge to something close to the answer. How many hints were revealed is recorded
+with the attempt, so the dashboard can tell "solved unaided" from "solved with hints".
+
 ## Legacy material
 
-`semana1/` (with solutions in `soluciones/`) is the original format: daily lessons and
+`week1/` (with solutions in `solutions/`) is the original format: daily lessons and
 exercises solved in your editor and checked from the terminal, e.g.
-`uv run pytest semana1/dia1_idiomatico`. It is still runnable, but the web app supersedes it.
+`uv run pytest week1/day1_idiomatic`. It is still runnable, but the web app supersedes it.
 
 ## License
 

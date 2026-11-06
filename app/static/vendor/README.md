@@ -15,6 +15,6 @@ and the addons `edit/matchbrackets`, `edit/closebrackets`, `selection/active-lin
 ## Updating
 
 Download the new version of each file to the same path, update this table, and check the
-templates that load them (`app/templates/base.html` and `app/templates/capitulo.html`).
-`tests/test_app.py::test_sin_dependencias_de_cdn` checks that every vendored file the pages
+templates that load them (`app/templates/base.html` and `app/templates/chapter.html`).
+`tests/test_app.py::test_no_cdn_dependencies` checks that every vendored file the pages
 reference is served.
