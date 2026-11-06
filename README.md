@@ -6,6 +6,15 @@ but without XP, streaks or animations. Every chapter has three steps:
 **reading → quiz → coding exercise**, where the exercise is checked by real pytest tests
 running on your machine.
 
+## Why
+
+The idea is a **local course app** that gives AI agents a **structured way to generate course
+content** about software development, and gives the learner a way to **track their progress**
+through it. Content is plain files with a fixed shape (lesson, quiz, exercise, tests, solution),
+so an agent can write a new chapter or module and the test suite checks it automatically: the
+lesson renders, the quiz is well formed, the solution passes and the starter code fails. Progress
+stays on your machine, in a local SQLite file.
+
 ## Course
 
 **Python**: 75 chapters in 14 modules, aimed at people who already program. It covers
