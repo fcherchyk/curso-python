@@ -1,150 +1,150 @@
-# Dicts y sets: lo esencial
+# Dicts and Sets: The Essentials
 
-Los dos se implementan con **tablas hash**. Eso les da búsqueda, inserción y borrado en O(1)
-promedio, y también la restricción de que sus claves o elementos tienen que ser
-**hashables**. Este capítulo cubre la base; los patrones avanzados (`defaultdict`, `Counter`,
-fusión con `|`) están en el módulo 02.
+Both are implemented with **hash tables**. That gives them O(1) average lookup, insertion and
+deletion, and also the restriction that their keys or elements must be **hashable**. This
+chapter covers the basics; the advanced patterns (`defaultdict`, `Counter`, merging with `|`)
+are in module 02.
 
-## Dicts: mapeos clave → valor
-
-```python
-edades = {"ana": 31, "beto": 27}
-edades["caro"] = 40            # insertar o reemplazar
-edades["ana"]                  # 31
-edades["zoe"]                  # KeyError
-edades.get("zoe")              # None
-edades.get("zoe", 0)           # 0
-"ana" in edades                # True (busca en las CLAVES, en O(1))
-del edades["beto"]
-len(edades)                    # 2
-```
-
-Otras formas de construirlos:
+## Dicts: key → value mappings
 
 ```python
-dict(ana=31, beto=27)                    # con keywords (claves string válidas)
-dict([("ana", 31), ("beto", 27)])        # desde pares
-dict(zip(nombres, edades))
-{n: len(n) for n in nombres}             # comprehension
+ages = {"alice": 31, "bob": 27}
+ages["carol"] = 40             # insert or replace
+ages["alice"]                  # 31
+ages["zoe"]                    # KeyError
+ages.get("zoe")                # None
+ages.get("zoe", 0)             # 0
+"alice" in ages                # True (searches the KEYS, in O(1))
+del ages["bob"]
+len(ages)                      # 2
 ```
 
-### Recorrerlos
+Other ways to build them:
 
 ```python
-for nombre in edades:                    # claves
-for edad in edades.values():
-for nombre, edad in edades.items():
+dict(alice=31, bob=27)                   # with keywords (valid string keys)
+dict([("alice", 31), ("bob", 27)])       # from pairs
+dict(zip(names, ages))
+{n: len(n) for n in names}               # comprehension
 ```
 
-`keys()`, `values()` e `items()` devuelven **vistas**: no son copias, sino ventanas al dict
-que reflejan los cambios. Las vistas de `keys()` e `items()` además soportan operaciones de
-conjunto: `d1.keys() & d2.keys()` da las claves en común.
+### Iterating over them
 
-### Orden
+```python
+for name in ages:                        # keys
+for age in ages.values():
+for name, age in ages.items():
+```
 
-Desde Python 3.7, los dicts **conservan el orden de inserción**. Reemplazar el valor de una
-clave existente no cambia su posición; borrarla y volver a insertarla la manda al final.
+`keys()`, `values()` and `items()` return **views**: they aren't copies but windows into the
+dict that reflect changes. The `keys()` and `items()` views also support set operations:
+`d1.keys() & d2.keys()` gives the keys they have in common.
 
-## Hashable: qué puede ser clave
+### Order
 
-Un objeto es hashable si tiene un `hash()` que no cambia durante su vida y se puede comparar
-con `==`. En la práctica:
+Since Python 3.7, dicts **preserve insertion order**. Replacing the value of an existing key
+doesn't change its position; deleting it and inserting it again sends it to the end.
 
-- **Sí:** `int`, `float`, `str`, `bytes`, `bool`, `None`, `tuple` (si todo lo que contiene es
-  hashable), `frozenset`, las clases propias (por defecto se hashean por identidad) y las
-  dataclasses con `frozen=True`.
-- **No:** `list`, `dict`, `set`, es decir, los contenedores mutables.
+## Hashable: what can be a key
 
-La regla tiene sentido: si una clave mutable cambiara después de insertarla, su hash dejaría
-de coincidir con el lugar de la tabla donde quedó guardada y no se la podría volver a encontrar.
+An object is hashable if it has a `hash()` that never changes during its lifetime and it can
+be compared with `==`. In practice:
+
+- **Yes:** `int`, `float`, `str`, `bytes`, `bool`, `None`, `tuple` (if everything it contains
+  is hashable), `frozenset`, your own classes (by default they hash by identity) and
+  dataclasses with `frozen=True`.
+- **No:** `list`, `dict`, `set`, that is, the mutable containers.
+
+The rule makes sense: if a mutable key changed after being inserted, its hash would no longer
+match the slot in the table where it was stored, and it could never be found again.
 
 ```python
 {[1, 2]: "x"}          # TypeError: unhashable type: 'list'
 {(1, 2): "x"}          # ✓
 ```
 
-## Sets: colecciones sin repetidos
+## Sets: collections without duplicates
 
 ```python
-colores = {"rojo", "verde"}
-vacio = set()                   # ¡{} es un dict vacío, no un set!
-colores.add("azul")
-colores.discard("negro")        # no falla si no está (remove sí levantaría KeyError)
-"rojo" in colores               # O(1)
+colors = {"red", "green"}
+empty = set()                   # {} is an empty dict, not a set!
+colors.add("blue")
+colors.discard("black")         # doesn't fail if missing (remove would raise KeyError)
+"red" in colors                 # O(1)
 
-set([3, 1, 3, 2])               # {1, 2, 3}  elimina duplicados
+set([3, 1, 3, 2])               # {1, 2, 3}  removes duplicates
 ```
 
-El caso de uso principal de un set es preguntar **"¿está X?"** muchas veces. En una lista,
-cada `in` es O(n); en un set, O(1). Si vas a buscar en un bucle, convertí la lista a set
-**una vez** antes:
+The main use case for a set is asking **"is X in here?"** many times. On a list, each `in`
+is O(n); on a set, O(1). If you're going to search inside a loop, convert the list to a set
+**once** beforehand:
 
 ```python
-prohibidas = set(lista_prohibidas)          # O(n) una sola vez
-limpias = [p for p in palabras if p not in prohibidas]   # cada `in` es O(1)
+banned = set(banned_list)                         # O(n) just once
+clean = [w for w in words if w not in banned]     # each `in` is O(1)
 ```
 
-### Álgebra de conjuntos
+### Set algebra
 
 ```python
 a = {1, 2, 3, 4}
 b = {3, 4, 5}
 
-a | b     # {1, 2, 3, 4, 5}   unión
-a & b     # {3, 4}            intersección
-a - b     # {1, 2}            diferencia (en a y no en b)
-a ^ b     # {1, 2, 5}         diferencia simétrica (en uno solo)
-{1, 2} <= a                   # subconjunto
-a.isdisjoint({9})             # sin elementos en común
+a | b     # {1, 2, 3, 4, 5}   union
+a & b     # {3, 4}            intersection
+a - b     # {1, 2}            difference (in a and not in b)
+a ^ b     # {1, 2, 5}         symmetric difference (in only one)
+{1, 2} <= a                   # subset
+a.isdisjoint({9})             # no elements in common
 ```
 
-Los métodos equivalentes (`a.union(lista)`, `a.intersection(...)`) aceptan cualquier
-iterable, no solo sets.
+The equivalent methods (`a.union(some_list)`, `a.intersection(...)`) accept any iterable, not
+just sets.
 
-### El orden de un set no está garantizado
+### A set's order is not guaranteed
 
-Un set **no** mantiene el orden de inserción. Si necesitás "únicos en el orden en que
-aparecen", el truco idiomático usa un dict, que sí lo conserva:
+A set does **not** keep insertion order. If you need "unique items in the order they appear",
+the idiomatic trick uses a dict, which does preserve it:
 
 ```python
 list(dict.fromkeys(["b", "a", "b", "c", "a"]))    # ['b', 'a', 'c']
 ```
 
-Si el resultado final tiene que ser determinista (por ejemplo, para comparar en un test),
-ordenalo: `sorted(conjunto)`.
+If the final result needs to be deterministic (for example, to compare it in a test), sort
+it: `sorted(some_set)`.
 
 ### `frozenset`
 
-Es la versión inmutable y hashable de un set. Sirve como clave de dict o como elemento de
-otro set:
+It's the immutable, hashable version of a set. It can be a dict key or an element of another
+set:
 
 ```python
-grupos_vistos = {frozenset({"ana", "beto"})}
-frozenset({"beto", "ana"}) in grupos_vistos     # True: el orden no importa
+seen_groups = {frozenset({"alice", "bob"})}
+frozenset({"bob", "alice"}) in seen_groups      # True: order doesn't matter
 ```
 
-## Elegir la estructura
+## Choosing the structure
 
-| Necesitás…                                   | Usá             |
+| You need…                                    | Use             |
 |----------------------------------------------|-----------------|
-| orden y repetidos, acceso por posición       | `list`          |
-| registro fijo o clave compuesta              | `tuple`         |
-| buscar por clave y asociarle datos           | `dict`          |
-| pertenencia rápida, sin repetidos            | `set`           |
-| lo mismo pero inmutable o como clave         | `frozenset`     |
-| únicos respetando el orden                   | `dict.fromkeys` |
+| order and duplicates, access by position     | `list`          |
+| a fixed record or a composite key            | `tuple`         |
+| lookup by key with associated data           | `dict`          |
+| fast membership, no duplicates               | `set`           |
+| the same but immutable or as a key           | `frozenset`     |
+| unique items preserving order                | `dict.fromkeys` |
 
-## Resumen
+## Summary
 
-- Dicts y sets son tablas hash: `in` cuesta O(1) y las claves tienen que ser hashables.
-- `d[k]` falla si no existe la clave; `d.get(k, default)` no.
-- `{}` es un dict; el set vacío es `set()`.
-- Los sets no tienen orden: para únicos en orden, `dict.fromkeys`.
-- Si buscás muchas veces en una lista, convertila a set una vez.
+- Dicts and sets are hash tables: `in` costs O(1) and keys must be hashable.
+- `d[k]` fails if the key doesn't exist; `d.get(k, default)` doesn't.
+- `{}` is a dict; the empty set is `set()`.
+- Sets have no order: for unique items in order, use `dict.fromkeys`.
+- If you search a list many times, convert it to a set once.
 
-## Ejercicio
+## Exercise
 
-Cuatro funciones que se resuelven con sets y dicts, sin bucles anidados.
+Four functions you can solve with sets and dicts, no nested loops.
 
-**Para profundizar:** [Mapping types — dict](https://docs.python.org/3/library/stdtypes.html#mapping-types-dict),
+**Further reading:** [Mapping types — dict](https://docs.python.org/3/library/stdtypes.html#mapping-types-dict),
 [Set types](https://docs.python.org/3/library/stdtypes.html#set-types-set-frozenset).

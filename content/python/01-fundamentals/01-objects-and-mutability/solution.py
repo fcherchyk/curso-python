@@ -1,18 +1,18 @@
 from decimal import Decimal
 
 
-def agregar_sin_mutar(xs: list[int], x: int) -> list[int]:
-    return [*xs, x]  # o xs + [x]
+def append_without_mutating(xs: list[int], x: int) -> list[int]:
+    return [*xs, x]  # or xs + [x]
 
 
-def copiar_matriz(m: list[list[int]]) -> list[list[int]]:
-    # Alcanza con copiar cada fila: los int son inmutables.
-    return [fila.copy() for fila in m]
+def copy_matrix(m: list[list[int]]) -> list[list[int]]:
+    # Copying each row is enough: ints are immutable.
+    return [row.copy() for row in m]
 
 
-def sumar_precios(precios: list[str]) -> Decimal:
-    return sum((Decimal(p) for p in precios), Decimal(0))
+def sum_prices(prices: list[str]) -> Decimal:
+    return sum((Decimal(p) for p in prices), Decimal(0))
 
 
-def repartir(total: int, personas: int) -> tuple[int, int]:
-    return divmod(total, personas)
+def split_evenly(total: int, people: int) -> tuple[int, int]:
+    return divmod(total, people)

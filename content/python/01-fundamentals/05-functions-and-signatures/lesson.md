@@ -1,166 +1,166 @@
-# Funciones y firmas
+# Functions and Signatures
 
-Las firmas de Python son muy expresivas: parámetros con default, por posición o por nombre,
-variádicos, solo-posicionales y solo-keyword. Bien usadas, hacen que las llamadas se lean
-solas y que los errores de uso se detecten en el momento. Mal usadas, producen el bug más
-famoso del lenguaje: el default mutable.
+Python signatures are very expressive: parameters with defaults, positional or by name,
+variadic, positional-only and keyword-only. Used well, they make calls read on their own and
+catch usage errors right away. Used badly, they produce the language's most famous bug: the
+mutable default.
 
-## Anatomía
+## Anatomy
 
 ```python
-def conectar(host: str, puerto: int = 5432, *, timeout: float = 5.0) -> Conexion:
-    """Abre una conexión. (docstring: la primera línea resume)"""
+def connect(host: str, port: int = 5432, *, timeout: float = 5.0) -> Connection:
+    """Open a connection. (docstring: the first line summarizes)"""
     ...
 ```
 
-- `host` es obligatorio.
-- `puerto` tiene un default.
-- Todo lo que va después de `*` es **solo keyword**.
-- Las anotaciones (`: str`, `-> Conexion`) son documentación verificable por herramientas,
-  pero no se chequean al ejecutar.
-- Una función sin `return` explícito devuelve `None`.
+- `host` is required.
+- `port` has a default.
+- Everything after `*` is **keyword-only**.
+- Annotations (`: str`, `-> Connection`) are documentation that tools can verify, but they
+  aren't checked at runtime.
+- A function without an explicit `return` returns `None`.
 
-## Posicionales y por nombre
+## Positional and by name
 
-Al llamar, cualquier parámetro "normal" se puede pasar por posición o por nombre:
-
-```python
-conectar("db.local", 5433)
-conectar(host="db.local", puerto=5433)
-conectar("db.local", puerto=5433)
-conectar(puerto=5433, host="db.local")   # por nombre, el orden no importa
-```
-
-Regla: los posicionales van primero. `conectar(host="x", 5433)` es un error de sintaxis.
-
-## Solo keyword: después de `*`
+When calling, any "normal" parameter can be passed by position or by name:
 
 ```python
-def exportar(datos, *, formato="csv", comprimir=False): ...
-
-exportar(filas, formato="json", comprimir=True)   # ✓
-exportar(filas, "json", True)                      # TypeError
+connect("db.local", 5433)
+connect(host="db.local", port=5433)
+connect("db.local", port=5433)
+connect(port=5433, host="db.local")     # by name, order doesn't matter
 ```
 
-Forzar el nombre es muy útil para **flags booleanos y opciones**: `exportar(filas, "json", True)`
-no dice nada, mientras que `comprimir=True` sí. También te deja reordenar o agregar opciones
-sin romper a quien llama.
+Rule: positional arguments come first. `connect(host="x", 5433)` is a syntax error.
 
-## Solo posicional: antes de `/` (3.8+)
+## Keyword-only: after `*`
 
 ```python
-def distancia(a, b, /): ...
+def export(data, *, format="csv", compress=False): ...
 
-distancia(p1, p2)        # ✓
-distancia(a=p1, b=p2)    # TypeError
+export(rows, format="json", compress=True)   # ✓
+export(rows, "json", True)                   # TypeError
 ```
 
-Sirve cuando el nombre del parámetro no aporta nada o querés poder cambiarlo sin romper la
-API. Muchas funciones built-in son así: `len(obj, /)`.
+Forcing the name is very useful for **boolean flags and options**: `export(rows, "json", True)`
+says nothing, while `compress=True` does. It also lets you reorder or add options without
+breaking callers.
 
-La forma completa:
+## Positional-only: before `/` (3.8+)
+
+```python
+def distance(a, b, /): ...
+
+distance(p1, p2)        # ✓
+distance(a=p1, b=p2)    # TypeError
+```
+
+It's useful when the parameter name adds nothing or you want to be able to change it without
+breaking the API. Many built-in functions work this way: `len(obj, /)`.
+
+The full form:
 
 ```python
 def f(pos_only, /, normal, *, kw_only): ...
 ```
 
-## Variádicos: `*args` y `**kwargs`
+## Variadics: `*args` and `**kwargs`
 
 ```python
-def promedio(*numeros):          # numeros es una TUPLA
-    return sum(numeros) / len(numeros)
+def average(*numbers):           # numbers is a TUPLE
+    return sum(numbers) / len(numbers)
 
-promedio(1, 2, 3)
+average(1, 2, 3)
 
-def etiqueta(texto, **attrs):    # attrs es un DICT
+def tag(text, **attrs):          # attrs is a DICT
     extras = " ".join(f'{k}="{v}"' for k, v in attrs.items())
-    return f"<span {extras}>{texto}</span>"
+    return f"<span {extras}>{text}</span>"
 
-etiqueta("hola", id="x", clase="y")
+tag("hello", id="x", klass="y")
 ```
 
-Los nombres `args` y `kwargs` son solo una convención; lo que importa son los asteriscos.
-Los dos juntos, `def f(*args, **kwargs)`, aceptan cualquier cosa, lo que es útil en
-decoradores y wrappers que reenvían argumentos a otra función.
+The names `args` and `kwargs` are just a convention; what matters is the asterisks. Both
+together, `def f(*args, **kwargs)`, accept anything, which is useful in decorators and
+wrappers that forward arguments to another function.
 
-Y al revés, al **llamar**, `*` y `**` expanden (lo viste en desempaquetado):
+And the other way around, when **calling**, `*` and `**` unpack (you saw this with unpacking):
 
 ```python
 nums = [1, 2, 3]
-promedio(*nums)
-opciones = {"formato": "json"}
-exportar(filas, **opciones)
+average(*nums)
+options = {"format": "json"}
+export(rows, **options)
 ```
 
-## La trampa del default mutable
+## The mutable default trap
 
-**Los defaults se evalúan una sola vez**, cuando se define la función, no en cada llamada:
+**Defaults are evaluated only once**, when the function is defined, not on every call:
 
 ```python
-def agregar(item, lista=[]):     # ✗ la misma lista para todas las llamadas
-    lista.append(item)
-    return lista
+def append_to(item, items=[]):     # ✗ the same list for every call
+    items.append(item)
+    return items
 
-agregar(1)   # [1]
-agregar(2)   # [1, 2]   ← ¡sorpresa!
+append_to(1)   # [1]
+append_to(2)   # [1, 2]   ← surprise!
 ```
 
-La solución idiomática es usar `None` como centinela:
+The idiomatic fix is to use `None` as a sentinel:
 
 ```python
-def agregar(item, lista=None):
-    if lista is None:
-        lista = []
-    lista.append(item)
-    return lista
+def append_to(item, items=None):
+    if items is None:
+        items = []
+    items.append(item)
+    return items
 ```
 
-Lo mismo aplica a `dict`, `set`, objetos, e incluso a `datetime.now()`: el default
-`creado=datetime.now()` queda congelado en el momento en que se importó el módulo.
+The same applies to `dict`, `set`, objects, and even `datetime.now()`: the default
+`created=datetime.now()` is frozen at the moment the module was imported.
 
-> Si `None` es un valor válido para tu parámetro, usá un centinela propio:
-> `_FALTA = object()` y `def f(x=_FALTA): if x is _FALTA: ...`.
+> If `None` is a valid value for your parameter, use your own sentinel:
+> `_MISSING = object()` and `def f(x=_MISSING): if x is _MISSING: ...`.
 
-## Devolver varios valores
+## Returning multiple values
 
-Una función devuelve **un** objeto; para "varios", devolvé una tupla y desempaquetá:
+A function returns **one** object; for "several", return a tuple and unpack it:
 
 ```python
 def min_max(xs):
     return min(xs), max(xs)
 
-menor, mayor = min_max(datos)
+lowest, highest = min_max(data)
 ```
 
 ## Docstrings
 
-La primera línea resume la función en modo imperativo; después, si hace falta, van los
-detalles. Los doctests (`>>> ...`) sirven como ejemplo y como test:
+The first line summarizes the function in the imperative mood; then, if needed, come the
+details. Doctests (`>>> ...`) serve as both an example and a test:
 
 ```python
-def area(base: float, altura: float) -> float:
-    """Área de un triángulo.
+def area(base: float, height: float) -> float:
+    """Area of a triangle.
 
     >>> area(4, 3)
     6.0
     """
-    return base * altura / 2
+    return base * height / 2
 ```
 
-`help(area)` y los editores muestran este texto.
+`help(area)` and editors show this text.
 
-## Resumen
+## Summary
 
-- Después de `*`, solo keyword: ideal para flags y opciones.
-- Antes de `/`, solo posicional: cuando el nombre no importa.
-- `*args` es una tupla; `**kwargs` es un dict.
-- **Nunca** uses un mutable como default: usá `None` y crealo adentro.
-- Sin `return`, la función devuelve `None`.
+- After `*`, keyword-only: ideal for flags and options.
+- Before `/`, positional-only: when the name doesn't matter.
+- `*args` is a tuple; `**kwargs` is a dict.
+- **Never** use a mutable object as a default: use `None` and create it inside.
+- Without `return`, the function returns `None`.
 
-## Ejercicio
+## Exercise
 
-Cuatro funciones que practican firmas: default mutable, variádicos, parámetros
-solo-posicionales y solo-keyword, y `**kwargs`.
+Four functions to practice signatures: mutable defaults, variadics, positional-only and
+keyword-only parameters, and `**kwargs`.
 
-**Para profundizar:** [Defining functions](https://docs.python.org/3/tutorial/controlflow.html#more-on-defining-functions),
+**Further reading:** [Defining functions](https://docs.python.org/3/tutorial/controlflow.html#more-on-defining-functions),
 [PEP 570 (positional-only)](https://peps.python.org/pep-0570/), [PEP 3102 (keyword-only)](https://peps.python.org/pep-3102/).

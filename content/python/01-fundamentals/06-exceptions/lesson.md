@@ -1,169 +1,169 @@
-# Excepciones
+# Exceptions
 
-En Python, las excepciones no son algo "excepcional" que se evita a toda costa: son el
-mecanismo **normal** para señalar errores, y también para cosas como el fin de un iterador
-(`StopIteration`). El estilo idiomático es **EAFP**: *"Easier to Ask Forgiveness than
-Permission"*, es decir, intentar la operación y manejar el error, en lugar de preguntar
-antes si se puede.
+In Python, exceptions aren't something "exceptional" to be avoided at all costs: they're the
+**normal** mechanism for signaling errors, and also for things like the end of an iterator
+(`StopIteration`). The idiomatic style is **EAFP**: *"Easier to Ask Forgiveness than
+Permission"*, that is, try the operation and handle the error, instead of checking first
+whether you can.
 
 ## `try` / `except` / `else` / `finally`
 
 ```python
 try:
-    archivo = open(ruta, encoding="utf-8")
+    file = open(path, encoding="utf-8")
 except FileNotFoundError:
-    print("no existe")
+    print("doesn't exist")
 except (PermissionError, IsADirectoryError) as e:
-    print(f"no se puede leer: {e}")
+    print(f"can't read it: {e}")
 else:
-    # corre SOLO si el try no levantó nada
-    with archivo:
-        procesar(archivo)
+    # runs ONLY if the try raised nothing
+    with file:
+        process(file)
 finally:
-    # corre SIEMPRE: haya error o no, e incluso con return o break
-    print("fin")
+    # ALWAYS runs: error or not, even with return or break
+    print("done")
 ```
 
-- Poné en el `try` **solo** la línea que puede fallar de la forma que esperás. Lo que sigue
-  va en `else`, así no atrapás por accidente errores de otras líneas.
-- `finally` es para limpieza. En la práctica, casi siempre la reemplaza un `with` (context
-  manager), que vemos en el módulo de funciones avanzadas.
+- Put in the `try` **only** the line that can fail the way you expect. What follows goes in
+  `else`, so you don't accidentally catch errors from other lines.
+- `finally` is for cleanup. In practice, it's almost always replaced by a `with` (context
+  manager), which we cover in the advanced functions module.
 
 ## EAFP vs. LBYL
 
 ```python
-# LBYL (Look Before You Leap): preguntar antes
-if "edad" in datos and datos["edad"].isdigit():
-    edad = int(datos["edad"])
+# LBYL (Look Before You Leap): check first
+if "age" in data and data["age"].isdigit():
+    age = int(data["age"])
 
-# EAFP: intentar y manejar el error
+# EAFP: try it and handle the error
 try:
-    edad = int(datos["edad"])
+    age = int(data["age"])
 except (KeyError, ValueError):
-    edad = None
+    age = None
 ```
 
-EAFP suele ser más corto, evita repetir la lógica de validación y no tiene *race conditions*:
-entre "¿existe el archivo?" y "abrilo", el archivo puede desaparecer.
+EAFP is usually shorter, avoids repeating the validation logic and has no *race conditions*:
+between "does the file exist?" and "open it", the file can disappear.
 
-## Qué atrapar (y qué no)
+## What to catch (and what not to)
 
 ```python
 try:
     ...
-except Exception:          # ✗ casi siempre demasiado amplio
-    pass                   # ✗✗ y además lo silencia
+except Exception:          # ✗ almost always too broad
+    pass                   # ✗✗ and it silences it too
 ```
 
-- Atrapá la excepción **más específica** que sepas manejar.
-- **Nunca** uses `except:` a secas: atrapa también `KeyboardInterrupt` y `SystemExit`, así que
-  tu programa no se puede cortar con Ctrl+C.
-- Si atrapás algo amplio (por ejemplo, en el borde de un servidor), **logueá** con
-  `logging.exception(...)` y volvé a levantar o devolvé un error explícito.
+- Catch the **most specific** exception you know how to handle.
+- **Never** use a bare `except:`: it also catches `KeyboardInterrupt` and `SystemExit`, so
+  your program can't be stopped with Ctrl+C.
+- If you catch something broad (for example, at the edge of a server), **log** it with
+  `logging.exception(...)` and re-raise or return an explicit error.
 
-### La jerarquía que conviene conocer
+### The hierarchy worth knowing
 
 ```
 BaseException
- ├── KeyboardInterrupt, SystemExit      ← no los atrapes
+ ├── KeyboardInterrupt, SystemExit      ← don't catch these
  └── Exception
       ├── ArithmeticError → ZeroDivisionError
       ├── LookupError → KeyError, IndexError
-      ├── ValueError       (tipo correcto, valor inválido: int("x"))
-      ├── TypeError        (tipo incorrecto: "a" + 1)
+      ├── ValueError       (right type, invalid value: int("x"))
+      ├── TypeError        (wrong type: "a" + 1)
       ├── AttributeError, NameError
       ├── OSError → FileNotFoundError, PermissionError, TimeoutError…
       └── RuntimeError, NotImplementedError…
 ```
 
-Atrapar una clase base atrapa todas sus hijas: `except LookupError` cubre `KeyError` e
-`IndexError`.
+Catching a base class catches all of its subclasses: `except LookupError` covers `KeyError`
+and `IndexError`.
 
-## Levantar excepciones
+## Raising exceptions
 
 ```python
-def retirar(saldo, monto):
-    if monto <= 0:
-        raise ValueError(f"el monto tiene que ser positivo, llegó {monto!r}")
+def withdraw(balance, amount):
+    if amount <= 0:
+        raise ValueError(f"amount must be positive, got {amount!r}")
     ...
 ```
 
-Incluí en el mensaje **el valor que causó el problema**: ahorra mucho tiempo al depurar.
+Include **the value that caused the problem** in the message: it saves a lot of debugging time.
 
-`raise` sin argumentos, dentro de un `except`, vuelve a levantar la excepción actual
-conservando el traceback original:
+A bare `raise`, inside an `except`, re-raises the current exception while keeping the original
+traceback:
 
 ```python
 except ValueError:
-    log.warning("dato inválido")
+    log.warning("invalid data")
     raise
 ```
 
-## Excepciones propias
+## Custom exceptions
 
-Definí tus propias excepciones cuando quien llama necesita **distinguir** tu error para
-manejarlo:
+Define your own exceptions when the caller needs to **tell your error apart** in order to
+handle it:
 
 ```python
-class ErrorBanco(Exception):
-    """Base de los errores del módulo."""
+class BankError(Exception):
+    """Base for this module's errors."""
 
-class SaldoInsuficiente(ErrorBanco):
-    def __init__(self, saldo: float, monto: float) -> None:
-        super().__init__(f"saldo {saldo} insuficiente para retirar {monto}")
-        self.saldo = saldo
-        self.monto = monto
+class InsufficientFunds(BankError):
+    def __init__(self, balance: float, amount: float) -> None:
+        super().__init__(f"balance {balance} is not enough to withdraw {amount}")
+        self.balance = balance
+        self.amount = amount
 ```
 
-Buenas prácticas:
+Good practices:
 
-- Heredá de `Exception` (o de una excepción estándar que tenga sentido, como `ValueError`).
-- Tené una **excepción base por paquete**, así quien usa tu librería puede atrapar "cualquier
-  error de este paquete" con un solo `except`.
-- Nombrá las clases con sufijo `Error` o con un nombre descriptivo del problema.
-- Guardá como atributos los datos útiles para manejar el error.
+- Inherit from `Exception` (or from a standard exception that makes sense, like `ValueError`).
+- Have **one base exception per package**, so users of your library can catch "any error
+  from this package" with a single `except`.
+- Name the classes with an `Error` suffix or with a name that describes the problem.
+- Store the data needed to handle the error as attributes.
 
-## Encadenar: `raise ... from ...`
+## Chaining: `raise ... from ...`
 
-Cuando traducís un error de bajo nivel a uno de tu dominio, encadená la causa:
+When you translate a low-level error into one from your domain, chain the cause:
 
 ```python
 class ConfigError(Exception): ...
 
-def leer_config(ruta):
+def read_config(path):
     try:
-        with open(ruta) as f:
+        with open(path) as f:
             return f.read()
     except FileNotFoundError as e:
-        raise ConfigError(f"falta el archivo de configuración: {ruta}") from e
+        raise ConfigError(f"missing config file: {path}") from e
 ```
 
-El traceback muestra las dos excepciones ("The above exception was the direct cause…") y la
-original queda en `error.__cause__`. Con `from None` se oculta la causa, cuando no aporta
-nada.
+The traceback shows both exceptions ("The above exception was the direct cause…") and the
+original is kept in `error.__cause__`. With `from None` you hide the cause, when it adds
+nothing.
 
-## `assert` no es para validar
+## `assert` is not for validation
 
 ```python
-assert monto > 0, "monto inválido"     # ✗ para validar entradas
+assert amount > 0, "invalid amount"     # ✗ to validate input
 ```
 
-Los `assert` **se eliminan** si Python corre con `-O`. Sirven para expresar invariantes
-internas ("esto no debería pasar nunca") y en los tests, no para validar datos del usuario.
+`assert` statements **are removed** if Python runs with `-O`. They're for expressing internal
+invariants ("this should never happen") and for tests, not for validating user data.
 
-## Resumen
+## Summary
 
-- EAFP: intentá y manejá el error.
-- `try` chico; lo demás va en `else`; la limpieza, en `finally` o `with`.
-- Atrapá lo específico. Nunca `except:` a secas; nunca silencies sin loguear.
-- Excepciones propias con una base por paquete y atributos útiles.
-- `raise NuevoError(...) from e` para traducir errores sin perder la causa.
-- `assert` no es validación.
+- EAFP: try it and handle the error.
+- Small `try`; the rest goes in `else`; cleanup goes in `finally` or `with`.
+- Catch specific exceptions. Never a bare `except:`; never silence without logging.
+- Custom exceptions with one base per package and useful attributes.
+- `raise NewError(...) from e` to translate errors without losing the cause.
+- `assert` is not validation.
 
-## Ejercicio
+## Exercise
 
-Cuatro funciones: conversión con EAFP, una excepción propia con datos, encadenamiento con
-`from` y procesamiento por lotes que acumula errores sin cortar.
+Four functions: conversion with EAFP, a custom exception that carries data, chaining with
+`from`, and batch processing that collects errors without stopping.
 
-**Para profundizar:** [Errors and Exceptions](https://docs.python.org/3/tutorial/errors.html),
-[Built-in exceptions (jerarquía completa)](https://docs.python.org/3/library/exceptions.html#exception-hierarchy).
+**Further reading:** [Errors and Exceptions](https://docs.python.org/3/tutorial/errors.html),
+[Built-in exceptions (full hierarchy)](https://docs.python.org/3/library/exceptions.html#exception-hierarchy).

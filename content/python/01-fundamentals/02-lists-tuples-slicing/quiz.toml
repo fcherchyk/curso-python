@@ -1,34 +1,34 @@
 [[questions]]
-text = "Con `xs = [0, 1, 2, 3, 4]`, ¿qué devuelve `xs[1:-1]`?"
+text = "With `xs = [0, 1, 2, 3, 4]`, what does `xs[1:-1]` return?"
 options = ["`[1, 2, 3, 4]`", "`[1, 2, 3]`", "`[0, 1, 2, 3]`", "`[1]`"]
 correct = 1
-explanation = "El inicio es inclusivo y el fin exclusivo: desde el índice 1 hasta el anteúltimo, sin incluirlo."
+explanation = "The start is inclusive and the end exclusive: from index 1 up to the second-to-last, not including it."
 
 [[questions]]
-text = "¿Qué devuelve `[1, 2, 3][5:10]`?"
-options = ["Levanta `IndexError`", "`[]`", "`None`", "`[3]`"]
+text = "What does `[1, 2, 3][5:10]` return?"
+options = ["Raises `IndexError`", "`[]`", "`None`", "`[3]`"]
 correct = 1
-explanation = "El slicing recorta los límites fuera de rango y nunca levanta `IndexError`. Acceder a un índice suelto como `xs[5]` sí lo levanta."
+explanation = "Slicing clamps out-of-range bounds and never raises `IndexError`. Accessing a single index like `xs[5]` does raise it."
 
 [[questions]]
-text = "¿Cuál de estas expresiones es una tupla de un solo elemento?"
+text = "Which of these expressions is a single-element tuple?"
 options = ["`(42)`", "`(42,)`", "`tuple(42)`", "`[42]`"]
 correct = 1
-explanation = "Lo que crea la tupla es la coma. `(42)` es solo el entero entre paréntesis, y `tuple(42)` falla porque un `int` no es iterable."
+explanation = "The comma is what creates the tuple. `(42)` is just the integer in parentheses, and `tuple(42)` fails because an `int` isn't iterable."
 
 [[questions]]
-text = "Necesitás una cola donde agregás al final y sacás del principio millones de veces. ¿Qué usás?"
+text = "You need a queue where you append at the end and remove from the front millions of times. What do you use?"
 options = [
-  "Una lista con `append` y `pop(0)`",
-  "`collections.deque` con `append` y `popleft`",
-  "Una tupla",
-  "Una lista con `insert(0, x)` y `pop()`",
+  "A list with `append` and `pop(0)`",
+  "`collections.deque` with `append` and `popleft`",
+  "A tuple",
+  "A list with `insert(0, x)` and `pop()`",
 ]
 correct = 1
-explanation = "En una lista, `pop(0)` e `insert(0, x)` cuestan O(n) porque corren todos los elementos. `deque` opera en los dos extremos en O(1)."
+explanation = "On a list, `pop(0)` and `insert(0, x)` cost O(n) because they shift every element. `deque` works on both ends in O(1)."
 
 [[questions]]
-text = "Si `n = 0`, ¿qué devuelve `xs[-n:]`?"
-options = ["`[]`", "La lista completa", "El último elemento", "Levanta `ValueError`"]
+text = "If `n = 0`, what does `xs[-n:]` return?"
+options = ["`[]`", "The whole list", "The last element", "Raises `ValueError`"]
 correct = 1
-explanation = "`-0` es `0`, y `xs[0:]` es toda la lista. Si `n` puede ser 0, conviene `xs[len(xs) - n:]`."
+explanation = "`-0` is `0`, and `xs[0:]` is the whole list. If `n` can be 0, prefer `xs[len(xs) - n:]`."

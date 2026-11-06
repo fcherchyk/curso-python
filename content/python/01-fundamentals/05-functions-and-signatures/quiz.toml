@@ -1,34 +1,34 @@
 [[questions]]
-text = "Con `def f(x, acc=[]): acc.append(x); return acc`, ¿qué devuelve la segunda llamada `f(2)` después de `f(1)`?"
-options = ["`[2]`", "`[1, 2]`", "`[]`", "Levanta `TypeError`"]
+text = "With `def f(x, acc=[]): acc.append(x); return acc`, what does a second call `f(2)` return after `f(1)`?"
+options = ["`[2]`", "`[1, 2]`", "`[]`", "Raises `TypeError`"]
 correct = 1
-explanation = "El default se evalúa una sola vez, al definir la función: todas las llamadas comparten la misma lista."
+explanation = "The default is evaluated only once, when the function is defined: every call shares the same list."
 
 [[questions]]
-text = "Con `def exportar(datos, *, comprimir=False)`, ¿qué pasa con `exportar(filas, True)`?"
+text = "With `def export(data, *, compress=False)`, what happens with `export(rows, True)`?"
 options = [
-  "Funciona: `comprimir` vale `True`",
-  "Levanta `TypeError`",
-  "`True` se ignora",
-  "`datos` pasa a valer `True`",
+  "It works: `compress` is `True`",
+  "It raises `TypeError`",
+  "`True` is ignored",
+  "`data` becomes `True`",
 ]
 correct = 1
-explanation = "Todo lo que va después de `*` es solo keyword: hay que escribir `comprimir=True`."
+explanation = "Everything after `*` is keyword-only: you have to write `compress=True`."
 
 [[questions]]
-text = "Dentro de `def f(*args, **kwargs)`, ¿de qué tipo son `args` y `kwargs`?"
-options = ["lista y dict", "tupla y dict", "tupla y lista", "lista y lista"]
+text = "Inside `def f(*args, **kwargs)`, what types are `args` and `kwargs`?"
+options = ["list and dict", "tuple and dict", "tuple and list", "list and list"]
 correct = 1
-explanation = "`*args` junta los posicionales sobrantes en una tupla y `**kwargs` los keyword sobrantes en un dict."
+explanation = "`*args` collects the extra positional arguments into a tuple and `**kwargs` the extra keyword arguments into a dict."
 
 [[questions]]
-text = "Con `def distancia(a, b, /)`, ¿cuál llamada es válida?"
-options = ["`distancia(a=1, b=2)`", "`distancia(1, b=2)`", "`distancia(1, 2)`", "Ninguna"]
+text = "With `def distance(a, b, /)`, which call is valid?"
+options = ["`distance(a=1, b=2)`", "`distance(1, b=2)`", "`distance(1, 2)`", "None of them"]
 correct = 2
-explanation = "Los parámetros antes de `/` son solo posicionales: no se pueden pasar por nombre."
+explanation = "Parameters before `/` are positional-only: they can't be passed by name."
 
 [[questions]]
-text = "¿Qué devuelve una función que termina sin `return`?"
-options = ["`0`", "`None`", "`False`", "El valor de la última expresión"]
+text = "What does a function that ends without `return` return?"
+options = ["`0`", "`None`", "`False`", "The value of the last expression"]
 correct = 1
-explanation = "Toda función devuelve algo; si no hay `return` (o hay un `return` sin valor), devuelve `None`."
+explanation = "Every function returns something; if there's no `return` (or a bare `return`), it returns `None`."

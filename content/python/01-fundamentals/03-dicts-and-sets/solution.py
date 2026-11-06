@@ -1,17 +1,17 @@
-def unicos_en_orden(xs: list[str]) -> list[str]:
+def unique_in_order(xs: list[str]) -> list[str]:
     return list(dict.fromkeys(xs))
 
 
-def comunes(a: list[int], b: list[int]) -> list[int]:
+def common(a: list[int], b: list[int]) -> list[int]:
     return sorted(set(a) & set(b))
 
 
-def contar_caracteres(texto: str) -> dict[str, int]:
-    conteo: dict[str, int] = {}
-    for c in texto:
-        conteo[c] = conteo.get(c, 0) + 1
-    return conteo
+def count_chars(text: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for c in text:
+        counts[c] = counts.get(c, 0) + 1
+    return counts
 
 
-def hay_duplicados(xs: list[int]) -> bool:
+def has_duplicates(xs: list[int]) -> bool:
     return len(set(xs)) != len(xs)

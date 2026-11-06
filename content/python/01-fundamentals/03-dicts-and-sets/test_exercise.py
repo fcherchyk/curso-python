@@ -1,23 +1,23 @@
-from exercise import comunes, contar_caracteres, hay_duplicados, unicos_en_orden
+from exercise import common, count_chars, has_duplicates, unique_in_order
 
 
-def test_unicos_en_orden():
-    assert unicos_en_orden(["b", "a", "b", "c", "a"]) == ["b", "a", "c"]
-    assert unicos_en_orden([]) == []
+def test_unique_in_order():
+    assert unique_in_order(["b", "a", "b", "c", "a"]) == ["b", "a", "c"]
+    assert unique_in_order([]) == []
 
 
-def test_comunes():
-    assert comunes([3, 1, 2, 3], [3, 4, 1]) == [1, 3]
-    assert comunes([1, 2], [3]) == []
+def test_common():
+    assert common([3, 1, 2, 3], [3, 4, 1]) == [1, 3]
+    assert common([1, 2], [3]) == []
 
 
-def test_contar_caracteres():
-    assert contar_caracteres("hola ola") == {"h": 1, "o": 2, "l": 2, "a": 2, " ": 1}
-    assert list(contar_caracteres("ba")) == ["b", "a"], "tiene que respetar el orden"
-    assert contar_caracteres("") == {}
+def test_count_chars():
+    assert count_chars("hello all") == {"h": 1, "e": 1, "l": 4, "o": 1, " ": 1, "a": 1}
+    assert list(count_chars("ba")) == ["b", "a"], "it must preserve the order"
+    assert count_chars("") == {}
 
 
-def test_hay_duplicados():
-    assert hay_duplicados([1, 2, 3, 1])
-    assert not hay_duplicados([1, 2, 3])
-    assert not hay_duplicados([])
+def test_has_duplicates():
+    assert has_duplicates([1, 2, 3, 1])
+    assert not has_duplicates([1, 2, 3])
+    assert not has_duplicates([])

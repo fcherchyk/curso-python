@@ -1,45 +1,45 @@
-"""Listas, tuplas y slicing.
+"""Lists, tuples and slicing.
 
-Resolvé cada función con slicing, sin bucles.
+Solve each function with slicing, no loops.
 """
 
 
-def ultimos(xs: list[int], n: int) -> list[int]:
-    """Los últimos `n` elementos (o todos, si hay menos). Con n=0, lista vacía.
+def last_n(xs: list[int], n: int) -> list[int]:
+    """The last `n` elements (or all of them, if there are fewer). With n=0, an empty list.
 
-    >>> ultimos([1, 2, 3, 4], 2)
+    >>> last_n([1, 2, 3, 4], 2)
     [3, 4]
     """
     raise NotImplementedError("TODO")
 
 
-def rotar(xs: list[int], k: int) -> list[int]:
-    """Rotá la lista `k` posiciones a la izquierda. `k` puede ser mayor que el largo.
+def rotate(xs: list[int], k: int) -> list[int]:
+    """Rotate the list `k` positions to the left. `k` may be larger than the length.
 
-    >>> rotar([1, 2, 3, 4, 5], 2)
+    >>> rotate([1, 2, 3, 4, 5], 2)
     [3, 4, 5, 1, 2]
-    >>> rotar([1, 2, 3], 4)
+    >>> rotate([1, 2, 3], 4)
     [2, 3, 1]
     """
     raise NotImplementedError("TODO")
 
 
-def es_palindromo(texto: str) -> bool:
-    """¿Se lee igual al derecho y al revés? Ignorá mayúsculas y todo lo que no sea
-    letra o número.
+def is_palindrome(text: str) -> bool:
+    """Does it read the same forwards and backwards? Ignore case and anything that
+    isn't a letter or a digit.
 
-    >>> es_palindromo("Anita lava la tina")
+    >>> is_palindrome("Never odd or even")
     True
     """
     raise NotImplementedError("TODO")
 
 
-def intercalar(a: list[int], b: list[int]) -> list[int]:
-    """Intercalá dos listas del mismo largo: a0, b0, a1, b1, ...
+def interleave(a: list[int], b: list[int]) -> list[int]:
+    """Interleave two lists of the same length: a0, b0, a1, b1, ...
 
-    Pista: se puede asignar a un slice con paso: `res[::2] = a`.
+    Hint: you can assign to a slice with a step: `res[::2] = a`.
 
-    >>> intercalar([1, 3, 5], [2, 4, 6])
+    >>> interleave([1, 3, 5], [2, 4, 6])
     [1, 2, 3, 4, 5, 6]
     """
     raise NotImplementedError("TODO")

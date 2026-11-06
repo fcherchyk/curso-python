@@ -1,33 +1,33 @@
-"""Excepciones."""
+"""Exceptions."""
 
 from pathlib import Path
 
 
-def a_entero(texto: str, default: int | None = None) -> int | None:
-    """Convertí `texto` a int (se permiten espacios alrededor). Si no se puede,
-    devolvé `default`. Usá EAFP (try/except), no `isdigit`.
+def to_int(text: str, default: int | None = None) -> int | None:
+    """Convert `text` to int (surrounding whitespace is allowed). If that's not possible,
+    return `default`. Use EAFP (try/except), not `isdigit`.
 
-    >>> a_entero(" 42 ")
+    >>> to_int(" 42 ")
     42
-    >>> a_entero("4.2", default=-1)
+    >>> to_int("4.2", default=-1)
     -1
     """
     raise NotImplementedError("TODO")
 
 
-class SaldoInsuficiente(Exception):
-    """Completá: guardá `saldo` y `monto` como atributos y armá un mensaje
-    que incluya los dos valores."""
+class InsufficientFunds(Exception):
+    """Fill in: store `balance` and `amount` as attributes and build a message
+    that includes both values."""
 
-    def __init__(self, saldo: float, monto: float) -> None:
+    def __init__(self, balance: float, amount: float) -> None:
         raise NotImplementedError("TODO")
 
 
-def retirar(saldo: float, monto: float) -> float:
-    """Devolvé el saldo después de retirar `monto`.
+def withdraw(balance: float, amount: float) -> float:
+    """Return the balance after withdrawing `amount`.
 
-    - monto <= 0 → ValueError
-    - monto > saldo → SaldoInsuficiente(saldo, monto)
+    - amount <= 0 → ValueError
+    - amount > balance → InsufficientFunds(balance, amount)
     """
     raise NotImplementedError("TODO")
 
@@ -36,20 +36,20 @@ class ConfigError(Exception):
     pass
 
 
-def leer_config(ruta: Path) -> dict[str, str]:
-    """Leé un archivo de líneas `clave=valor` (ignorá las vacías) y devolvé un dict.
+def read_config(path: Path) -> dict[str, str]:
+    """Read a file of `key=value` lines (skip empty ones) and return a dict.
 
-    Si el archivo no existe, levantá ConfigError encadenando el FileNotFoundError
-    original (`raise ... from e`).
+    If the file doesn't exist, raise ConfigError chained to the original
+    FileNotFoundError (`raise ... from e`).
     """
     raise NotImplementedError("TODO")
 
 
-def procesar_todos(textos: list[str]) -> tuple[list[int], list[str]]:
-    """Convertí cada texto a int. No cortes en el primer error: devolvé
-    (números convertidos, textos que fallaron), en orden.
+def process_all(texts: list[str]) -> tuple[list[int], list[str]]:
+    """Convert each text to int. Don't stop at the first error: return
+    (converted numbers, texts that failed), in order.
 
-    >>> procesar_todos(["1", "x", "3"])
+    >>> process_all(["1", "x", "3"])
     ([1, 3], ['x'])
     """
     raise NotImplementedError("TODO")

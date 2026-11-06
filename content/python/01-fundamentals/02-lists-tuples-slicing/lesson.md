@@ -1,104 +1,104 @@
-# Listas, tuplas y slicing
+# Lists, Tuples and Slicing
 
-Listas y tuplas son las dos secuencias de uso general. Se parecen mucho en la sintaxis, pero
-cumplen roles distintos. En este capítulo repasamos cuándo usar cada una, las operaciones
-que conviene tener a mano (con su costo) y el *slicing*, que funciona igual en listas,
-tuplas, strings y `range`.
+Lists and tuples are the two general-purpose sequences. Their syntax is very similar, but
+they play different roles. In this chapter we review when to use each one, the operations
+worth keeping at hand (and what they cost), and *slicing*, which works the same on lists,
+tuples, strings and `range`.
 
-## Lista vs. tupla: no es solo "mutable vs. inmutable"
-
-```python
-precios = [1200, 1500, 980]          # lista: colección HOMOGÉNEA de largo variable
-punto   = (3.5, -1.2)                # tupla: registro HETEROGÉNEO de largo fijo
-persona = ("Ana", 31, "Rosario")     # cada posición tiene un significado
-```
-
-- Usá una **lista** cuando tenés "muchos de lo mismo" y vas a agregar, sacar u ordenar.
-- Usá una **tupla** cuando cada posición significa algo distinto, como una fila, un par
-  clave-valor o un punto. Que sea inmutable es un beneficio: se puede usar como clave de
-  dict o elemento de un set, y nadie te la cambia.
+## List vs. tuple: it's not just "mutable vs. immutable"
 
 ```python
-distancias = {("BA", "Rosario"): 300}     # tupla como clave: ✓
-distancias = {["BA", "Rosario"]: 300}     # TypeError: unhashable type: 'list'
+prices = [1200, 1500, 980]           # list: HOMOGENEOUS collection of variable length
+point  = (3.5, -1.2)                 # tuple: HETEROGENEOUS record of fixed length
+person = ("Alice", 31, "Chicago")    # each position has a meaning
 ```
 
-Detalles de sintaxis de las tuplas:
+- Use a **list** when you have "many of the same thing" and you'll add, remove or sort.
+- Use a **tuple** when each position means something different, like a row, a key-value
+  pair or a point. Being immutable is a benefit: it can be used as a dict key or a set
+  element, and nobody can change it on you.
 
 ```python
-t = 1, 2          # los paréntesis son opcionales; lo que crea la tupla es la coma
-uno = (42,)       # tupla de un elemento: la coma es obligatoria
-(42)              # esto es solo el int 42
-vacia = ()
+distances = {("NYC", "Boston"): 215}      # tuple as a key: ✓
+distances = {["NYC", "Boston"]: 215}      # TypeError: unhashable type: 'list'
 ```
 
-## Operaciones de lista y su costo
+Tuple syntax details:
 
-| Operación                      | Costo     | Nota                                   |
-|--------------------------------|-----------|----------------------------------------|
-| `xs[i]`, `xs[i] = v`           | O(1)      |                                        |
-| `xs.append(x)`                 | O(1)*     | amortizado                             |
-| `xs.pop()`                     | O(1)      | saca del final                         |
-| `xs.pop(0)`, `xs.insert(0, x)` | **O(n)**  | corre todos los elementos: usá `deque` |
-| `x in xs`                      | **O(n)**  | búsqueda lineal: usá un `set`          |
-| `xs.extend(ys)` / `xs += ys`   | O(len ys) |                                        |
-| `xs.sort()`                    | O(n log n)|                                        |
-| `len(xs)`                      | O(1)      |                                        |
+```python
+t = 1, 2          # the parentheses are optional; the comma is what creates the tuple
+one = (42,)       # single-element tuple: the comma is required
+(42)              # this is just the int 42
+empty = ()
+```
 
-Las listas de Python son **arrays dinámicos**, no listas enlazadas. Operar al final es barato;
-al principio es caro. Si necesitás una cola, `collections.deque` tiene `appendleft` y
-`popleft` en O(1).
+## List operations and their cost
+
+| Operation                      | Cost      | Note                                       |
+|--------------------------------|-----------|--------------------------------------------|
+| `xs[i]`, `xs[i] = v`           | O(1)      |                                            |
+| `xs.append(x)`                 | O(1)*     | amortized                                  |
+| `xs.pop()`                     | O(1)      | removes from the end                       |
+| `xs.pop(0)`, `xs.insert(0, x)` | **O(n)**  | shifts every element: use `deque`          |
+| `x in xs`                      | **O(n)**  | linear search: use a `set`                 |
+| `xs.extend(ys)` / `xs += ys`   | O(len ys) |                                            |
+| `xs.sort()`                    | O(n log n)|                                            |
+| `len(xs)`                      | O(1)      |                                            |
+
+Python lists are **dynamic arrays**, not linked lists. Working at the end is cheap; at the
+front it's expensive. If you need a queue, `collections.deque` has `appendleft` and
+`popleft` in O(1).
 
 ```python
 xs = [3, 1, 2]
 xs.append(4)          # [3, 1, 2, 4]
-xs.extend([5, 6])     # agrega cada elemento (append agregaría la lista entera)
-xs.insert(1, 9)       # inserta en la posición 1
-xs.remove(9)          # saca la PRIMERA aparición del valor (ValueError si no está)
-xs.pop()              # saca y devuelve el último
-xs.index(2)           # posición de la primera aparición
+xs.extend([5, 6])     # adds each element (append would add the whole list)
+xs.insert(1, 9)       # inserts at position 1
+xs.remove(9)          # removes the FIRST occurrence of the value (ValueError if missing)
+xs.pop()              # removes and returns the last one
+xs.index(2)           # position of the first occurrence
 xs.count(1)
-del xs[0]             # borrar por índice
+del xs[0]             # delete by index
 ```
 
-## Indexado negativo
+## Negative indexing
 
 ```python
 xs = ["a", "b", "c", "d"]
-xs[-1]    # 'd'  último
-xs[-2]    # 'c'  anteúltimo
+xs[-1]    # 'd'  last
+xs[-2]    # 'c'  second to last
 ```
 
-`xs[-k]` equivale a `xs[len(xs) - k]`.
+`xs[-k]` is equivalent to `xs[len(xs) - k]`.
 
-## Slicing: `[inicio:fin:paso]`
+## Slicing: `[start:stop:step]`
 
-Un slice devuelve una **nueva** secuencia del mismo tipo. `inicio` es inclusivo y `fin`
-exclusivo, igual que `range`:
+A slice returns a **new** sequence of the same type. `start` is inclusive and `stop`
+exclusive, just like `range`:
 
 ```python
 xs = [0, 1, 2, 3, 4, 5]
 
 xs[1:4]     # [1, 2, 3]
-xs[:3]      # [0, 1, 2]       los primeros 3
-xs[3:]      # [3, 4, 5]       desde el 3 hasta el final
-xs[-2:]     # [4, 5]          los últimos 2
-xs[:-2]     # [0, 1, 2, 3]    todos menos los últimos 2
-xs[::2]     # [0, 2, 4]       uno sí, uno no
-xs[::-1]    # [5, 4, 3, 2, 1, 0]  invertido
-xs[:]       # copia superficial
+xs[:3]      # [0, 1, 2]       the first 3
+xs[3:]      # [3, 4, 5]       from 3 to the end
+xs[-2:]     # [4, 5]          the last 2
+xs[:-2]     # [0, 1, 2, 3]    all but the last 2
+xs[::2]     # [0, 2, 4]       every other one
+xs[::-1]    # [5, 4, 3, 2, 1, 0]  reversed
+xs[:]       # shallow copy
 ```
 
-Una ventaja es que el slicing **nunca levanta `IndexError`**: si los límites se pasan, se
-recortan.
+One nice property is that slicing **never raises `IndexError`**: out-of-range bounds are
+clamped.
 
 ```python
 xs[10:20]   # []
-xs[:100]    # toda la lista
+xs[:100]    # the whole list
 ```
 
-Una buena forma de pensar los índices es que marcan los **bordes entre elementos**, no los
-elementos:
+A good way to think about indices is that they mark the **edges between elements**, not the
+elements themselves:
 
 ```
  +---+---+---+---+
@@ -108,55 +108,55 @@ elementos:
 -4  -3  -2  -1
 ```
 
-Así `xs[1:3]` son los elementos entre el borde 1 y el borde 3: `b, c`. Y `xs[:k] + xs[k:]`
-siempre reconstruye la lista completa.
+So `xs[1:3]` is the elements between edge 1 and edge 3: `b, c`. And `xs[:k] + xs[k:]`
+always rebuilds the full list.
 
-### La trampa de `xs[-n:]` con `n = 0`
+### The `xs[-n:]` trap with `n = 0`
 
 ```python
 n = 0
-xs[-n:]     # ¡toda la lista! porque -0 == 0 y xs[0:] es todo
+xs[-n:]     # the whole list! because -0 == 0 and xs[0:] is everything
 ```
 
-Si `n` puede ser 0, escribilo como `xs[len(xs) - n:]`.
+If `n` can be 0, write it as `xs[len(xs) - n:]`.
 
-### Asignar a un slice (solo listas)
+### Assigning to a slice (lists only)
 
 ```python
 xs = [0, 1, 2, 3, 4]
-xs[1:3] = ["a", "b", "c"]   # reemplaza (el largo puede cambiar): [0, 'a', 'b', 'c', 3, 4]
-xs[:] = []                  # vacía la lista EN EL LUGAR (otros nombres ven el cambio)
-del xs[::2]                 # borra uno sí, uno no
+xs[1:3] = ["a", "b", "c"]   # replaces (the length can change): [0, 'a', 'b', 'c', 3, 4]
+xs[:] = []                  # empties the list IN PLACE (other names see the change)
+del xs[::2]                 # deletes every other element
 ```
 
-## Operadores sobre secuencias
+## Sequence operators
 
 ```python
-[1, 2] + [3]         # [1, 2, 3]   concatena (crea una nueva)
-[0] * 3              # [0, 0, 0]   repite (ojo con repetir listas, ver capítulo anterior)
-(1, 2) < (1, 3)      # True        comparación lexicográfica
+[1, 2] + [3]         # [1, 2, 3]   concatenates (creates a new one)
+[0] * 3              # [0, 0, 0]   repeats (careful repeating lists, see previous chapter)
+(1, 2) < (1, 3)      # True        lexicographic comparison
 3 in (1, 2, 3)       # True
 min(xs), max(xs), sum(xs), len(xs)
 ```
 
-## `range`: una secuencia perezosa
+## `range`: a lazy sequence
 
-`range(inicio, fin, paso)` no crea una lista: calcula los valores a demanda. `range(10**12)`
-ocupa lo mismo que `range(10)`. Soporta `len`, `in` (en O(1) para enteros), indexado y
-slicing.
+`range(start, stop, step)` doesn't create a list: it computes values on demand. `range(10**12)`
+takes up the same space as `range(10)`. It supports `len`, `in` (O(1) for integers), indexing
+and slicing.
 
-## Resumen
+## Summary
 
-- Lista para colecciones homogéneas que cambian; tupla para registros de largo fijo (y como
-  clave de dict).
-- Operar al final de una lista es O(1); al principio, O(n) (para eso está `deque`).
-- `x in lista` es O(n): si buscás mucho, usá un `set`.
-- Slicing: `[inicio:fin:paso]`, fin exclusivo, nunca falla por rango y devuelve una copia.
-- `xs[::-1]` invierte; `xs[:]` copia; `xs[-n:]` falla con `n = 0`.
+- List for homogeneous collections that change; tuple for fixed-length records (and as a
+  dict key).
+- Working at the end of a list is O(1); at the front, O(n) (that's what `deque` is for).
+- `x in some_list` is O(n): if you search a lot, use a `set`.
+- Slicing: `[start:stop:step]`, exclusive stop, never fails on range and returns a copy.
+- `xs[::-1]` reverses; `xs[:]` copies; `xs[-n:]` breaks with `n = 0`.
 
-## Ejercicio
+## Exercise
 
-Cuatro funciones que se resuelven con slicing, sin bucles.
+Four functions you can solve with slicing, no loops.
 
-**Para profundizar:** [Sequence types](https://docs.python.org/3/library/stdtypes.html#sequence-types-list-tuple-range),
-[TimeComplexity (wiki de Python)](https://wiki.python.org/moin/TimeComplexity).
+**Further reading:** [Sequence types](https://docs.python.org/3/library/stdtypes.html#sequence-types-list-tuple-range),
+[TimeComplexity (Python wiki)](https://wiki.python.org/moin/TimeComplexity).

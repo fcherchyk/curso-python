@@ -1,49 +1,48 @@
-# Módulos, paquetes e imports
+# Modules, Packages and Imports
 
-Cada archivo `.py` es un **módulo**, y una carpeta con módulos es un **paquete**. Entender
-cómo Python encuentra y ejecuta lo que importás evita los errores más frustrantes del día a
-día, como `ModuleNotFoundError`, imports circulares o código que se ejecuta "solo" al
-importar.
+Every `.py` file is a **module**, and a folder of modules is a **package**. Understanding how
+Python finds and runs what you import saves you from the most frustrating everyday errors,
+like `ModuleNotFoundError`, circular imports or code that runs "by itself" on import.
 
-## Qué pasa cuando hacés `import x`
+## What happens when you do `import x`
 
-1. Python busca `x` en `sys.modules`, el caché de módulos ya importados. Si está, lo reutiliza.
-2. Si no está, lo busca en los directorios de `sys.path`: primero el directorio del script
-   que ejecutaste (o el actual), después `PYTHONPATH` y al final la stdlib y `site-packages`.
-3. Lo encuentra y **ejecuta el archivo completo, de arriba a abajo**, una sola vez.
-4. Guarda el objeto módulo en `sys.modules` y lo asigna al nombre `x`.
+1. Python looks for `x` in `sys.modules`, the cache of already-imported modules. If it's
+   there, it reuses it.
+2. If not, it searches the directories in `sys.path`: first the directory of the script you
+   ran (or the current one), then `PYTHONPATH` and finally the stdlib and `site-packages`.
+3. It finds it and **runs the whole file, top to bottom**, exactly once.
+4. It stores the module object in `sys.modules` and binds it to the name `x`.
 
-El punto 3 es clave: **importar ejecuta código**. Por eso un módulo no debería hacer trabajo
-pesado ni tener efectos secundarios (conectarse a una base, imprimir, leer archivos) en el
-nivel superior.
+Step 3 is key: **importing runs code**. That's why a module shouldn't do heavy work or have
+side effects (connecting to a database, printing, reading files) at the top level.
 
-## Formas de importar
+## Ways to import
 
 ```python
-import json                        # usás json.loads(...)
-import numpy as np                 # alias (convención de la comunidad)
-from pathlib import Path           # traés un nombre concreto
+import json                        # you use json.loads(...)
+import numpy as np                 # alias (community convention)
+from pathlib import Path           # bring in a specific name
 from os import path as osp
 from collections import Counter, defaultdict
 ```
 
-- `import modulo` deja claro de dónde viene cada cosa (`json.loads`).
-- `from modulo import nombre` es cómodo para nombres muy usados y sin ambigüedad (`Path`).
-- **Evitá `from modulo import *`**: ensucia el namespace, esconde de dónde vienen los nombres
-  y confunde a las herramientas.
+- `import module` makes it clear where each thing comes from (`json.loads`).
+- `from module import name` is convenient for frequently used, unambiguous names (`Path`).
+- **Avoid `from module import *`**: it pollutes the namespace, hides where names come from
+  and confuses tools.
 
-Orden convencional (ruff lo ordena solo con la regla `I`): stdlib, después terceros y al
-final tu proyecto, en bloques separados por una línea en blanco.
+Conventional order (ruff sorts it for you with the `I` rule): stdlib, then third-party and
+finally your project, in blocks separated by a blank line.
 
 ## `if __name__ == "__main__":`
 
-Cada módulo tiene la variable `__name__`. Vale el nombre del módulo cuando se **importa**
-(`"utiles"`) y `"__main__"` cuando se **ejecuta** directamente (`python utiles.py`):
+Every module has a `__name__` variable. It's the module's name when it's **imported**
+(`"utils"`) and `"__main__"` when it's **run** directly (`python utils.py`):
 
 ```python
-# utiles.py
+# utils.py
 def main(argv: list[str]) -> int:
-    print("procesando", argv)
+    print("processing", argv)
     return 0
 
 if __name__ == "__main__":
@@ -51,105 +50,104 @@ if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))
 ```
 
-Así el archivo sirve como librería (se importa sin efectos) y como script. Tener una función
-`main(argv) -> int` en lugar de código suelto también la hace **testeable**.
+That way the file works both as a library (it imports without side effects) and as a script.
+Having a `main(argv) -> int` function instead of loose code also makes it **testable**.
 
-`python -m paquete.modulo` ejecuta un módulo como script usando la resolución de imports
-del paquete. Es la forma recomendada de correr módulos que están dentro de paquetes, y
-también de correr herramientas: `python -m pytest`, `python -m http.server`.
+`python -m package.module` runs a module as a script using the package's import resolution.
+It's the recommended way to run modules that live inside packages, and also to run tools:
+`python -m pytest`, `python -m http.server`.
 
-## Paquetes
+## Packages
 
 ```
-tienda/
-├── __init__.py          # se ejecuta al importar "tienda"
-├── modelos.py
-└── pagos/
+shop/
+├── __init__.py          # runs when "shop" is imported
+├── models.py
+└── payments/
     ├── __init__.py
-    └── mercadopago.py
+    └── card.py
 ```
 
 ```python
-from tienda.modelos import Producto
-from tienda.pagos import mercadopago
+from shop.models import Product
+from shop.payments import card
 ```
 
-`__init__.py` puede estar vacío. Suele usarse para exponer la API pública del paquete:
+`__init__.py` can be empty. It's often used to expose the package's public API:
 
 ```python
-# tienda/__init__.py
-from tienda.modelos import Producto, Pedido
+# shop/__init__.py
+from shop.models import Product, Order
 
-__all__ = ["Producto", "Pedido"]
+__all__ = ["Product", "Order"]
 ```
 
-`__all__` define qué se exporta con `import *` y documenta la API pública. Por convención,
-los nombres que empiezan con `_` son **privados**: nada lo impide, pero indican "no dependas
-de esto".
+`__all__` defines what `import *` exports and documents the public API. By convention, names
+starting with `_` are **private**: nothing enforces it, but they say "don't rely on this".
 
-### Imports absolutos vs. relativos
+### Absolute vs. relative imports
 
 ```python
-# dentro de tienda/pagos/mercadopago.py
-from tienda.modelos import Pedido      # absoluto: recomendado
-from ..modelos import Pedido           # relativo: válido solo dentro de un paquete
+# inside shop/payments/card.py
+from shop.models import Order          # absolute: recommended
+from ..models import Order             # relative: only valid inside a package
 ```
 
-Los relativos no funcionan si ejecutás el archivo directamente (`python mercadopago.py`), y
-esa es una fuente clásica de `ImportError: attempted relative import with no known parent
-package`. La solución es ejecutarlo como `python -m tienda.pagos.mercadopago`.
+Relative imports don't work if you run the file directly (`python card.py`), and that's a
+classic source of `ImportError: attempted relative import with no known parent package`. The
+fix is to run it as `python -m shop.payments.card`.
 
-## Imports circulares
+## Circular imports
 
-Si `a.py` importa `b` y `b.py` importa `a`, uno de los dos va a encontrar al otro **a medio
-ejecutar**, con nombres que todavía no existen. Soluciones, en orden de preferencia:
+If `a.py` imports `b` and `b.py` imports `a`, one of them will find the other **half-executed**,
+with names that don't exist yet. Fixes, in order of preference:
 
-1. **Reestructurar**: mover lo compartido a un tercer módulo.
-2. Importar el módulo entero (`import a`) en lugar de nombres (`from a import X`) y usar
-   `a.X` dentro de las funciones.
-3. Importar dentro de la función que lo necesita (último recurso).
-4. Si el import es solo para anotaciones de tipo: `if TYPE_CHECKING:`.
+1. **Restructure**: move the shared code to a third module.
+2. Import the whole module (`import a`) instead of names (`from a import X`) and use `a.X`
+   inside functions.
+3. Import inside the function that needs it (last resort).
+4. If the import is only for type annotations: `if TYPE_CHECKING:`.
 
-## Imports dinámicos
+## Dynamic imports
 
-A veces el nombre del módulo recién se conoce al ejecutar (plugins, configuración):
+Sometimes the module name is only known at runtime (plugins, configuration):
 
 ```python
 import importlib
 
-modulo = importlib.import_module("json")
-funcion = getattr(modulo, "dumps")
+module = importlib.import_module("json")
+function = getattr(module, "dumps")
 ```
 
-Así funcionan los strings como `"app.main:app"` que le pasás a uvicorn.
+That's how strings like `"app.main:app"` that you pass to uvicorn work.
 
-Para consultar metadatos de los paquetes instalados:
+To query metadata of installed packages:
 
 ```python
 from importlib.metadata import version, PackageNotFoundError
 version("pytest")        # '8.4.1'
 ```
 
-## Módulos, entornos y `uv`
+## Modules, environments and `uv`
 
-Los paquetes de terceros se instalan en `site-packages` **del entorno virtual** activo. Con
-`uv`, cada proyecto tiene su `.venv`; `uv add paquete` lo instala y lo registra en
-`pyproject.toml`, y `uv run comando` ejecuta con ese entorno. Lo vemos en detalle en el
-módulo de herramientas.
+Third-party packages are installed into the `site-packages` **of the active virtual
+environment**. With `uv`, each project has its own `.venv`; `uv add package` installs it and
+records it in `pyproject.toml`, and `uv run command` runs with that environment. We cover it
+in detail in the tooling module.
 
-## Resumen
+## Summary
 
-- Importar ejecuta el módulo una vez y lo cachea en `sys.modules`.
-- No pongas efectos secundarios en el nivel superior; usá `if __name__ == "__main__":` y una
-  función `main(argv) -> int`.
-- Sin `import *`. Absolutos antes que relativos. `__all__` y `_privado` para la API.
-- Imports circulares: reestructurá.
-- `importlib.import_module` + `getattr` para imports dinámicos.
+- Importing runs the module once and caches it in `sys.modules`.
+- Don't put side effects at the top level; use `if __name__ == "__main__":` and a
+  `main(argv) -> int` function.
+- No `import *`. Absolute over relative. `__all__` and `_private` for the API.
+- Circular imports: restructure.
+- `importlib.import_module` + `getattr` for dynamic imports.
 
-## Ejercicio
+## Exercise
 
-Cuatro funciones: import dinámico por ruta, listar la API pública de un módulo, consultar
-versiones instaladas y un `main` testeable con su guarda.
+Four functions: a dynamic import by path, listing a module's public API, checking installed
+versions and a testable `main` with its guard.
 
-**Para profundizar:** [The import system](https://docs.python.org/3/reference/import.html),
+**Further reading:** [The import system](https://docs.python.org/3/reference/import.html),
 [Modules (tutorial)](https://docs.python.org/3/tutorial/modules.html).

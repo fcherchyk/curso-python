@@ -1,139 +1,138 @@
-# Nombres, objetos y mutabilidad
+# Names, Objects and Mutability
 
-Si venís de otro lenguaje, lo más importante de Python no es la sintaxis sino su **modelo de
-datos**: las variables no son cajas que guardan valores, sino **nombres que apuntan a
-objetos**. Casi todos los bugs "raros" de principiante (listas que cambian solas, defaults
-compartidos, copias que no son copias) salen de no tener clara esta idea.
+If you're coming from another language, the most important thing about Python isn't the syntax
+but its **data model**: variables aren't boxes that hold values, they're **names that point to
+objects**. Almost every "weird" beginner bug (lists that change on their own, shared defaults,
+copies that aren't copies) comes from not having this idea clear.
 
-## Todo es un objeto, las variables son etiquetas
+## Everything is an object, variables are labels
 
 ```python
 a = [1, 2, 3]
-b = a            # b NO es una copia: es otro nombre para el MISMO objeto
+b = a            # b is NOT a copy: it's another name for the SAME object
 b.append(4)
 print(a)         # [1, 2, 3, 4]
 ```
 
-Cada objeto tiene:
+Every object has:
 
-- **identidad**: `id(obj)`, que no cambia durante su vida;
-- **tipo**: `type(obj)`, que tampoco cambia;
-- **valor**: que puede cambiar o no, según el tipo sea mutable o inmutable.
+- **identity**: `id(obj)`, which never changes during its lifetime;
+- **type**: `type(obj)`, which doesn't change either;
+- **value**: which may or may not change, depending on whether the type is mutable or immutable.
 
-La asignación `=` **nunca copia**: solo hace que un nombre apunte a un objeto. Lo mismo pasa
-al pasar argumentos a una función: la función recibe una referencia al mismo objeto (lo que a
-veces se llama *pass by object reference* o *call by sharing*).
+Assignment with `=` **never copies**: it just makes a name point to an object. The same happens
+when you pass arguments to a function: the function receives a reference to the same object
+(sometimes called *pass by object reference* or *call by sharing*).
 
 ## `==` vs. `is`
 
 ```python
 a = [1, 2]
 b = [1, 2]
-a == b      # True:  mismo VALOR
-a is b      # False: objetos distintos
+a == b      # True:  same VALUE
+a is b      # False: different objects
 ```
 
-- `==` compara valores (llama a `__eq__`).
-- `is` compara identidad (¿es el mismo objeto?).
+- `==` compares values (it calls `__eq__`).
+- `is` compares identity (is it the same object?).
 
-Usá `is` **solo** con singletons: `x is None`, `x is True`/`False` (raro) o centinelas propios.
-Para todo lo demás, `==`. Que `a is b` dé `True` con enteros chicos o strings cortos es un
-detalle de implementación (CPython reutiliza esos objetos); no dependas de eso.
+Use `is` **only** with singletons: `x is None`, `x is True`/`False` (rare) or your own sentinels.
+For everything else, `==`. That `a is b` gives `True` for small ints or short strings is an
+implementation detail (CPython reuses those objects); don't rely on it.
 
-## Mutables e inmutables
+## Mutable and immutable
 
-| Inmutables                                   | Mutables                          |
+| Immutable                                    | Mutable                           |
 |----------------------------------------------|-----------------------------------|
 | `int`, `float`, `bool`, `complex`, `Decimal` | `list`                            |
 | `str`, `bytes`                               | `dict`                            |
 | `tuple`, `frozenset`                         | `set`, `bytearray`                |
-| `None`                                       | la mayoría de las clases propias  |
+| `None`                                       | most of your own classes          |
 
-Con un inmutable, cualquier "modificación" crea un objeto nuevo:
+With an immutable object, any "modification" creates a new object:
 
 ```python
-s = "hola"
+s = "hello"
 t = s
-s += "!"        # crea un str nuevo y reasigna s
-print(t)        # "hola"  <- t sigue apuntando al original
+s += "!"        # creates a new str and rebinds s
+print(t)        # "hello"  <- t still points to the original
 ```
 
-Con un mutable, `+=` modifica **en el lugar**:
+With a mutable object, `+=` modifies **in place**:
 
 ```python
 xs = [1]
 ys = xs
-xs += [2]       # list.__iadd__ extiende el mismo objeto
+xs += [2]       # list.__iadd__ extends the same object
 print(ys)       # [1, 2]
 ```
 
-> Una tupla es inmutable, pero si **contiene** un objeto mutable, ese objeto sí puede cambiar:
-> `t = ([1], 2); t[0].append(9)` funciona. La tupla sigue apuntando a la misma lista.
+> A tuple is immutable, but if it **contains** a mutable object, that object can change:
+> `t = ([1], 2); t[0].append(9)` works. The tuple still points to the same list.
 
-## Consecuencia 1: funciones que mutan sus argumentos
-
-```python
-def agregar_iva(precios):
-    for i, p in enumerate(precios):
-        precios[i] = p * 1.21      # ✗ modifica la lista de quien llama
-    return precios
-```
-
-Quien llama pierde sus datos originales sin enterarse. La convención en Python es:
-
-- si la función **muta**, que devuelva `None` (como `list.sort()` o `dict.update()`);
-- si **no muta**, que devuelva un objeto nuevo (como `sorted()`).
+## Consequence 1: functions that mutate their arguments
 
 ```python
-def con_iva(precios):
-    return [p * 1.21 for p in precios]   # ✓ no toca el original
+def add_tax(prices):
+    for i, p in enumerate(prices):
+        prices[i] = p * 1.21      # ✗ modifies the caller's list
+    return prices
 ```
 
-## Consecuencia 2: copias superficiales y profundas
+The caller loses their original data without noticing. The Python convention is:
+
+- if the function **mutates**, it returns `None` (like `list.sort()` or `dict.update()`);
+- if it **doesn't mutate**, it returns a new object (like `sorted()`).
+
+```python
+def with_tax(prices):
+    return [p * 1.21 for p in prices]   # ✓ leaves the original alone
+```
+
+## Consequence 2: shallow and deep copies
 
 ```python
 import copy
 
 original = [[1, 2], [3, 4]]
 
-sup = original.copy()          # también: list(original), original[:]
-sup[0].append(99)
-print(original)                # [[1, 2, 99], [3, 4]]  <- ¡cambió!
+shallow = original.copy()      # also: list(original), original[:]
+shallow[0].append(99)
+print(original)                # [[1, 2, 99], [3, 4]]  <- it changed!
 
-prof = copy.deepcopy(original)
-prof[0].append(100)
-print(original)                # no cambia
+deep = copy.deepcopy(original)
+deep[0].append(100)
+print(original)                # unchanged
 ```
 
-Una copia **superficial** crea un contenedor nuevo con las *mismas* referencias adentro. Una
-**profunda** copia recursivamente todo. Para una lista de listas alcanza con
-`[fila.copy() for fila in m]`; `deepcopy` es el martillo general (más lento).
+A **shallow** copy creates a new container with the *same* references inside. A **deep** copy
+copies everything recursively. For a list of lists, `[row.copy() for row in m]` is enough;
+`deepcopy` is the general-purpose hammer (and slower).
 
-## Consecuencia 3: `[[0] * 3] * 3`
+## Consequence 3: `[[0] * 3] * 3`
 
 ```python
-tablero = [[0] * 3] * 3
-tablero[0][0] = 1
-print(tablero)   # [[1, 0, 0], [1, 0, 0], [1, 0, 0]]
+board = [[0] * 3] * 3
+board[0][0] = 1
+print(board)   # [[1, 0, 0], [1, 0, 0], [1, 0, 0]]
 ```
 
-`* 3` repite **la referencia** a la misma lista interna. La forma correcta es
-`[[0] * 3 for _ in range(3)]`: la comprehension crea una lista nueva en cada vuelta.
+`* 3` repeats **the reference** to the same inner list. The correct way is
+`[[0] * 3 for _ in range(3)]`: the comprehension creates a new list on each iteration.
 
-## Números: lo que conviene recordar
+## Numbers: what's worth remembering
 
 ```python
-7 / 2       # 3.5   división real, siempre float
-7 // 2      # 3     división entera (floor)
--7 // 2     # -4    ¡redondea hacia -infinito, no hacia 0!
--7 % 2      # 1     el resto tiene el signo del divisor
+7 / 2       # 3.5   true division, always float
+7 // 2      # 3     integer (floor) division
+-7 // 2     # -4    rounds toward -infinity, not toward 0!
+-7 % 2      # 1     the remainder takes the sign of the divisor
 divmod(-7, 2)       # (-4, 1)
-2 ** 100    # los int no tienen límite de tamaño
-0.1 + 0.2   # 0.30000000000000004  <- float binario (IEEE 754)
+2 ** 100    # ints have no size limit
+0.1 + 0.2   # 0.30000000000000004  <- binary float (IEEE 754)
 ```
 
-Para dinero o cualquier cálculo decimal exacto, usá `decimal.Decimal` **construido desde
-string**:
+For money or any exact decimal calculation, use `decimal.Decimal` **built from a string**:
 
 ```python
 from decimal import Decimal
@@ -141,50 +140,50 @@ Decimal("0.1") + Decimal("0.2")    # Decimal('0.3')
 Decimal(0.1)                       # Decimal('0.1000000000000000055511151231257827...')  ✗
 ```
 
-Para comparar floats, `math.isclose(a, b)` en lugar de `==`.
+To compare floats, use `math.isclose(a, b)` instead of `==`.
 
-## Verdad y falsedad (*truthiness*)
+## Truthiness
 
-Cualquier objeto se puede evaluar como booleano. Son **falsos**: `None`, `False`, `0`, `0.0`,
-`""`, `[]`, `{}`, `set()`, `()` y cualquier objeto cuyo `__bool__` devuelva `False` o cuyo
-`__len__` devuelva 0. Todo lo demás es verdadero.
+Any object can be evaluated as a boolean. These are **falsy**: `None`, `False`, `0`, `0.0`,
+`""`, `[]`, `{}`, `set()`, `()` and any object whose `__bool__` returns `False` or whose
+`__len__` returns 0. Everything else is truthy.
 
 ```python
-if not items:            # ✓ idiomático para "vacío"
-if len(items) == 0:      # ✗ ruido
+if not items:            # ✓ idiomatic for "empty"
+if len(items) == 0:      # ✗ noise
 
-nombre = entrada or "anónimo"   # default si entrada es falsy
+name = user_input or "anonymous"   # default if user_input is falsy
 ```
 
-Cuidado: `x or default` también reemplaza un `0` o un `""` válidos. Si lo que querés es
-"si es `None`", escribilo: `x if x is not None else default`.
+Careful: `x or default` also replaces a valid `0` or `""`. If what you mean is
+"if it's `None`", say so: `x if x is not None else default`.
 
-## Tipado dinámico pero fuerte
+## Dynamic but strong typing
 
-Los nombres no tienen tipo; los objetos sí. Y Python **no convierte implícitamente** entre
-tipos incompatibles:
+Names don't have types; objects do. And Python **doesn't implicitly convert** between
+incompatible types:
 
 ```python
-"3" + 4          # TypeError (en JavaScript sería "34")
+"3" + 4          # TypeError (in JavaScript it would be "34")
 int("3") + 4     # 7
 ```
 
-Los *type hints* (`def f(x: int) -> str`) no se verifican al ejecutar: los usan las
-herramientas como mypy y los editores. Los vemos en el módulo de herramientas.
+*Type hints* (`def f(x: int) -> str`) aren't checked at runtime: they're used by tools like
+mypy and by editors. We cover them in the tooling module.
 
-## Resumen
+## Summary
 
-- `=` nunca copia; los argumentos se pasan como referencias al mismo objeto.
-- `is` para `None` y centinelas; `==` para todo lo demás.
-- Los mutables modificados "a distancia" son la fuente número uno de bugs: no mutes lo que
-  te pasan, salvo que la función exista para eso.
-- `list.copy()` es superficial; `copy.deepcopy()` es profunda.
-- `//` y `%` redondean hacia -infinito; para dinero, `Decimal("...")`.
+- `=` never copies; arguments are passed as references to the same object.
+- `is` for `None` and sentinels; `==` for everything else.
+- Mutable objects modified "at a distance" are the number one source of bugs: don't mutate
+  what you're given unless that's the function's whole point.
+- `list.copy()` is shallow; `copy.deepcopy()` is deep.
+- `//` and `%` round toward -infinity; for money, use `Decimal("...")`.
 
-## Ejercicio
+## Exercise
 
-Cuatro funciones que te obligan a respetar el modelo de objetos: no mutar, copiar bien,
-sumar dinero sin errores de float y entender la división entera.
+Four functions that force you to respect the object model: don't mutate, copy correctly,
+add up money without float errors and understand integer division.
 
-**Para profundizar:** [Data model — Objects, values and types](https://docs.python.org/3/reference/datamodel.html#objects-values-and-types),
-*Fluent Python* (2.ª ed.), cap. 6 ("Object References, Mutability, and Recycling").
+**Further reading:** [Data model — Objects, values and types](https://docs.python.org/3/reference/datamodel.html#objects-values-and-types),
+*Fluent Python* (2nd ed.), ch. 6 ("Object References, Mutability, and Recycling").

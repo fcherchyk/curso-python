@@ -5,32 +5,32 @@ from types import ModuleType
 from typing import Any
 
 
-def importar(ruta: str) -> Any:
-    separador = ":" if ":" in ruta else "."
-    nombre_modulo, _, atributo = ruta.rpartition(separador)
-    return getattr(importlib.import_module(nombre_modulo), atributo)
+def import_object(path: str) -> Any:
+    separator = ":" if ":" in path else "."
+    module_name, _, attribute = path.rpartition(separator)
+    return getattr(importlib.import_module(module_name), attribute)
 
 
-def api_publica(modulo: ModuleType) -> list[str]:
-    nombres = getattr(modulo, "__all__", None)
-    if nombres is None:
-        nombres = [n for n in vars(modulo) if not n.startswith("_")]
-    return sorted(nombres)
+def public_api(module: ModuleType) -> list[str]:
+    names = getattr(module, "__all__", None)
+    if names is None:
+        names = [n for n in vars(module) if not n.startswith("_")]
+    return sorted(names)
 
 
-def version_instalada(paquete: str) -> str | None:
+def installed_version(package: str) -> str | None:
     try:
-        return version(paquete)
+        return version(package)
     except PackageNotFoundError:
         return None
 
 
 def main(argv: list[str]) -> int:
     if not argv:
-        print("uso: saludar NOMBRE...")
+        print("usage: greet NAME...")
         return 2
-    for nombre in argv:
-        print(f"Hola, {nombre}!")
+    for name in argv:
+        print(f"Hello, {name}!")
     return 0
 
 

@@ -1,44 +1,44 @@
 [[questions]]
-text = "¿Cuándo se ejecuta el bloque `else` de un `for`?"
+text = "When does the `else` block of a `for` run?"
 options = [
-  "Cuando el iterable está vacío",
-  "Cuando el bucle termina sin ejecutar un `break`",
-  "Cuando ocurre una excepción dentro del bucle",
-  "Nunca: es un error de sintaxis",
+  "When the iterable is empty",
+  "When the loop finishes without executing a `break`",
+  "When an exception occurs inside the loop",
+  "Never: it's a syntax error",
 ]
 correct = 1
-explanation = "El `else` corre si el bucle terminó \"normalmente\", sin `break`. Con un iterable vacío también corre, porque tampoco hubo `break`."
+explanation = "The `else` runs if the loop finished \"normally\", without `break`. With an empty iterable it runs too, because there was no `break` either."
 
 [[questions]]
-text = "¿Qué devuelve `\"\" or \"anónimo\"`?"
-options = ["`True`", "`''`", "`'anónimo'`", "`False`"]
+text = "What does `\"\" or \"anonymous\"` return?"
+options = ["`True`", "`''`", "`'anonymous'`", "`False`"]
 correct = 2
-explanation = "`or` devuelve el primer operando verdadero (o el último). Como el string vacío es falsy, devuelve `'anónimo'`."
+explanation = "`or` returns the first truthy operand (or the last one). Since the empty string is falsy, it returns `'anonymous'`."
 
 [[questions]]
-text = "¿Qué imprime `for i in range(3): pass` seguido de `print(i)`?"
+text = "What does `for i in range(3): pass` followed by `print(i)` print?"
 options = ["`NameError`", "`2`", "`3`", "`None`"]
 correct = 1
-explanation = "Los bucles no crean un scope nuevo: `i` sigue existiendo con el último valor asignado, que es 2."
+explanation = "Loops don't create a new scope: `i` still exists with the last value assigned, which is 2."
 
 [[questions]]
-text = "¿A qué equivale `0 <= x < 10`?"
+text = "What is `0 <= x < 10` equivalent to?"
 options = [
   "`(0 <= x) < 10`",
   "`0 <= x and x < 10`",
   "`0 <= (x < 10)`",
-  "Es un error de sintaxis",
+  "It's a syntax error",
 ]
 correct = 1
-explanation = "Python encadena las comparaciones con `and` y evalúa `x` una sola vez."
+explanation = "Python chains comparisons with `and` and evaluates `x` only once."
 
 [[questions]]
-text = "¿Cuándo es preferible `while` a `for`?"
+text = "When is `while` preferable to `for`?"
 options = [
-  "Para recorrer una lista con índices",
-  "Cuando no sabés de antemano cuántas vueltas vas a dar",
-  "Siempre, porque es más rápido",
-  "Para recorrer las claves de un dict",
+  "To iterate over a list with indices",
+  "When you don't know in advance how many iterations you'll need",
+  "Always, because it's faster",
+  "To iterate over the keys of a dict",
 ]
 correct = 1
-explanation = "Para recorrer colecciones se usa `for`. `while` es para reintentos, centinelas o algoritmos que iteran hasta que se cumple una condición."
+explanation = "To iterate over collections you use `for`. `while` is for retries, sentinels or algorithms that loop until a condition holds."

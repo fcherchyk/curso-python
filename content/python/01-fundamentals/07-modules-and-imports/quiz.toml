@@ -1,44 +1,44 @@
 [[questions]]
-text = "¿Qué vale `__name__` dentro de `utiles.py` cuando ejecutás `python utiles.py`?"
-options = ["`\"utiles\"`", "`\"__main__\"`", "`\"utiles.py\"`", "`None`"]
+text = "What is `__name__` inside `utils.py` when you run `python utils.py`?"
+options = ["`\"utils\"`", "`\"__main__\"`", "`\"utils.py\"`", "`None`"]
 correct = 1
-explanation = "El módulo que se ejecuta directamente se llama `__main__`. Cuando se importa, `__name__` es el nombre del módulo."
+explanation = "The module that runs directly is called `__main__`. When it's imported, `__name__` is the module's name."
 
 [[questions]]
-text = "Si dos archivos distintos hacen `import config`, ¿cuántas veces se ejecuta `config.py`?"
-options = ["Dos veces", "Una sola vez", "Ninguna, hasta que se usa algo", "Depende de `__all__`"]
+text = "If two different files do `import config`, how many times does `config.py` run?"
+options = ["Twice", "Only once", "Never, until something is used", "It depends on `__all__`"]
 correct = 1
-explanation = "Después del primer import, el módulo queda cacheado en `sys.modules` y los imports siguientes lo reutilizan."
+explanation = "After the first import, the module is cached in `sys.modules` and later imports reuse it."
 
 [[questions]]
-text = "¿Para qué sirve `__all__` en un módulo?"
+text = "What is `__all__` for in a module?"
 options = [
-  "Para hacer privados los nombres que no están en la lista",
-  "Para definir qué exporta `from modulo import *` y documentar la API pública",
-  "Para acelerar los imports",
-  "Para listar las dependencias del módulo",
+  "To make the names not in the list private",
+  "To define what `from module import *` exports and document the public API",
+  "To speed up imports",
+  "To list the module's dependencies",
 ]
 correct = 1
-explanation = "Controla qué se importa con `import *` y sirve como documentación. No impide acceder a otros nombres."
+explanation = "It controls what gets imported with `import *` and serves as documentation. It doesn't prevent access to other names."
 
 [[questions]]
-text = "Ejecutás `python tienda/pagos/mp.py`, que usa `from ..modelos import Pedido`. ¿Qué pasa?"
+text = "You run `python shop/payments/card.py`, which uses `from ..models import Order`. What happens?"
 options = [
-  "Funciona normalmente",
-  "`ImportError`: import relativo sin paquete padre conocido",
-  "Importa `modelos` desde el directorio actual",
-  "Se ignora el import",
+  "It works normally",
+  "`ImportError`: relative import with no known parent package",
+  "It imports `models` from the current directory",
+  "The import is ignored",
 ]
 correct = 1
-explanation = "Al ejecutarlo como script, el archivo es `__main__` y no pertenece a ningún paquete. Hay que usar `python -m tienda.pagos.mp`."
+explanation = "When run as a script, the file is `__main__` and doesn't belong to any package. You have to use `python -m shop.payments.card`."
 
 [[questions]]
-text = "¿Cuál es la mejor solución para un import circular entre `a.py` y `b.py`?"
+text = "What's the best fix for a circular import between `a.py` and `b.py`?"
 options = [
-  "Usar `from a import *`",
-  "Mover lo compartido a un tercer módulo",
-  "Borrar `sys.modules` antes de importar",
-  "Renombrar los archivos",
+  "Use `from a import *`",
+  "Move the shared code to a third module",
+  "Clear `sys.modules` before importing",
+  "Rename the files",
 ]
 correct = 1
-explanation = "Un import circular suele indicar un problema de diseño. Extraer lo común a otro módulo rompe el ciclo."
+explanation = "A circular import usually points to a design problem. Extracting the shared code into another module breaks the cycle."

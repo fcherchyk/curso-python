@@ -1,53 +1,53 @@
 from pathlib import Path
 
 
-def a_entero(texto: str, default: int | None = None) -> int | None:
+def to_int(text: str, default: int | None = None) -> int | None:
     try:
-        return int(texto)  # int() ya tolera espacios alrededor
+        return int(text)  # int() already tolerates surrounding whitespace
     except ValueError:
         return default
 
 
-class SaldoInsuficiente(Exception):
-    def __init__(self, saldo: float, monto: float) -> None:
-        super().__init__(f"saldo {saldo} insuficiente para retirar {monto}")
-        self.saldo = saldo
-        self.monto = monto
+class InsufficientFunds(Exception):
+    def __init__(self, balance: float, amount: float) -> None:
+        super().__init__(f"balance {balance} is not enough to withdraw {amount}")
+        self.balance = balance
+        self.amount = amount
 
 
-def retirar(saldo: float, monto: float) -> float:
-    if monto <= 0:
-        raise ValueError(f"el monto tiene que ser positivo, llegó {monto!r}")
-    if monto > saldo:
-        raise SaldoInsuficiente(saldo, monto)
-    return saldo - monto
+def withdraw(balance: float, amount: float) -> float:
+    if amount <= 0:
+        raise ValueError(f"amount must be positive, got {amount!r}")
+    if amount > balance:
+        raise InsufficientFunds(balance, amount)
+    return balance - amount
 
 
 class ConfigError(Exception):
     pass
 
 
-def leer_config(ruta: Path) -> dict[str, str]:
+def read_config(path: Path) -> dict[str, str]:
     try:
-        texto = ruta.read_text(encoding="utf-8")
+        text = path.read_text(encoding="utf-8")
     except FileNotFoundError as e:
-        raise ConfigError(f"falta el archivo de configuración: {ruta}") from e
+        raise ConfigError(f"missing config file: {path}") from e
     config = {}
-    for linea in texto.splitlines():
-        if linea.strip():
-            clave, _, valor = linea.partition("=")
-            config[clave.strip()] = valor.strip()
+    for line in text.splitlines():
+        if line.strip():
+            key, _, value = line.partition("=")
+            config[key.strip()] = value.strip()
     return config
 
 
-def procesar_todos(textos: list[str]) -> tuple[list[int], list[str]]:
-    numeros: list[int] = []
-    fallidos: list[str] = []
-    for t in textos:
+def process_all(texts: list[str]) -> tuple[list[int], list[str]]:
+    numbers: list[int] = []
+    failed: list[str] = []
+    for t in texts:
         try:
             n = int(t)
         except ValueError:
-            fallidos.append(t)
+            failed.append(t)
         else:
-            numeros.append(n)
-    return numeros, fallidos
+            numbers.append(n)
+    return numbers, failed

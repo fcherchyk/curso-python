@@ -1,175 +1,175 @@
-# Control de flujo
+# Control Flow
 
-La mayoría de las estructuras de control de Python funcionan como en cualquier lenguaje.
-Este capítulo se concentra en lo que es **propio de Python**: comparaciones encadenadas,
-el `else` de los bucles, la expresión condicional y algunos patrones que evitan anidar.
+Most of Python's control structures work like they do in any other language. This chapter
+focuses on what's **specific to Python**: chained comparisons, the `else` on loops, the
+conditional expression and a few patterns that avoid nesting.
 
 ## `if` / `elif` / `else`
 
 ```python
-if temperatura < 10:
-    estado = "frío"
-elif temperatura < 25:
-    estado = "templado"
+if temperature < 10:
+    state = "cold"
+elif temperature < 25:
+    state = "mild"
 else:
-    estado = "calor"
+    state = "hot"
 ```
 
-No hay `switch` clásico. Para ramificar según la forma de los datos existe `match`, que vemos
-en el módulo de Python moderno. Para mapear valores simples, muchas veces alcanza con un dict:
+There's no classic `switch`. To branch on the shape of your data there's `match`, which we
+cover in the modern Python module. To map simple values, a dict is often enough:
 
 ```python
-PRECIOS = {"chico": 100, "mediano": 150, "grande": 200}
-precio = PRECIOS.get(tamaño, 0)
+PRICES = {"small": 100, "medium": 150, "large": 200}
+price = PRICES.get(size, 0)
 ```
 
-### Comparaciones encadenadas
+### Chained comparisons
 
 ```python
-if 0 <= indice < len(xs): ...     # equivale a 0 <= indice and indice < len(xs)
+if 0 <= index < len(xs): ...      # same as 0 <= index and index < len(xs)
 if a == b == c: ...
 ```
 
-Cada expresión intermedia se evalúa **una sola vez**. Es más legible y evita repetir la
-variable.
+Each intermediate expression is evaluated **only once**. It's more readable and avoids
+repeating the variable.
 
-### Operadores lógicos: devuelven operandos, no `bool`
+### Logical operators: they return operands, not `bool`
 
-`and` y `or` cortocircuitan y **devuelven uno de los operandos**:
+`and` and `or` short-circuit and **return one of the operands**:
 
 ```python
 0 or "default"         # 'default'
-"valor" or "default"   # 'valor'
-[] and "nunca"         # []
-usuario and usuario.nombre     # None si usuario es None, sin AttributeError
+"value" or "default"   # 'value'
+[] and "never"         # []
+user and user.name     # None if user is None, no AttributeError
 ```
 
-`not` sí devuelve siempre `True` o `False`.
+`not` does always return `True` or `False`.
 
-### Expresión condicional (ternario)
+### Conditional expression (ternary)
 
 ```python
-etiqueta = "par" if n % 2 == 0 else "impar"
+label = "even" if n % 2 == 0 else "odd"
 ```
 
-Usala para valores simples. Si alguna de las ramas necesita lógica, volvé al `if`.
+Use it for simple values. If either branch needs logic, go back to `if`.
 
-## Cláusulas de guarda: salir temprano
+## Guard clauses: return early
 
-En lugar de anidar condiciones, conviene resolver los casos especiales al principio y
-retornar:
+Instead of nesting conditions, handle the special cases first and return:
 
 ```python
-# ✗ Pirámide
-def procesar(pedido):
-    if pedido is not None:
-        if pedido.items:
-            if pedido.pagado:
-                return enviar(pedido)
+# ✗ Pyramid
+def process(order):
+    if order is not None:
+        if order.items:
+            if order.paid:
+                return ship(order)
     return None
 
-# ✓ Guardas
-def procesar(pedido):
-    if pedido is None or not pedido.items:
+# ✓ Guards
+def process(order):
+    if order is None or not order.items:
         return None
-    if not pedido.pagado:
+    if not order.paid:
         return None
-    return enviar(pedido)
+    return ship(order)
 ```
 
-El camino "feliz" queda sin indentar y cada condición se lee por separado.
+The "happy" path stays unindented and each condition reads on its own.
 
-## `for`: recorre iterables
+## `for`: iterates over iterables
 
 ```python
 for x in [1, 2, 3]: ...
 for i in range(5): ...              # 0..4
 for i in range(10, 0, -2): ...      # 10, 8, 6, 4, 2
-for c in "hola": ...
-for linea in open("datos.txt"): ...
+for c in "hello": ...
+for line in open("data.txt"): ...
 ```
 
-`break` sale del bucle; `continue` pasa a la siguiente vuelta.
+`break` exits the loop; `continue` skips to the next iteration.
 
-### `for ... else`: el `else` que casi nadie conoce
+### `for ... else`: the `else` almost nobody knows
 
-El bloque `else` de un bucle se ejecuta **si el bucle terminó sin `break`**:
+A loop's `else` block runs **if the loop finished without `break`**:
 
 ```python
-for usuario in usuarios:
-    if usuario.es_admin:
-        print("hay admin:", usuario)
+for user in users:
+    if user.is_admin:
+        print("found an admin:", user)
         break
 else:
-    print("no hay ningún admin")
+    print("there are no admins")
 ```
 
-Es el patrón de "buscar y actuar si no se encontró", sin una variable `encontrado = False`.
-Pensalo como "si no hubo break". Como a mucha gente le resulta confuso, dejalo para
-búsquedas cortas y, si lo usás, agregá un comentario. A veces es más claro extraer una
-función y usar `return`, o `any()` o `next(...)`.
+It's the "search, and act if not found" pattern, without a `found = False` variable. Think
+of it as "if there was no break". Since many people find it confusing, keep it for short
+searches and, if you use it, add a comment. Sometimes it's clearer to extract a function and
+use `return`, or `any()` or `next(...)`.
 
 ## `while`
 
 ```python
-intentos = 0
-while intentos < 3:
-    if conectar():
+attempts = 0
+while attempts < 3:
+    if connect():
         break
-    intentos += 1
+    attempts += 1
 else:
-    raise ConnectionError("no se pudo conectar")   # también existe while/else
+    raise ConnectionError("could not connect")   # while/else exists too
 ```
 
-Usá `while` cuando **no sabés de antemano** cuántas vueltas vas a dar: reintentos, lectura
-hasta un centinela o algoritmos que convergen. Para recorrer colecciones, siempre `for`.
+Use `while` when you **don't know in advance** how many iterations you'll need: retries,
+reading until a sentinel or algorithms that converge. To iterate over collections, always
+use `for`.
 
-Con el operador walrus (`:=`, 3.8+) se evita duplicar la lectura:
+The walrus operator (`:=`, 3.8+) avoids duplicating the read:
 
 ```python
-while (linea := archivo.readline()):
-    procesar(linea)
+while (line := file.readline()):
+    process(line)
 ```
 
-## `pass`, `...` y bloques vacíos
+## `pass`, `...` and empty blocks
 
-Python no permite bloques vacíos. Para un bloque que todavía no tiene código, se usa `pass`
-(o `...`, muy común en stubs y protocolos):
+Python doesn't allow empty blocks. For a block that has no code yet, you use `pass` (or `...`,
+very common in stubs and protocols):
 
 ```python
-def todo_implementar():
+def to_be_implemented():
     ...
 
-class MiError(Exception):
+class MyError(Exception):
     pass
 ```
 
-## Scopes: los bloques no crean ámbito
+## Scopes: blocks don't create a scope
 
-A diferencia de C o Java, **`if`, `for` y `while` no crean un scope nuevo**. Las variables
-definidas adentro siguen existiendo afuera:
+Unlike C or Java, **`if`, `for` and `while` don't create a new scope**. Variables defined
+inside them still exist outside:
 
 ```python
 for i in range(3):
-    ultimo = i
-print(i, ultimo)     # 2 2
+    last = i
+print(i, last)     # 2 2
 ```
 
-Los scopes en Python son solo cuatro: local (función), enclosing (funciones externas),
-global (módulo) y built-in, la regla **LEGB** que retomamos con closures.
+Python has only four scopes: local (function), enclosing (outer functions), global (module)
+and built-in, the **LEGB** rule we'll revisit with closures.
 
-## Resumen
+## Summary
 
-- Comparaciones encadenadas: `0 <= i < n`.
-- `and`/`or` devuelven operandos: `x or default`.
-- Guardas con retorno temprano en lugar de `if` anidados.
-- `for/else` y `while/else`: el `else` corre si no hubo `break`.
-- `while` solo cuando no sabés cuántas vueltas; walrus para "leer mientras haya".
-- Los bloques no crean scope.
+- Chained comparisons: `0 <= i < n`.
+- `and`/`or` return operands: `x or default`.
+- Guards with early returns instead of nested `if`s.
+- `for/else` and `while/else`: the `else` runs if there was no `break`.
+- `while` only when you don't know how many iterations; walrus for "read while there's data".
+- Blocks don't create a scope.
 
-## Ejercicio
+## Exercise
 
-Cuatro funciones clásicas de control de flujo, escritas de forma idiomática.
+Four classic control-flow functions, written idiomatically.
 
-**Para profundizar:** [More Control Flow Tools](https://docs.python.org/3/tutorial/controlflow.html)
-(tutorial oficial).
+**Further reading:** [More Control Flow Tools](https://docs.python.org/3/tutorial/controlflow.html)
+(official tutorial).

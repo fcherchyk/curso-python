@@ -1,42 +1,42 @@
-"""Dicts y sets: lo esencial.
+"""Dicts and sets: the essentials.
 
-No uses `collections` en este capítulo: resolvelo con dicts y sets comunes.
+Don't use `collections` in this chapter: solve it with plain dicts and sets.
 """
 
 
-def unicos_en_orden(xs: list[str]) -> list[str]:
-    """Elementos sin repetir, en el orden de su primera aparición.
+def unique_in_order(xs: list[str]) -> list[str]:
+    """Elements without repeats, in the order of their first appearance.
 
-    >>> unicos_en_orden(["b", "a", "b", "c", "a"])
+    >>> unique_in_order(["b", "a", "b", "c", "a"])
     ['b', 'a', 'c']
     """
     raise NotImplementedError("TODO")
 
 
-def comunes(a: list[int], b: list[int]) -> list[int]:
-    """Elementos que están en las dos listas, sin repetir y ordenados de menor a mayor.
+def common(a: list[int], b: list[int]) -> list[int]:
+    """Elements present in both lists, without repeats and sorted in ascending order.
 
-    >>> comunes([3, 1, 2, 3], [3, 4, 1])
+    >>> common([3, 1, 2, 3], [3, 4, 1])
     [1, 3]
     """
     raise NotImplementedError("TODO")
 
 
-def contar_caracteres(texto: str) -> dict[str, int]:
-    """Cuántas veces aparece cada carácter, en orden de primera aparición.
+def count_chars(text: str) -> dict[str, int]:
+    """How many times each character appears, in order of first appearance.
 
-    Pista: `d.get(c, 0) + 1`.
+    Hint: `d.get(c, 0) + 1`.
 
-    >>> contar_caracteres("hola ola")
-    {'h': 1, 'o': 2, 'l': 2, 'a': 2, ' ': 1}
+    >>> count_chars("hello all")
+    {'h': 1, 'e': 1, 'l': 4, 'o': 1, ' ': 1, 'a': 1}
     """
     raise NotImplementedError("TODO")
 
 
-def hay_duplicados(xs: list[int]) -> bool:
-    """¿Algún elemento aparece más de una vez?
+def has_duplicates(xs: list[int]) -> bool:
+    """Does any element appear more than once?
 
-    >>> hay_duplicados([1, 2, 3, 1])
+    >>> has_duplicates([1, 2, 3, 1])
     True
     """
     raise NotImplementedError("TODO")

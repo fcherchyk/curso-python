@@ -1,49 +1,49 @@
 [[questions]]
-text = "¿Cuándo se ejecuta el bloque `else` de un `try`?"
+text = "When does the `else` block of a `try` run?"
 options = [
-  "Siempre, después del `try`",
-  "Solo si el `try` no levantó ninguna excepción",
-  "Solo si se levantó una excepción no atrapada",
-  "Cuando el `except` termina sin errores",
+  "Always, after the `try`",
+  "Only if the `try` didn't raise any exception",
+  "Only if an uncaught exception was raised",
+  "When the `except` finishes without errors",
 ]
 correct = 1
-explanation = "El `else` corre cuando el `try` terminó sin excepción. Sirve para sacar del `try` el código que no esperás que falle."
+explanation = "The `else` runs when the `try` finished without an exception. It lets you move code you don't expect to fail out of the `try`."
 
 [[questions]]
-text = "¿Por qué no se recomienda `except:` sin tipo?"
+text = "Why is a bare `except:` not recommended?"
 options = [
-  "Porque es un error de sintaxis desde Python 3",
-  "Porque atrapa también `KeyboardInterrupt` y `SystemExit`",
-  "Porque es más lento",
-  "Porque no permite usar `as e`",
+  "Because it's a syntax error since Python 3",
+  "Because it also catches `KeyboardInterrupt` and `SystemExit`",
+  "Because it's slower",
+  "Because it doesn't allow `as e`",
 ]
 correct = 1
-explanation = "Sin tipo atrapa `BaseException`: incluso el Ctrl+C y el `sys.exit()`. Como mínimo, usá `except Exception` y logueá."
+explanation = "Without a type it catches `BaseException`: even Ctrl+C and `sys.exit()`. At the very least, use `except Exception` and log."
 
 [[questions]]
-text = "¿Qué hace `raise ConfigError(\"...\") from e`?"
+text = "What does `raise ConfigError(\"...\") from e` do?"
 options = [
-  "Levanta `e` y descarta `ConfigError`",
-  "Levanta `ConfigError` y guarda `e` como su causa (`__cause__`)",
-  "Convierte `e` en `ConfigError` modificándolo",
-  "Solo funciona si `ConfigError` hereda del tipo de `e`",
+  "Raises `e` and discards `ConfigError`",
+  "Raises `ConfigError` and stores `e` as its cause (`__cause__`)",
+  "Turns `e` into a `ConfigError` by modifying it",
+  "Only works if `ConfigError` inherits from the type of `e`",
 ]
 correct = 1
-explanation = "Encadena las excepciones: se levanta la nueva y la original queda en `__cause__`. El traceback muestra las dos."
+explanation = "It chains the exceptions: the new one is raised and the original is kept in `__cause__`. The traceback shows both."
 
 [[questions]]
-text = "`int(\"abc\")` levanta…"
+text = "`int(\"abc\")` raises…"
 options = ["`TypeError`", "`ValueError`", "`KeyError`", "`SyntaxError`"]
 correct = 1
-explanation = "El tipo (`str`) es aceptable, pero el valor no representa un número: es un `ValueError`. `TypeError` sería, por ejemplo, `int([1])`."
+explanation = "The type (`str`) is acceptable, but the value doesn't represent a number: that's a `ValueError`. A `TypeError` would be, for example, `int([1])`."
 
 [[questions]]
-text = "¿Por qué no hay que usar `assert` para validar datos de entrada?"
+text = "Why shouldn't you use `assert` to validate input data?"
 options = [
-  "Porque no se puede poner un mensaje",
-  "Porque los `assert` se eliminan al ejecutar con `python -O`",
-  "Porque levanta `ValueError` en lugar de `AssertionError`",
-  "Porque solo funciona dentro de tests",
+  "Because you can't add a message",
+  "Because `assert` statements are removed when running with `python -O`",
+  "Because it raises `ValueError` instead of `AssertionError`",
+  "Because it only works inside tests",
 ]
 correct = 1
-explanation = "Con optimizaciones (`-O`) los `assert` desaparecen y tu validación dejaría de existir. Son para invariantes internas y tests."
+explanation = "With optimizations (`-O`), `assert` statements disappear and your validation would stop existing. They're for internal invariants and tests."

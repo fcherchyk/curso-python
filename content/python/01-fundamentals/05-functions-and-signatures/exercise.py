@@ -1,50 +1,50 @@
-"""Funciones y firmas.
+"""Functions and signatures.
 
-En algunos ejercicios también tenés que escribir la FIRMA (fijate los tests).
+In some exercises you also have to write the SIGNATURE (check the tests).
 """
 
 
-def agregar_item(item: str, lista: list[str] | None = None) -> list[str]:
-    """Agregá `item` a `lista` y devolvela. Si no te pasan lista, empezá una nueva
-    en CADA llamada (sin el bug del default mutable).
+def add_item(item: str, items: list[str] | None = None) -> list[str]:
+    """Append `item` to `items` and return it. If no list is passed, start a new one
+    on EVERY call (without the mutable default bug).
 
-    >>> agregar_item("a")
+    >>> add_item("a")
     ['a']
-    >>> agregar_item("b")
+    >>> add_item("b")
     ['b']
     """
     raise NotImplementedError("TODO")
 
 
-def promedio(*numeros: float) -> float:
-    """Promedio de una cantidad variable de números. Sin números, ValueError.
+def average(*numbers: float) -> float:
+    """Average of a variable number of numbers. With no numbers, ValueError.
 
-    >>> promedio(1, 2, 3, 4)
+    >>> average(1, 2, 3, 4)
     2.5
     """
     raise NotImplementedError("TODO")
 
 
-def crear_usuario(nombre, admin=False, **extra):  # ← corregí esta firma
-    """Devolvé un dict con nombre, admin y los datos extra.
+def create_user(name, admin=False, **extra):  # ← fix this signature
+    """Return a dict with name, admin and the extra data.
 
-    La firma tiene que ser:
-    - `nombre`: SOLO posicional.
-    - `admin`: SOLO keyword, por defecto False.
-    - cualquier otro dato por keyword va a `extra`.
+    The signature must be:
+    - `name`: positional-ONLY.
+    - `admin`: keyword-ONLY, defaults to False.
+    - any other keyword data goes into `extra`.
 
-    >>> crear_usuario("ana", admin=True, email="a@b.c")
-    {'nombre': 'ana', 'admin': True, 'email': 'a@b.c'}
+    >>> create_user("alice", admin=True, email="a@b.c")
+    {'name': 'alice', 'admin': True, 'email': 'a@b.c'}
     """
     raise NotImplementedError("TODO")
 
 
-def formatear_atributos(**attrs: object) -> str:
-    """Convertí los keyword arguments en atributos HTML, en el orden recibido.
+def format_attributes(**attrs: object) -> str:
+    """Turn the keyword arguments into HTML attributes, in the order received.
 
-    Los que valen `True` van solo con el nombre; los que valen False o None se omiten.
+    Those set to `True` get just the name; those set to False or None are omitted.
 
-    >>> formatear_atributos(id="x", disabled=True, hidden=False, title="Hola")
-    'id="x" disabled title="Hola"'
+    >>> format_attributes(id="x", disabled=True, hidden=False, title="Hello")
+    'id="x" disabled title="Hello"'
     """
     raise NotImplementedError("TODO")

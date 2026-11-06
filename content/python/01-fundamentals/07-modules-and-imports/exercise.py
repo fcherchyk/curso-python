@@ -1,4 +1,4 @@
-"""Módulos, paquetes e imports."""
+"""Modules, packages and imports."""
 
 import importlib  # noqa: F401
 from importlib.metadata import PackageNotFoundError, version  # noqa: F401
@@ -6,39 +6,39 @@ from types import ModuleType
 from typing import Any
 
 
-def importar(ruta: str) -> Any:
-    """Importá un objeto a partir de un string "paquete.modulo:nombre" o
-    "paquete.modulo.nombre" (lo que va después del último `.` o del `:` es el atributo).
+def import_object(path: str) -> Any:
+    """Import an object from a string "package.module:name" or
+    "package.module.name" (whatever comes after the last `.` or the `:` is the attribute).
 
-    >>> importar("math:sqrt")(16)
+    >>> import_object("math:sqrt")(16)
     4.0
-    >>> importar("os.path.join")("a", "b")
+    >>> import_object("os.path.join")("a", "b")
     'a/b'
     """
     raise NotImplementedError("TODO")
 
 
-def api_publica(modulo: ModuleType) -> list[str]:
-    """Nombres públicos de un módulo, ordenados.
+def public_api(module: ModuleType) -> list[str]:
+    """Public names of a module, sorted.
 
-    Si el módulo define `__all__`, son esos. Si no, todos los que no empiezan con `_`.
+    If the module defines `__all__`, it's those. Otherwise, every name that doesn't start with `_`.
     """
     raise NotImplementedError("TODO")
 
 
-def version_instalada(paquete: str) -> str | None:
-    """Versión instalada del paquete, o None si no está instalado.
+def installed_version(package: str) -> str | None:
+    """Installed version of the package, or None if it isn't installed.
 
-    Pista: `importlib.metadata.version`.
+    Hint: `importlib.metadata.version`.
     """
     raise NotImplementedError("TODO")
 
 
 def main(argv: list[str]) -> int:
-    """Punto de entrada: imprimí "Hola, NOMBRE!" por cada argumento y devolvé 0.
-    Sin argumentos, imprimí "uso: saludar NOMBRE..." y devolvé 2.
+    """Entry point: print "Hello, NAME!" for each argument and return 0.
+    With no arguments, print "usage: greet NAME..." and return 2.
 
-    Además, agregá al final del archivo la guarda de `__name__` (ver la lección)
-    que llame a `main(sys.argv[1:])` y salga con su resultado.
+    Also, add the `__name__` guard (see the lesson) at the end of the file
+    that calls `main(sys.argv[1:])` and exits with its result.
     """
     raise NotImplementedError("TODO")

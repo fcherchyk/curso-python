@@ -1,34 +1,34 @@
 [[questions]]
-text = "Después de `a = [1]; b = a; b.append(2)`, ¿cuánto vale `a`?"
-options = ["`[1]`", "`[1, 2]`", "`[2]`", "Levanta `NameError`"]
+text = "After `a = [1]; b = a; b.append(2)`, what is `a`?"
+options = ["`[1]`", "`[1, 2]`", "`[2]`", "Raises `NameError`"]
 correct = 1
-explanation = "`b = a` no copia: los dos nombres apuntan a la misma lista, así que el `append` se ve desde ambos."
+explanation = "`b = a` doesn't copy: both names point to the same list, so the `append` is visible through both."
 
 [[questions]]
-text = "¿Cuándo es correcto usar `is` en lugar de `==`?"
+text = "When is it correct to use `is` instead of `==`?"
 options = [
-  "Para comparar strings cortos, porque es más rápido",
-  "Para comparar con singletons como `None`",
-  "Siempre que los dos lados sean del mismo tipo",
-  "Para comparar números enteros",
+  "To compare short strings, because it's faster",
+  "To compare against singletons like `None`",
+  "Whenever both sides are of the same type",
+  "To compare integers",
 ]
 correct = 1
-explanation = "`is` compara identidad. Se usa con `None` y centinelas. Que funcione con enteros chicos o strings cortos es un detalle de implementación de CPython."
+explanation = "`is` compares identity. Use it with `None` and sentinels. That it works with small ints or short strings is a CPython implementation detail."
 
 [[questions]]
-text = "¿Qué devuelve `-7 // 2`?"
+text = "What does `-7 // 2` return?"
 options = ["`-3`", "`-4`", "`-3.5`", "`3`"]
 correct = 1
-explanation = "La división entera redondea hacia -infinito (floor), no hacia cero. Por eso `-7 // 2` es `-4` y `-7 % 2` es `1`."
+explanation = "Integer division rounds toward negative infinity (floor), not toward zero. That's why `-7 // 2` is `-4` and `-7 % 2` is `1`."
 
 [[questions]]
-text = "`t = [[0] * 2] * 2; t[0][0] = 5`. ¿Cuánto vale `t`?"
-options = ["`[[5, 0], [0, 0]]`", "`[[5, 0], [5, 0]]`", "`[[5, 5], [0, 0]]`", "Levanta `TypeError`"]
+text = "`t = [[0] * 2] * 2; t[0][0] = 5`. What is `t`?"
+options = ["`[[5, 0], [0, 0]]`", "`[[5, 0], [5, 0]]`", "`[[5, 5], [0, 0]]`", "Raises `TypeError`"]
 correct = 1
-explanation = "`* 2` repite la referencia a la **misma** lista interna. Para filas independientes: `[[0] * 2 for _ in range(2)]`."
+explanation = "`* 2` repeats the reference to the **same** inner list. For independent rows: `[[0] * 2 for _ in range(2)]`."
 
 [[questions]]
-text = "¿Cuál es la forma correcta de representar `0.1` pesos para cálculos exactos?"
+text = "What's the correct way to represent `0.1` dollars for exact calculations?"
 options = ["`0.1`", "`Decimal(0.1)`", "`Decimal(\"0.1\")`", "`float(\"0.1\")`"]
 correct = 2
-explanation = "`Decimal` construido desde un string conserva el valor decimal exacto. Desde un float, hereda el error de la representación binaria."
+explanation = "A `Decimal` built from a string keeps the exact decimal value. Built from a float, it inherits the binary representation error."
