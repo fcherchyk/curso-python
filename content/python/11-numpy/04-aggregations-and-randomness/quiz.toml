@@ -1,49 +1,49 @@
 [[questions]]
-text = "En una matriz de ventas con días en las filas y productos en las columnas, ¿qué da `ventas.sum(axis=0)`?"
+text = "In a sales matrix with days in the rows and products in the columns, what does `sales.sum(axis=0)` give?"
 options = [
-  "El total por día",
-  "El total por producto",
-  "El total general",
-  "La suma acumulada",
+  "The total per day",
+  "The total per product",
+  "The grand total",
+  "The cumulative sum",
 ]
 correct = 1
-explanation = "`axis=0` colapsa las filas (los días): queda un resultado por columna, es decir, por producto."
+explanation = "`axis=0` collapses the rows (the days): you get one result per column, that is, per product."
 
 [[questions]]
-text = "¿Qué devuelve `np.array([1.0, np.nan, 3.0]).mean()`?"
-options = ["`2.0`", "`nan`", "`1.33`", "Levanta un error"]
+text = "What does `np.array([1.0, np.nan, 3.0]).mean()` return?"
+options = ["`2.0`", "`nan`", "`1.33`", "It raises an error"]
 correct = 1
-explanation = "Un `nan` contamina el resultado. Para ignorarlo: `np.nanmean`."
+explanation = "A `nan` contaminates the result. To ignore it: `np.nanmean`."
 
 [[questions]]
-text = "¿Por qué se recomienda `np.random.default_rng(semilla)` en lugar de `np.random.seed(semilla)`?"
+text = "Why is `np.random.default_rng(seed)` recommended over `np.random.seed(seed)`?"
 options = [
-  "Porque es más rápido",
-  "Porque crea un generador independiente que se puede pasar como parámetro, sin estado global compartido",
-  "Porque `seed` no existe",
-  "Porque genera números más aleatorios",
+  "Because it's faster",
+  "Because it creates an independent generator you can pass as a parameter, with no shared global state",
+  "Because `seed` doesn't exist",
+  "Because it generates more random numbers",
 ]
 correct = 1
-explanation = "El estado global puede ser alterado por cualquier código. Un generador propio hace las funciones reproducibles y testeables."
+explanation = "Global state can be altered by any code. Your own generator makes functions reproducible and testable."
 
 [[questions]]
-text = "¿Cuál es la diferencia entre `v.std()` y `v.std(ddof=1)`?"
+text = "What is the difference between `v.std()` and `v.std(ddof=1)`?"
 options = [
-  "Ninguna",
-  "El primero es el desvío poblacional (divide por n) y el segundo, el muestral (divide por n-1)",
-  "El segundo ignora los nan",
-  "El primero redondea",
+  "None",
+  "The first is the population standard deviation (divides by n) and the second is the sample one (divides by n-1)",
+  "The second ignores nan values",
+  "The first rounds",
 ]
 correct = 1
-explanation = "NumPy usa `ddof=0` por defecto y pandas, `ddof=1`. Con muestras chicas la diferencia es notable."
+explanation = "NumPy uses `ddof=0` by default and pandas uses `ddof=1`. With small samples the difference is noticeable."
 
 [[questions]]
-text = "¿Qué calcula `(rng.integers(1, 7, size=(100_000, 2)).sum(axis=1) == 7).mean()`?"
+text = "What does `(rng.integers(1, 7, size=(100_000, 2)).sum(axis=1) == 7).mean()` compute?"
 options = [
-  "El promedio de los dados",
-  "Una estimación por Monte Carlo de la probabilidad de que dos dados sumen 7",
-  "La cantidad de sietes",
-  "Un error: `integers` no incluye el 6",
+  "The average of the dice",
+  "A Monte Carlo estimate of the probability that two dice add up to 7",
+  "The number of sevens",
+  "An error: `integers` doesn't include 6",
 ]
 correct = 1
-explanation = "Simula 100.000 tiradas de dos dados, suma por fila y calcula la proporción de sietes (≈ 1/6). El 7 del `integers` está excluido: los valores van del 1 al 6."
+explanation = "It simulates 100,000 rolls of two dice, sums each row and computes the proportion of sevens (≈ 1/6). The 7 in `integers` is excluded: values go from 1 to 6."

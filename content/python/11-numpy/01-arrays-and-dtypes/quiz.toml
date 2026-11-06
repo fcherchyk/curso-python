@@ -1,34 +1,34 @@
 [[questions]]
-text = "¿Qué `dtype` tiene `np.array([1, 2, 3.5])`?"
-options = ["`int64`", "`float64`", "`object`", "Mezclado: dos int y un float"]
+text = "What `dtype` does `np.array([1, 2, 3.5])` have?"
+options = ["`int64`", "`float64`", "`object`", "Mixed: two ints and a float"]
 correct = 1
-explanation = "Un array tiene un solo tipo. Al mezclar enteros y floats, NumPy elige el más general: `float64`."
+explanation = "An array has a single type. When you mix integers and floats, NumPy picks the more general one: `float64`."
 
 [[questions]]
-text = "Con `v = np.arange(5); s = v[1:3]; s[0] = 99`, ¿cuánto vale `v`?"
+text = "With `v = np.arange(5); s = v[1:3]; s[0] = 99`, what is `v`?"
 options = ["`[0 1 2 3 4]`", "`[0 99 2 3 4]`", "`[99 1 2 3 4]`", "Error"]
 correct = 1
-explanation = "Los slices de NumPy son vistas sobre los mismos datos. Para un slice independiente, `.copy()`."
+explanation = "NumPy slices are views over the same data. For an independent slice, use `.copy()`."
 
 [[questions]]
-text = "¿Qué `shape` tiene `np.zeros((2, 3)).T`?"
+text = "What `shape` does `np.zeros((2, 3)).T` have?"
 options = ["`(2, 3)`", "`(3, 2)`", "`(6,)`", "`(3,)`"]
 correct = 1
-explanation = "`.T` transpone: las filas pasan a ser columnas."
+explanation = "`.T` transposes: rows become columns."
 
 [[questions]]
-text = "¿Qué hace `-1` en `a.reshape(-1, 4)`?"
+text = "What does `-1` do in `a.reshape(-1, 4)`?"
 options = [
-  "Invierte el array",
-  "Le pide a NumPy que calcule esa dimensión para que entren todos los elementos",
-  "Elimina la última fila",
-  "Es un error",
+  "Reverses the array",
+  "Asks NumPy to compute that dimension so that all the elements fit",
+  "Drops the last row",
+  "It's an error",
 ]
 correct = 1
-explanation = "Con 12 elementos, `reshape(-1, 4)` da `(3, 4)`. Solo una dimensión puede ser -1."
+explanation = "With 12 elements, `reshape(-1, 4)` gives `(3, 4)`. Only one dimension can be -1."
 
 [[questions]]
-text = "¿Cuál es la forma correcta de acceder a la fila 1, columna 2 de una matriz NumPy?"
-options = ["`m[1][2]` (la única forma)", "`m[1, 2]`", "`m(1, 2)`", "`m.get(1, 2)`"]
+text = "What is the right way to access row 1, column 2 of a NumPy matrix?"
+options = ["`m[1][2]` (the only way)", "`m[1, 2]`", "`m(1, 2)`", "`m.get(1, 2)`"]
 correct = 1
-explanation = "`m[1][2]` también funciona, pero crea una vista intermedia. `m[1, 2]` es la forma idiomática y más eficiente, y además permite `m[:, 2]`."
+explanation = "`m[1][2]` also works, but it creates an intermediate view. `m[1, 2]` is the idiomatic and more efficient form, and it also allows `m[:, 2]`."

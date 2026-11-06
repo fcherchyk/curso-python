@@ -1,137 +1,137 @@
-# Vectorización: pensar en arrays, no en bucles
+# Vectorization: think in arrays, not loops
 
-La idea más importante de NumPy (y de pandas) es la **vectorización**: en lugar de recorrer los
-elementos con un `for`, escribís **una operación sobre el array entero** y NumPy la ejecuta en C.
-El código queda más corto, se lee como una fórmula matemática y es entre 10 y 100 veces más
-rápido. Aprender a "pensar vectorizado" es el cambio de mentalidad que hay que hacer para
-trabajar con datos.
+The most important idea in NumPy (and in pandas) is **vectorization**: instead of walking through
+the elements with a `for`, you write **one operation on the whole array** and NumPy runs it in C.
+The code gets shorter, reads like a math formula, and is 10 to 100 times
+faster. Learning to "think vectorized" is the mindset shift you need to make to
+work with data.
 
-## Operaciones elemento a elemento
+## Element-wise operations
 
 ```python
-precios = np.array([100.0, 250.0, 80.0])
-cantidades = np.array([2, 1, 5])
+prices = np.array([100.0, 250.0, 80.0])
+quantities = np.array([2, 1, 5])
 
-precios * cantidades         # [200. 250. 400.]: multiplica posición a posición
-precios * 1.21               # IVA a todos
-precios + 10                 # suma 10 a cada uno
-precios ** 2, -precios, precios / cantidades
-(precios * cantidades).sum() # 850.0: el total
+prices * quantities          # [200. 250. 400.]: multiplies position by position
+prices * 1.21                # tax on all of them
+prices + 10                  # adds 10 to each one
+prices ** 2, -prices, prices / quantities
+(prices * quantities).sum()  # 850.0: the total
 ```
 
-Con dos arrays, las formas tienen que ser compatibles (o "broadcasteables", próximo capítulo).
-Con un escalar, se aplica a todos.
+With two arrays, the shapes have to be compatible (or "broadcastable", next chapter).
+With a scalar, it applies to every element.
 
-Comparalo con la versión de Python puro:
+Compare it with the plain Python version:
 
 ```python
 total = 0
-for p, c in zip(precios, cantidades):
-    total += p * c
+for p, q in zip(prices, quantities):
+    total += p * q
 ```
 
-## Funciones universales (ufuncs)
+## Universal functions (ufuncs)
 
-NumPy trae versiones vectorizadas de las funciones matemáticas:
+NumPy ships vectorized versions of the math functions:
 
 ```python
 np.sqrt(v), np.exp(v), np.log(v), np.abs(v), np.round(v, 2)
-np.maximum(a, b)            # máximo elemento a elemento (no confundir con np.max, que reduce)
+np.maximum(a, b)            # element-wise maximum (don't confuse with np.max, which reduces)
 np.hypot(x, y)              # sqrt(x² + y²)
-np.clip(v, 0, 100)          # acota cada valor al rango [0, 100]
+np.clip(v, 0, 100)          # clamps each value to the range [0, 100]
 ```
 
-`math.sqrt` **no** funciona con arrays (espera un número). Dentro de código NumPy, usá siempre
-`np.sqrt` y compañía.
+`math.sqrt` does **not** work with arrays (it expects a number). In NumPy code, always use
+`np.sqrt` and friends.
 
-## Condicionales vectorizados: `np.where` y `np.select`
+## Vectorized conditionals: `np.where` and `np.select`
 
-Un `if` dentro de un bucle se reemplaza por `np.where(condicion, si_verdadero, si_falso)`:
+An `if` inside a loop is replaced by `np.where(condition, if_true, if_false)`:
 
 ```python
-# 10 % de descuento a los precios mayores a 200
-np.where(precios > 200, precios * 0.9, precios)     # [100. 225.  80.]
+# 10% discount on prices greater than 200
+np.where(prices > 200, prices * 0.9, prices)     # [100. 225.  80.]
 ```
 
-Para varias ramas, `np.select`:
+For several branches, `np.select`:
 
 ```python
-condiciones = [temps < 10, temps < 25]
-opciones = ["frío", "templado"]
-np.select(condiciones, opciones, default="calor")
+conditions = [temps < 10, temps < 25]
+choices = ["cold", "mild"]
+np.select(conditions, choices, default="hot")
 ```
 
-## Por qué es tan rápido
+## Why it's so fast
 
-Un `for` de Python sobre un array hace, **por cada elemento**:
+A Python `for` over an array does, **for each element**:
 
-1. crear un objeto Python (un `float` o un `int` con su cabecera),
-2. buscar el método `__mul__` y despacharlo dinámicamente,
-3. verificar tipos y manejar el contador de referencias.
+1. create a Python object (a `float` or an `int` with its header),
+2. look up the `__mul__` method and dispatch it dynamically,
+3. check types and manage the reference count.
 
-La operación vectorizada, en cambio, recorre memoria contigua con un tipo conocido, en un bucle
-de C compilado que además puede usar instrucciones SIMD del procesador. Con un millón de
-elementos:
+The vectorized operation, on the other hand, walks contiguous memory with a known type, in a
+compiled C loop that can also use the processor's SIMD instructions. With a million
+elements:
 
 ```python
 v = np.random.default_rng(0).random(1_000_000)
 
-# Python puro: ~150 ms
+# Plain Python: ~150 ms
 sum(x * x for x in v)
 
 # NumPy: ~1 ms
-(v * v).sum()        # o np.dot(v, v), o np.sum(v ** 2)
+(v * v).sum()        # or np.dot(v, v), or np.sum(v ** 2)
 ```
 
-Medilo vos con `timeit`:
+Measure it yourself with `timeit`:
 
 ```python
 import timeit
 timeit.timeit(lambda: (v * v).sum(), number=100) / 100
 ```
 
-### Anti-patrones que matan la performance
+### Anti-patterns that kill performance
 
 ```python
-# ✗ append en un bucle
+# ✗ append in a loop
 res = np.array([])
-for x in datos:
-    res = np.append(res, f(x))     # ¡copia TODO el array en cada vuelta: O(n²)!
+for x in data:
+    res = np.append(res, f(x))     # copies the WHOLE array on every iteration: O(n²)!
 
-# ✗ np.vectorize "para que sea rápido"
-f_vec = np.vectorize(f)            # es un for de Python con otra cara: NO acelera
+# ✗ np.vectorize "to make it fast"
+f_vec = np.vectorize(f)            # it's a Python for loop in disguise: NO speedup
 ```
 
-Si una operación no se puede expresar con ufuncs, `where`, slicing o agregaciones, vale la pena
-repensar el algoritmo antes de recurrir a un bucle. Si no hay alternativa, existen **Numba**
-(compila funciones con `@njit`) o Cython.
+If an operation can't be expressed with ufuncs, `where`, slicing or aggregations, it's worth
+rethinking the algorithm before falling back to a loop. If there's no alternative, there's **Numba**
+(compiles functions with `@njit`) or Cython.
 
-## Pensar vectorizado: un ejemplo
+## Thinking vectorized: an example
 
-"Para cada día, ¿cuánto subió el precio respecto del día anterior, en porcentaje?"
+"For each day, how much did the price go up relative to the previous day, as a percentage?"
 
 ```python
-precios = np.array([100, 102, 99, 105])
-# Bucle: for i in range(1, len(precios)): (precios[i] - precios[i-1]) / precios[i-1]
-cambios = precios[1:] / precios[:-1] - 1      # [ 0.02  -0.0294  0.0606]
+prices = np.array([100, 102, 99, 105])
+# Loop: for i in range(1, len(prices)): (prices[i] - prices[i-1]) / prices[i-1]
+pct = prices[1:] / prices[:-1] - 1      # [ 0.02  -0.0294  0.0606]
 ```
 
-Comparar `a[1:]` con `a[:-1]` (el array "corrido" un lugar) es un truco que vas a ver en todo el
-análisis de datos. En pandas es `pct_change()`.
+Comparing `a[1:]` with `a[:-1]` (the array "shifted" by one position) is a trick you'll see all
+over data analysis. In pandas it's `pct_change()`.
 
-## Resumen
+## Summary
 
-- Las operaciones entre arrays (y con escalares) son elemento a elemento.
-- Ufuncs (`np.sqrt`, `np.exp`, `np.maximum`, `np.clip`…) en lugar de `math` y de bucles.
-- `np.where` / `np.select` reemplazan al `if` dentro del bucle.
-- La vectorización es entre 10 y 100 veces más rápida: memoria contigua, tipos conocidos y
-  bucles en C.
-- Evitá `np.append` en bucles y no esperes milagros de `np.vectorize`.
+- Operations between arrays (and with scalars) are element-wise.
+- Ufuncs (`np.sqrt`, `np.exp`, `np.maximum`, `np.clip`…) instead of `math` and loops.
+- `np.where` / `np.select` replace the `if` inside the loop.
+- Vectorization is 10 to 100 times faster: contiguous memory, known types and
+  loops in C.
+- Avoid `np.append` in loops and don't expect miracles from `np.vectorize`.
 
-## Ejercicio
+## Exercise
 
-Cuatro funciones sin bucles de Python. Una de ellas tiene un test que **mide** que tu versión
-sea mucho más rápida que un bucle.
+Four functions without Python loops. One of them has a test that **measures** that your version
+is much faster than a loop.
 
-**Para profundizar:** [Universal functions](https://numpy.org/doc/stable/reference/ufuncs.html),
+**Further reading:** [Universal functions](https://numpy.org/doc/stable/reference/ufuncs.html),
 [Why is NumPy fast?](https://numpy.org/doc/stable/user/whatisnumpy.html#why-is-numpy-fast)

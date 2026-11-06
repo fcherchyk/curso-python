@@ -1,27 +1,27 @@
 import numpy as np
 
 
-def resumen_por_columna(m: np.ndarray) -> dict[str, np.ndarray]:
+def column_summary(m: np.ndarray) -> dict[str, np.ndarray]:
     return {
-        "media": np.nanmean(m, axis=0),
-        "desvio": np.nanstd(m, axis=0, ddof=1),
-        "minimo": np.nanmin(m, axis=0),
-        "maximo": np.nanmax(m, axis=0),
+        "mean": np.nanmean(m, axis=0),
+        "std": np.nanstd(m, axis=0, ddof=1),
+        "min": np.nanmin(m, axis=0),
+        "max": np.nanmax(m, axis=0),
     }
 
 
-def mejor_dia_por_producto(ventas: np.ndarray, dias: np.ndarray) -> list[str]:
-    return dias[ventas.argmax(axis=0)].tolist()
+def best_day_per_product(sales: np.ndarray, days: np.ndarray) -> list[str]:
+    return days[sales.argmax(axis=0)].tolist()
 
 
-def prob_suma_dados(objetivo: int, n: int, semilla: int) -> float:
-    rng = np.random.default_rng(semilla)
-    sumas = rng.integers(1, 7, size=(n, 2)).sum(axis=1)
-    return float((sumas == objetivo).mean())
+def dice_sum_prob(target: int, n: int, seed: int) -> float:
+    rng = np.random.default_rng(seed)
+    sums = rng.integers(1, 7, size=(n, 2)).sum(axis=1)
+    return float((sums == target).mean())
 
 
-def intervalo_bootstrap(muestra: np.ndarray, n: int, semilla: int) -> tuple[float, float]:
-    rng = np.random.default_rng(semilla)
-    medias = rng.choice(muestra, size=(n, len(muestra)), replace=True).mean(axis=1)
-    bajo, alto = np.percentile(medias, [2.5, 97.5])
-    return float(bajo), float(alto)
+def bootstrap_interval(sample: np.ndarray, n: int, seed: int) -> tuple[float, float]:
+    rng = np.random.default_rng(seed)
+    means = rng.choice(sample, size=(n, len(sample)), replace=True).mean(axis=1)
+    low, high = np.percentile(means, [2.5, 97.5])
+    return float(low), float(high)

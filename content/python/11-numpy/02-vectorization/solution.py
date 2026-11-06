@@ -1,26 +1,26 @@
 import numpy as np
 
 
-def total_factura(precios: np.ndarray, cantidades: np.ndarray, iva: float = 0.21) -> float:
-    return round(float((precios * cantidades).sum() * (1 + iva)), 2)
+def invoice_total(prices: np.ndarray, quantities: np.ndarray, tax: float = 0.21) -> float:
+    return round(float((prices * quantities).sum() * (1 + tax)), 2)
 
 
-def normalizar(v: np.ndarray) -> np.ndarray:
+def normalize(v: np.ndarray) -> np.ndarray:
     v = v.astype(np.float64)
-    rango = v.max() - v.min()
-    if rango == 0:
+    spread = v.max() - v.min()
+    if spread == 0:
         return np.zeros_like(v)
-    return (v - v.min()) / rango
+    return (v - v.min()) / spread
 
 
-def precios_finales(precios: np.ndarray, umbral: float) -> np.ndarray:
-    con_descuento = np.where(precios > umbral, precios * 0.9, precios)
-    return np.clip(con_descuento, 0, 1000).astype(np.float64)
+def final_prices(prices: np.ndarray, threshold: float) -> np.ndarray:
+    discounted = np.where(prices > threshold, prices * 0.9, prices)
+    return np.clip(discounted, 0, 1000).astype(np.float64)
 
 
-def variaciones(precios: np.ndarray) -> np.ndarray:
-    return precios[1:] / precios[:-1] - 1
+def changes(prices: np.ndarray) -> np.ndarray:
+    return prices[1:] / prices[:-1] - 1
 
 
-def suma_de_cuadrados(v: np.ndarray) -> float:
+def sum_of_squares(v: np.ndarray) -> float:
     return float(np.dot(v, v))

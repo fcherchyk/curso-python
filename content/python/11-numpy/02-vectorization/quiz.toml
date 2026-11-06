@@ -1,49 +1,49 @@
 [[questions]]
-text = "¿Qué devuelve `np.array([1, 2, 3]) * np.array([4, 5, 6])`?"
-options = ["`32` (producto escalar)", "`[4, 10, 18]`", "Una lista repetida", "Error"]
+text = "What does `np.array([1, 2, 3]) * np.array([4, 5, 6])` return?"
+options = ["`32` (dot product)", "`[4, 10, 18]`", "A repeated list", "Error"]
 correct = 1
-explanation = "Los operadores son elemento a elemento. El producto escalar es `np.dot(a, b)` o `a @ b`."
+explanation = "Operators work element-wise. The dot product is `np.dot(a, b)` or `a @ b`."
 
 [[questions]]
-text = "¿Cuál es la forma vectorizada de \"si el precio es mayor a 200, aplicar 10 % de descuento\"?"
+text = "What is the vectorized way to say \"if the price is greater than 200, apply a 10% discount\"?"
 options = [
-  "`[p * 0.9 if p > 200 else p for p in precios]`",
-  "`np.where(precios > 200, precios * 0.9, precios)`",
+  "`[p * 0.9 if p > 200 else p for p in prices]`",
+  "`np.where(prices > 200, prices * 0.9, prices)`",
   "`np.vectorize(...)`",
-  "`if precios > 200: precios *= 0.9`",
+  "`if prices > 200: prices *= 0.9`",
 ]
 correct = 1
-explanation = "`np.where` evalúa la condición sobre todo el array y elige elemento a elemento. El `if` sobre un array levanta un error de ambigüedad."
+explanation = "`np.where` evaluates the condition over the whole array and chooses element by element. An `if` on an array raises an ambiguity error."
 
 [[questions]]
-text = "¿Por qué `np.append` dentro de un bucle es una mala idea?"
+text = "Why is `np.append` inside a loop a bad idea?"
 options = [
-  "Porque no existe",
-  "Porque crea un array nuevo y copia todo en cada llamada: el bucle queda O(n²)",
-  "Porque cambia el dtype",
-  "Porque no se puede usar con floats",
+  "Because it doesn't exist",
+  "Because it creates a new array and copies everything on every call: the loop becomes O(n²)",
+  "Because it changes the dtype",
+  "Because it can't be used with floats",
 ]
 correct = 1
-explanation = "Los arrays tienen tamaño fijo. Hay que construirlos de una vez, o juntar en una lista y convertir al final."
+explanation = "Arrays have a fixed size. Build them all at once, or collect into a list and convert at the end."
 
 [[questions]]
-text = "¿Acelera `np.vectorize(f)` una función de Python?"
+text = "Does `np.vectorize(f)` speed up a Python function?"
 options = [
-  "Sí, la compila a C",
-  "No: es esencialmente un bucle de Python; sirve por comodidad, no por velocidad",
-  "Sí, la paraleliza",
-  "Solo con floats",
+  "Yes, it compiles it to C",
+  "No: it's essentially a Python loop; it's there for convenience, not speed",
+  "Yes, it parallelizes it",
+  "Only with floats",
 ]
 correct = 1
-explanation = "La documentación lo aclara: es por conveniencia. Para acelerar de verdad: ufuncs, reformular la operación o Numba."
+explanation = "The documentation says so: it's for convenience. To really speed things up: ufuncs, reformulating the operation, or Numba."
 
 [[questions]]
-text = "¿Qué calcula `precios[1:] / precios[:-1] - 1`?"
+text = "What does `prices[1:] / prices[:-1] - 1` compute?"
 options = [
-  "El precio promedio",
-  "La variación porcentual de cada día respecto del anterior",
-  "El precio máximo",
-  "Un error de forma",
+  "The average price",
+  "The percentage change of each day relative to the previous one",
+  "The maximum price",
+  "A shape error",
 ]
 correct = 1
-explanation = "Divide cada precio por el anterior (el array corrido un lugar). Es el retorno diario, `pct_change` en pandas."
+explanation = "It divides each price by the previous one (the array shifted by one position). It's the daily return, `pct_change` in pandas."

@@ -1,36 +1,36 @@
-"""Vectorización. Nada de bucles `for` ni comprehensions: solo operaciones de NumPy."""
+"""Vectorization. No `for` loops or comprehensions: NumPy operations only."""
 
 import numpy as np
 
 
-def total_factura(precios: np.ndarray, cantidades: np.ndarray, iva: float = 0.21) -> float:
-    """Suma de precio * cantidad, con IVA, redondeada a 2 decimales."""
+def invoice_total(prices: np.ndarray, quantities: np.ndarray, tax: float = 0.21) -> float:
+    """Sum of price * quantity, with tax, rounded to 2 decimals."""
     raise NotImplementedError("TODO")
 
 
-def normalizar(v: np.ndarray) -> np.ndarray:
-    """Escalá v al rango [0, 1]: (v - mín) / (máx - mín).
-    Si todos los valores son iguales, devolvé un array de ceros (float).
+def normalize(v: np.ndarray) -> np.ndarray:
+    """Scale v to the range [0, 1]: (v - min) / (max - min).
+    If all the values are equal, return an array of zeros (float).
     """
     raise NotImplementedError("TODO")
 
 
-def precios_finales(precios: np.ndarray, umbral: float) -> np.ndarray:
-    """10 % de descuento a los precios MAYORES al umbral; después, acotá todo al
-    rango [0, 1000] (np.clip). Devolvé floats.
+def final_prices(prices: np.ndarray, threshold: float) -> np.ndarray:
+    """Apply a 10% discount to prices GREATER than the threshold; then clamp everything to the
+    range [0, 1000] (np.clip). Return floats.
     """
     raise NotImplementedError("TODO")
 
 
-def variaciones(precios: np.ndarray) -> np.ndarray:
-    """Variación relativa de cada precio respecto del anterior (largo n-1).
+def changes(prices: np.ndarray) -> np.ndarray:
+    """Relative change of each price with respect to the previous one (length n-1).
 
-    >>> variaciones(np.array([100, 110, 99]))
+    >>> changes(np.array([100, 110, 99]))
     array([ 0.1, -0.1])
     """
     raise NotImplementedError("TODO")
 
 
-def suma_de_cuadrados(v: np.ndarray) -> float:
-    """Suma de los cuadrados de v. Tiene que ser MUCHO más rápida que un bucle de Python."""
+def sum_of_squares(v: np.ndarray) -> float:
+    """Sum of the squares of v. It must be MUCH faster than a Python loop."""
     raise NotImplementedError("TODO")

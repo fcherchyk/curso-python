@@ -1,27 +1,27 @@
 import numpy as np
 
 
-def en_rango(v: np.ndarray, minimo: float, maximo: float) -> np.ndarray:
-    return v[(v >= minimo) & (v <= maximo)]
+def in_range(v: np.ndarray, low: float, high: float) -> np.ndarray:
+    return v[(v >= low) & (v <= high)]
 
 
-def reemplazar_atipicos(v: np.ndarray, limite: float) -> np.ndarray:
-    return np.where(np.abs(v) > limite, 0, v)
+def replace_outliers(v: np.ndarray, limit: float) -> np.ndarray:
+    return np.where(np.abs(v) > limit, 0, v)
 
 
-def mejores(nombres: np.ndarray, puntajes: np.ndarray, k: int) -> list[str]:
-    orden = np.argsort(puntajes)[::-1][:k]  # posiciones de mayor a menor
-    return nombres[orden].tolist()
+def top(names: np.ndarray, scores: np.ndarray, k: int) -> list[str]:
+    order = np.argsort(scores)[::-1][:k]  # positions from highest to lowest
+    return names[order].tolist()
 
 
-def centrar_columnas(m: np.ndarray) -> np.ndarray:
+def center_columns(m: np.ndarray) -> np.ndarray:
     return m - m.mean(axis=0)
 
 
-def proporcion_sobre_promedio_por_fila(m: np.ndarray) -> np.ndarray:
+def share_above_row_mean(m: np.ndarray) -> np.ndarray:
     return (m > m.mean(axis=1, keepdims=True)).mean(axis=1)
 
 
-def tabla_de_multiplicar(n: int) -> np.ndarray:
+def multiplication_table(n: int) -> np.ndarray:
     a = np.arange(1, n + 1)
     return a[:, None] * a[None, :]

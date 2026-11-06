@@ -1,78 +1,78 @@
-# Arrays y dtypes
+# Arrays and dtypes
 
-NumPy es la base de todo el Python numérico: pandas, matplotlib, scikit-learn, SciPy y PyTorch
-están construidos sobre su objeto central, el **`ndarray`**. Un array se parece a una lista, pero
-es muy distinto por dentro: **todos sus elementos tienen el mismo tipo**, están guardados
-**contiguos en memoria** y las operaciones se ejecutan en C, sin el costo del intérprete por
-cada elemento.
+NumPy is the foundation of all numerical Python: pandas, matplotlib, scikit-learn, SciPy and PyTorch
+are built on top of its central object, the **`ndarray`**. An array looks like a list, but it is
+very different inside: **all its elements have the same type**, they are stored
+**contiguously in memory**, and operations run in C, without paying the interpreter's cost for
+each element.
 
 ```bash
 uv add numpy
 ```
 
 ```python
-import numpy as np        # el alias es una convención universal
+import numpy as np        # the alias is a universal convention
 ```
 
-## Crear arrays
+## Creating arrays
 
 ```python
-np.array([1, 2, 3])                     # desde una lista
-np.array([[1, 2], [3, 4]])              # 2D (matriz)
+np.array([1, 2, 3])                     # from a list
+np.array([[1, 2], [3, 4]])              # 2D (matrix)
 np.zeros(5)                             # [0. 0. 0. 0. 0.]
-np.ones((2, 3))                         # 2 filas, 3 columnas de unos
+np.ones((2, 3))                         # 2 rows, 3 columns of ones
 np.full(3, 7)                           # [7 7 7]
-np.arange(0, 10, 2)                     # [0 2 4 6 8]: como range, pero devuelve un array
-np.linspace(0, 1, 5)                    # [0. 0.25 0.5 0.75 1.]: 5 puntos equiespaciados, con el final
-np.eye(3)                               # matriz identidad
+np.arange(0, 10, 2)                     # [0 2 4 6 8]: like range, but returns an array
+np.linspace(0, 1, 5)                    # [0. 0.25 0.5 0.75 1.]: 5 evenly spaced points, endpoint included
+np.eye(3)                               # identity matrix
 ```
 
-`arange` con pasos decimales puede sorprender por los errores de redondeo. Para "n puntos entre a
-y b" usá `linspace`.
+`arange` with decimal steps can surprise you because of rounding errors. For "n points between a
+and b", use `linspace`.
 
-## Forma, dimensiones y tamaño
+## Shape, dimensions and size
 
 ```python
 m = np.array([[1, 2, 3], [4, 5, 6]])
-m.shape        # (2, 3): filas, columnas
+m.shape        # (2, 3): rows, columns
 m.ndim         # 2
-m.size         # 6: cantidad total de elementos
-len(m)         # 2: el largo de la primera dimensión
+m.size         # 6: total number of elements
+len(m)         # 2: the length of the first dimension
 
-m.reshape(3, 2)        # [[1 2] [3 4] [5 6]]: misma data, otra forma
-m.reshape(-1)          # aplanado; -1 = "calculalo vos"
-m.T                    # transpuesta: shape (3, 2)
+m.reshape(3, 2)        # [[1 2] [3 4] [5 6]]: same data, different shape
+m.reshape(-1)          # flattened; -1 = "you figure it out"
+m.T                    # transpose: shape (3, 2)
 ```
 
-`reshape` normalmente devuelve una **vista** (no copia los datos). La cantidad de elementos
-tiene que coincidir: `reshape(4, 2)` sobre 6 elementos falla.
+`reshape` usually returns a **view** (it doesn't copy the data). The number of elements
+has to match: `reshape(4, 2)` on 6 elements fails.
 
-## dtype: el tipo de TODOS los elementos
+## dtype: the type of ALL the elements
 
 ```python
 np.array([1, 2, 3]).dtype          # int64
-np.array([1.5, 2]).dtype           # float64  ← un float "contagia" a todos
+np.array([1.5, 2]).dtype           # float64  ← one float "infects" all of them
 np.array([1, 2], dtype=np.float32)
 np.array([True, False]).dtype      # bool
-np.array(["a", "bc"]).dtype        # <U2: strings Unicode de largo fijo 2
-a.astype(np.int32)                 # convertir (devuelve una copia)
+np.array(["a", "bc"]).dtype        # <U2: fixed-length Unicode strings of length 2
+a.astype(np.int32)                 # convert (returns a copy)
 ```
 
-A diferencia de una lista de Python, que puede mezclar cualquier cosa, un array tiene **un solo
-tipo**. Si mezclás, NumPy elige el más general (`int` + `float` → `float`). Si le pasás objetos
-arbitrarios, terminás con `dtype=object` y perdés todas las ventajas.
+Unlike a Python list, which can mix anything, an array has **a single
+type**. If you mix, NumPy picks the most general one (`int` + `float` → `float`). If you pass it
+arbitrary objects, you end up with `dtype=object` and lose all the advantages.
 
-### Ojo: los enteros de NumPy tienen tamaño fijo
+### Careful: NumPy integers have a fixed size
 
 ```python
-np.array([200], dtype=np.uint8) + 100      # [44]  ← overflow silencioso (300 - 256)
-np.int64(2) ** 70                           # se desborda; en Python puro, 2 ** 70 es exacto
+np.array([200], dtype=np.uint8) + 100      # [44]  ← silent overflow (300 - 256)
+np.int64(2) ** 70                           # overflows; in plain Python, 2 ** 70 is exact
 ```
 
-Igual que en Go, los enteros de NumPy son de 8, 16, 32 o 64 bits. Para datos reales casi siempre
-alcanza `int64`/`float64`, pero conviene saber que existe el overflow.
+Just like in Go, NumPy integers are 8, 16, 32 or 64 bits. For real data `int64`/`float64` is
+almost always enough, but it's worth knowing that overflow exists.
 
-## Indexado y slicing
+## Indexing and slicing
 
 ```python
 v = np.array([10, 20, 30, 40, 50])
@@ -81,49 +81,49 @@ v[1:4]               # [20 30 40]
 v[::2]               # [10 30 50]
 
 m = np.array([[1, 2, 3], [4, 5, 6]])
-m[1, 2]              # 6: fila 1, columna 2 (en vez de m[1][2])
-m[:, 0]              # [1 4]: toda la columna 0
-m[0, :]              # [1 2 3]: toda la fila 0
+m[1, 2]              # 6: row 1, column 2 (instead of m[1][2])
+m[:, 0]              # [1 4]: all of column 0
+m[0, :]              # [1 2 3]: all of row 0
 ```
 
-### ⚠️ Los slices son vistas, no copias
+### ⚠️ Slices are views, not copies
 
 ```python
 v = np.arange(5)
 s = v[1:3]
 s[0] = 99
-v                    # [ 0 99  2  3  4]  ← ¡el original cambió!
+v                    # [ 0 99  2  3  4]  ← the original changed!
 ```
 
-Es lo **contrario** de las listas de Python, donde un slice copia, y lo mismo que pasa con los
-slices de Go. NumPy lo hace así para no copiar datos grandes sin necesidad. Si necesitás
-independencia, `.copy()`.
+This is the **opposite** of Python lists, where a slice copies, and the same as what happens with
+Go slices. NumPy does it this way to avoid copying large data unnecessarily. If you need
+independence, use `.copy()`.
 
-## Listas vs. arrays
+## Lists vs. arrays
 
-| Lista de Python                      | `ndarray`                                  |
+| Python list                          | `ndarray`                                  |
 |--------------------------------------|--------------------------------------------|
-| cualquier mezcla de tipos            | un solo `dtype`                             |
-| `[1, 2] + [3]` concatena             | `a + b` suma elemento a elemento (próximo capítulo) |
-| `xs * 2` repite la lista             | `a * 2` multiplica cada elemento            |
-| crece con `append` barato            | tamaño fijo: `np.append` crea un array nuevo |
-| el slice copia                       | el slice es una **vista**                   |
-| lenta para operar en masa            | operaciones en C, entre 10 y 100 veces más rápidas |
+| any mix of types                     | a single `dtype`                            |
+| `[1, 2] + [3]` concatenates          | `a + b` adds element-wise (next chapter)    |
+| `xs * 2` repeats the list            | `a * 2` multiplies each element             |
+| grows with a cheap `append`          | fixed size: `np.append` creates a new array |
+| a slice copies                       | a slice is a **view**                       |
+| slow for bulk operations             | operations in C, 10 to 100 times faster     |
 
-El último punto es el que importa: construí el array **de una vez** (con `np.array`, `zeros`,
-`arange`…), en lugar de hacerle `append` dentro de un bucle.
+The last point is the one that matters: build the array **all at once** (with `np.array`, `zeros`,
+`arange`…), instead of calling `append` inside a loop.
 
-## Resumen
+## Summary
 
-- `np.array`, `zeros`, `ones`, `arange`, `linspace` y `eye` para crear.
-- `shape`, `ndim`, `size`, `reshape` (con `-1`) y `.T`.
-- Un solo `dtype` por array; `astype` para convertir; cuidado con el overflow de enteros.
-- `m[fila, columna]`, `m[:, j]`, `m[i, :]`; los slices son **vistas** (`.copy()` si hace falta).
+- `np.array`, `zeros`, `ones`, `arange`, `linspace` and `eye` to create arrays.
+- `shape`, `ndim`, `size`, `reshape` (with `-1`) and `.T`.
+- One `dtype` per array; `astype` to convert; watch out for integer overflow.
+- `m[row, column]`, `m[:, j]`, `m[i, :]`; slices are **views** (`.copy()` if needed).
 
-## Ejercicio
+## Exercise
 
-Crear arrays con la forma y el tipo pedidos, cambiar su forma, extraer filas, columnas y
-diagonales y demostrar la diferencia entre vista y copia.
+Create arrays with the requested shape and type, change their shape, extract rows, columns and
+diagonals, and demonstrate the difference between a view and a copy.
 
-**Para profundizar:** [NumPy: the absolute basics for beginners](https://numpy.org/doc/stable/user/absolute_beginners.html),
+**Further reading:** [NumPy: the absolute basics for beginners](https://numpy.org/doc/stable/user/absolute_beginners.html),
 [Data types](https://numpy.org/doc/stable/user/basics.types.html).

@@ -1,40 +1,40 @@
-"""Arrays y dtypes. Usá funciones de NumPy, sin bucles de Python."""
+"""Arrays and dtypes. Use NumPy functions, no Python loops."""
 
 import numpy as np
 
 
-def tablero(filas: int, columnas: int) -> np.ndarray:
-    """Matriz de `filas` x `columnas` con los números 1, 2, 3, ... por filas, de tipo int64.
+def grid(rows: int, columns: int) -> np.ndarray:
+    """A `rows` x `columns` matrix with the numbers 1, 2, 3, ... filled row by row, of type int64.
 
-    >>> tablero(2, 3)
+    >>> grid(2, 3)
     array([[1, 2, 3],
            [4, 5, 6]])
     """
     raise NotImplementedError("TODO")
 
 
-def puntos(inicio: float, fin: float, cantidad: int) -> np.ndarray:
-    """`cantidad` puntos equiespaciados entre inicio y fin, ambos incluidos (float64)."""
+def points(start: float, stop: float, count: int) -> np.ndarray:
+    """`count` evenly spaced points between start and stop, both included (float64)."""
     raise NotImplementedError("TODO")
 
 
-def bordes(m: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Devolvé (primera columna, última fila, diagonal principal) de una matriz.
+def edges(m: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return (first column, last row, main diagonal) of a matrix.
 
-    Pista: m[:, 0], m[-1, :] y np.diag.
+    Hint: m[:, 0], m[-1, :] and np.diag.
     """
     raise NotImplementedError("TODO")
 
 
-def normalizar_copia(v: np.ndarray) -> np.ndarray:
-    """Devolvé v dividido por su máximo, como float64, SIN modificar v
-    (aunque v sea una vista de otro array).
+def normalized_copy(v: np.ndarray) -> np.ndarray:
+    """Return v divided by its maximum, as float64, WITHOUT modifying v
+    (even if v is a view of another array).
     """
     raise NotImplementedError("TODO")
 
 
-def poner_en_cero_el_medio(v: np.ndarray) -> None:
-    """Poné en 0 los elementos de v desde el índice 1 hasta el anteúltimo (inclusive),
-    modificando v EN EL LUGAR (asignando a un slice).
+def zero_the_middle(v: np.ndarray) -> None:
+    """Set the elements of v from index 1 through the second-to-last (inclusive) to 0,
+    modifying v IN PLACE (by assigning to a slice).
     """
     raise NotImplementedError("TODO")

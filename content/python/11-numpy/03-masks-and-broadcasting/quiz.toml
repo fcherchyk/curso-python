@@ -1,39 +1,39 @@
 [[questions]]
-text = "¿Por qué `v[v > 0 and v < 5]` falla?"
+text = "Why does `v[v > 0 and v < 5]` fail?"
 options = [
-  "Porque las máscaras no existen",
-  "Porque `and` intenta convertir un array a un solo bool; hay que usar `(v > 0) & (v < 5)`",
-  "Porque falta `np.where`",
-  "No falla",
+  "Because masks don't exist",
+  "Because `and` tries to convert an array to a single bool; you have to use `(v > 0) & (v < 5)`",
+  "Because `np.where` is missing",
+  "It doesn't fail",
 ]
 correct = 1
-explanation = "Con arrays se usan los operadores bit a bit `&`, `|` y `~`, y con paréntesis por la precedencia."
+explanation = "With arrays you use the bitwise operators `&`, `|` and `~`, with parentheses because of precedence."
 
 [[questions]]
-text = "¿Qué devuelve `(np.array([3, -1, 4, -5]) < 0).sum()`?"
+text = "What does `(np.array([3, -1, 4, -5]) < 0).sum()` return?"
 options = ["`-6`", "`2`", "`[False True False True]`", "`True`"]
 correct = 1
-explanation = "La máscara tiene dos `True`, y al sumar, `True` cuenta como 1."
+explanation = "The mask has two `True` values, and when summing, `True` counts as 1."
 
 [[questions]]
-text = "¿Son compatibles para broadcasting las formas `(4, 3)` y `(3,)`?"
+text = "Are the shapes `(4, 3)` and `(3,)` compatible for broadcasting?"
 options = [
-  "No, tienen distinta cantidad de dimensiones",
-  "Sí: `(3,)` se trata como `(1, 3)` y se estira a `(4, 3)`",
-  "Solo con `keepdims=True`",
-  "Solo si son de tipo float",
+  "No, they have a different number of dimensions",
+  "Yes: `(3,)` is treated as `(1, 3)` and stretched to `(4, 3)`",
+  "Only with `keepdims=True`",
+  "Only if they are of type float",
 ]
 correct = 1
-explanation = "Se comparan desde la derecha: 3 con 3 es igual, y la dimensión faltante cuenta como 1."
+explanation = "They are compared from the right: 3 and 3 are equal, and the missing dimension counts as 1."
 
 [[questions]]
-text = "Con `m` de forma `(5, 3)`, ¿qué forma tiene `m.mean(axis=1, keepdims=True)`?"
+text = "With `m` of shape `(5, 3)`, what shape does `m.mean(axis=1, keepdims=True)` have?"
 options = ["`(5,)`", "`(5, 1)`", "`(1, 3)`", "`(3,)`"]
 correct = 1
-explanation = "Se reduce el eje 1 (las columnas), pero `keepdims` lo conserva con tamaño 1. Así se puede restar a `m` fila por fila."
+explanation = "Axis 1 (the columns) is reduced, but `keepdims` keeps it with size 1. That way you can subtract it from `m` row by row."
 
 [[questions]]
-text = "¿Qué devuelve `np.argmax(np.array([7, 2, 9, 4]))`?"
+text = "What does `np.argmax(np.array([7, 2, 9, 4]))` return?"
 options = ["`9`", "`2`", "`3`", "`[False, False, True, False]`"]
 correct = 1
-explanation = "`argmax` devuelve la **posición** del máximo (índice 2), no el valor. Sirve para buscar en un array paralelo (`nombres[np.argmax(ventas)]`)."
+explanation = "`argmax` returns the **position** of the maximum (index 2), not the value. It's useful for looking things up in a parallel array (`names[np.argmax(sales)]`)."

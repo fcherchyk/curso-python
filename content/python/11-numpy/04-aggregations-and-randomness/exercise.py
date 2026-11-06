@@ -1,31 +1,31 @@
-"""Agregaciones, estadística y aleatoriedad reproducible. Sin bucles de Python."""
+"""Aggregations, statistics and reproducible randomness. No Python loops."""
 
 import numpy as np
 
 
-def resumen_por_columna(m: np.ndarray) -> dict[str, np.ndarray]:
-    """{"media", "desvio", "minimo", "maximo"} de cada columna.
-    El desvío es MUESTRAL (ddof=1). Ignorá los nan (funciones nan*).
+def column_summary(m: np.ndarray) -> dict[str, np.ndarray]:
+    """{"mean", "std", "min", "max"} of each column.
+    The standard deviation is the SAMPLE one (ddof=1). Ignore nan values (nan* functions).
     """
     raise NotImplementedError("TODO")
 
 
-def mejor_dia_por_producto(ventas: np.ndarray, dias: np.ndarray) -> list[str]:
-    """ventas: filas = días, columnas = productos. Para cada producto, el nombre del día
-    en que más vendió (argmax por eje + fancy indexing).
+def best_day_per_product(sales: np.ndarray, days: np.ndarray) -> list[str]:
+    """sales: rows = days, columns = products. For each product, the name of the day
+    it sold the most (argmax along an axis + fancy indexing).
     """
     raise NotImplementedError("TODO")
 
 
-def prob_suma_dados(objetivo: int, n: int, semilla: int) -> float:
-    """Probabilidad estimada por Monte Carlo de que la suma de DOS dados sea `objetivo`.
-    Simulá n tiradas de una sola vez con np.random.default_rng(semilla).
+def dice_sum_prob(target: int, n: int, seed: int) -> float:
+    """Monte Carlo estimate of the probability that the sum of TWO dice is `target`.
+    Simulate n rolls all at once with np.random.default_rng(seed).
     """
     raise NotImplementedError("TODO")
 
 
-def intervalo_bootstrap(muestra: np.ndarray, n: int, semilla: int) -> tuple[float, float]:
-    """Intervalo del 95 % para la MEDIA por bootstrap: n remuestreos con reposición del mismo
-    tamaño que la muestra (una matriz n x len(muestra)), media por fila y percentiles 2.5 y 97.5.
+def bootstrap_interval(sample: np.ndarray, n: int, seed: int) -> tuple[float, float]:
+    """95% interval for the MEAN via bootstrap: n resamples with replacement of the same
+    size as the sample (an n x len(sample) matrix), mean per row, and percentiles 2.5 and 97.5.
     """
     raise NotImplementedError("TODO")

@@ -1,38 +1,38 @@
-"""Máscaras booleanas, fancy indexing y broadcasting. Sin bucles de Python."""
+"""Boolean masks, fancy indexing and broadcasting. No Python loops."""
 
 import numpy as np
 
 
-def en_rango(v: np.ndarray, minimo: float, maximo: float) -> np.ndarray:
-    """Elementos de v con minimo <= x <= maximo (en su orden original)."""
+def in_range(v: np.ndarray, low: float, high: float) -> np.ndarray:
+    """Elements of v with low <= x <= high (in their original order)."""
     raise NotImplementedError("TODO")
 
 
-def reemplazar_atipicos(v: np.ndarray, limite: float) -> np.ndarray:
-    """Copia de v donde los valores con |x| > limite se reemplazan por 0.
-    No modifiques v.
+def replace_outliers(v: np.ndarray, limit: float) -> np.ndarray:
+    """Copy of v where values with |x| > limit are replaced by 0.
+    Don't modify v.
     """
     raise NotImplementedError("TODO")
 
 
-def mejores(nombres: np.ndarray, puntajes: np.ndarray, k: int) -> list[str]:
-    """Los nombres de los k puntajes más altos, del mayor al menor (argsort)."""
+def top(names: np.ndarray, scores: np.ndarray, k: int) -> list[str]:
+    """The names with the k highest scores, from highest to lowest (argsort)."""
     raise NotImplementedError("TODO")
 
 
-def centrar_columnas(m: np.ndarray) -> np.ndarray:
-    """Restá a cada columna su promedio (broadcasting): cada columna queda con media 0."""
+def center_columns(m: np.ndarray) -> np.ndarray:
+    """Subtract from each column its mean (broadcasting): every column ends up with mean 0."""
     raise NotImplementedError("TODO")
 
 
-def proporcion_sobre_promedio_por_fila(m: np.ndarray) -> np.ndarray:
-    """Para cada fila, la proporción de sus valores que superan el promedio de ESA fila.
+def share_above_row_mean(m: np.ndarray) -> np.ndarray:
+    """For each row, the share of its values that exceed the mean of THAT row.
 
-    Pista: m.mean(axis=1, keepdims=True).
+    Hint: m.mean(axis=1, keepdims=True).
     """
     raise NotImplementedError("TODO")
 
 
-def tabla_de_multiplicar(n: int) -> np.ndarray:
-    """Matriz n x n con (i+1) * (j+1), sin bucles: columna por fila (broadcasting)."""
+def multiplication_table(n: int) -> np.ndarray:
+    """n x n matrix with (i+1) * (j+1), no loops: column times row (broadcasting)."""
     raise NotImplementedError("TODO")
