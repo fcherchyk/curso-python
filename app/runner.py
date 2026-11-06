@@ -1,7 +1,7 @@
-"""Corre los tests de un ejercicio contra el código del usuario.
+"""Runs an exercise's tests against the user's code.
 
-El código se escribe como `ejercicio.py` en un directorio temporal junto con los tests y
-se ejecuta pytest en un subproceso (con el mismo intérprete del venv) y un timeout.
+The code is written as `exercise.py` in a temporary directory next to the tests, and pytest
+runs in a subprocess (with the venv's own interpreter) under a timeout.
 """
 
 from __future__ import annotations
@@ -16,108 +16,110 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
 
-TIMEOUT_SEGUNDOS = 15
-MAX_LINEAS_MENSAJE = 40
+TIMEOUT_SECONDS = 15
+MAX_MESSAGE_LINES = 40
 
 
 @dataclass(frozen=True)
-class ResultadoTest:
-    nombre: str
+class TestResult:
+    __test__ = False  # not a pytest test class
+
+    name: str
     ok: bool
-    mensaje: str = ""
+    message: str = ""
 
 
 @dataclass
-class ResultadoEjecucion:
-    tests: list[ResultadoTest] = field(default_factory=list)
+class RunResult:
+    tests: list[TestResult] = field(default_factory=list)
     error: str | None = None
-    salida: str = ""
+    output: str = ""
 
     @property
-    def aprobado(self) -> bool:
+    def passed(self) -> bool:
         return self.error is None and bool(self.tests) and all(t.ok for t in self.tests)
 
     @property
-    def cantidad_ok(self) -> int:
+    def passed_count(self) -> int:
         return sum(t.ok for t in self.tests)
 
 
-def _copiar(origen: Path, destino: Path) -> None:
-    """Copia un archivo o una carpeta de soporte al directorio de trabajo."""
-    if origen.is_dir():
-        shutil.copytree(origen, destino / origen.name, ignore=shutil.ignore_patterns("__pycache__"))
+def _copy(source: Path, target: Path) -> None:
+    """Copies a support file or folder into the working directory."""
+    if source.is_dir():
+        shutil.copytree(source, target / source.name, ignore=shutil.ignore_patterns("__pycache__"))
     else:
-        shutil.copy(origen, destino / origen.name)
+        shutil.copy(source, target / source.name)
 
 
-def _recortar(texto: str, max_lineas: int = MAX_LINEAS_MENSAJE) -> str:
-    lineas = texto.strip().splitlines()
-    if len(lineas) > max_lineas:
-        lineas = ["…", *lineas[-max_lineas:]]
-    return "\n".join(lineas)
+def _truncate(text: str, max_lines: int = MAX_MESSAGE_LINES) -> str:
+    lines = text.strip().splitlines()
+    if len(lines) > max_lines:
+        lines = ["…", *lines[-max_lines:]]
+    return "\n".join(lines)
 
 
-_CABECERA_FRAME = re.compile(r"^(\S.*?):(\d+|\?\?\?): in ")
+_FRAME_HEADER = re.compile(r"^(\S.*?):(\d+|\?\?\?): in ")
 
 
-def _limpiar_traza(texto: str, dir_trabajo: Path) -> str:
-    """Saca rutas temporales y frames de pytest/importlib: deja solo los archivos del ejercicio."""
-    for prefijo in (f"/private{dir_trabajo}/", f"{dir_trabajo}/"):
-        texto = texto.replace(prefijo, "")
-    lineas: list[str] = []
-    saltear = False
-    for linea in texto.splitlines():
-        if linea.startswith("Hint:") or linea == "Traceback:":
+def _clean_traceback(text: str, work_dir: Path) -> str:
+    """Strips temp paths and pytest/importlib frames: keeps only the exercise's files."""
+    for prefix in (f"/private{work_dir}/", f"{work_dir}/"):
+        text = text.replace(prefix, "")
+    lines: list[str] = []
+    skip = False
+    for line in text.splitlines():
+        if line.startswith("Hint:") or line == "Traceback:":
             continue
-        if _CABECERA_FRAME.match(linea) or linea.startswith("<frozen"):
-            saltear = linea.startswith(("/", "<"))
-        if not saltear or linea.startswith("E "):
-            lineas.append(linea)
-    return "\n".join(lineas)
+        if _FRAME_HEADER.match(line) or line.startswith("<frozen"):
+            skip = line.startswith(("/", "<"))
+        if not skip or line.startswith("E "):
+            lines.append(line)
+    return "\n".join(lines)
 
 
-def _parsear_junit(ruta: Path) -> ResultadoEjecucion:
-    resultado = ResultadoEjecucion()
-    raiz = ET.parse(ruta).getroot()
-    for caso in raiz.iter("testcase"):
-        problema = caso.find("failure")
-        if problema is None:
-            problema = caso.find("error")
-        if problema is not None and problema.get("message") == "collection failure":
-            texto = problema.text or "Error al importar tu código."
-            resultado.error = _recortar(_limpiar_traza(texto, ruta.parent))
+def _parse_junit(path: Path) -> RunResult:
+    result = RunResult()
+    root = ET.parse(path).getroot()
+    for case in root.iter("testcase"):
+        problem = case.find("failure")
+        if problem is None:
+            problem = case.find("error")
+        if problem is not None and problem.get("message") == "collection failure":
+            text = problem.text or "Could not import your code."
+            result.error = _truncate(_clean_traceback(text, path.parent))
             continue
-        if caso.find("skipped") is not None:
+        if case.find("skipped") is not None:
             continue
-        mensaje = ""
-        if problema is not None:
-            texto = problema.text or problema.get("message", "")
-            if "NotImplementedError: TODO" in texto:
-                mensaje = "Pendiente: la función todavía levanta NotImplementedError."
+        message = ""
+        if problem is not None:
+            text = problem.text or problem.get("message", "")
+            if "NotImplementedError: TODO" in text:
+                message = "Pending: the function still raises NotImplementedError."
             else:
-                mensaje = _recortar(_limpiar_traza(texto, ruta.parent))
-        resultado.tests.append(
-            ResultadoTest(nombre=caso.get("name", "?"), ok=problema is None, mensaje=mensaje)
+                message = _truncate(_clean_traceback(text, path.parent))
+        result.tests.append(
+            TestResult(name=case.get("name", "?"), ok=problem is None, message=message)
         )
-    return resultado
+    return result
 
 
-def correr_tests(
-    codigo: str,
-    archivos: list[Path],
-    timeout: float = TIMEOUT_SEGUNDOS,
-) -> ResultadoEjecucion:
-    """Corre pytest con `codigo` como `ejercicio.py` y los `archivos` de soporte (tests, datos)."""
-    with tempfile.TemporaryDirectory(prefix="curso-") as tmp:
-        dir_trabajo = Path(tmp)
-        (dir_trabajo / "ejercicio.py").write_text(codigo, encoding="utf-8")
-        for archivo in archivos:
-            _copiar(archivo, dir_trabajo)
-        # Un pytest.ini vacío fija el rootdir acá e ignora la config del proyecto.
-        (dir_trabajo / "pytest.ini").write_text("[pytest]\n", encoding="utf-8")
-        junit = dir_trabajo / ".resultado.xml"
+def run_tests(
+    code: str,
+    files: list[Path],
+    timeout: float = TIMEOUT_SECONDS,
+) -> RunResult:
+    """Runs pytest with `code` as `exercise.py` plus the support `files` (tests, data)."""
+    with tempfile.TemporaryDirectory(prefix="course-") as tmp:
+        work_dir = Path(tmp)
+        (work_dir / "exercise.py").write_text(code, encoding="utf-8")
+        for file in files:
+            _copy(file, work_dir)
+        # An empty pytest.ini pins the rootdir here and ignores the project's config.
+        (work_dir / "pytest.ini").write_text("[pytest]\n", encoding="utf-8")
+        junit = work_dir / ".result.xml"
 
-        comando = [
+        command = [
             sys.executable,
             "-m",
             "pytest",
@@ -129,32 +131,32 @@ def correr_tests(
             "no:cacheprovider",
             f"--junitxml={junit}",
         ]
-        entorno = {k: v for k, v in os.environ.items() if k not in {"FORCE_COLOR", "PY_COLORS"}} | {
+        env = {k: v for k, v in os.environ.items() if k not in {"FORCE_COLOR", "PY_COLORS"}} | {
             "PYTHONDONTWRITEBYTECODE": "1",
             "PYTHONUTF8": "1",
             "NO_COLOR": "1",
         }
         try:
             proc = subprocess.run(
-                comando,
-                cwd=dir_trabajo,
+                command,
+                cwd=work_dir,
                 capture_output=True,
                 text=True,
                 timeout=timeout,
-                env=entorno,
+                env=env,
             )
         except subprocess.TimeoutExpired:
-            return ResultadoEjecucion(
-                error=f"Se cortó la ejecución después de {timeout:g} s. "
-                "¿Hay un bucle infinito o algo que espera entrada?"
+            return RunResult(
+                error=f"Execution stopped after {timeout:g} s. "
+                "Is there an infinite loop or something waiting for input?"
             )
 
-        salida = _recortar(proc.stdout + proc.stderr, 80)
+        output = _truncate(proc.stdout + proc.stderr, 80)
         if not junit.exists():
-            return ResultadoEjecucion(error=salida or "pytest no generó resultados.", salida=salida)
+            return RunResult(error=output or "pytest produced no results.", output=output)
 
-        resultado = _parsear_junit(junit)
-        resultado.salida = salida
-        if not resultado.tests and resultado.error is None:
-            resultado.error = "No se encontraron tests para correr."
-        return resultado
+        result = _parse_junit(junit)
+        result.output = output
+        if not result.tests and result.error is None:
+            result.error = "No tests were found to run."
+        return result

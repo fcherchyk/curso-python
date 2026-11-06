@@ -1,0 +1,49 @@
+[[questions]]
+text = "¿Qué devuelve `df.plot(ax=ax)`?"
+options = ["Una figura nueva", "El Axes donde dibujó", "El DataFrame", "None"]
+correct = 1
+explanation = "Los métodos `.plot` de pandas devuelven el Axes. Con `ax=` dibujan en uno tuyo, así controlás la figura."
+
+[[questions]]
+text = "Querés una línea por sucursal con los meses en el eje X. ¿Qué forma tiene que tener el DataFrame antes de `.plot()`?"
+options = [
+  "Una fila por venta",
+  "Índice = mes y una columna por sucursal",
+  "Índice = sucursal y una columna por mes",
+  "Da igual: pandas lo resuelve",
+]
+correct = 1
+explanation = "`df.plot()` pone el índice en X y dibuja una línea por columna. `pivot_table(index='mes', columns='sucursal', ...)` deja esa forma."
+
+[[questions]]
+text = "¿Cuál es el mejor título para un gráfico de reporte?"
+options = [
+  "'Gráfico 1'",
+  "'Ventas'",
+  "Uno que diga la conclusión, como 'Sur lidera las ventas de marzo'",
+  "Ninguno: el título distrae",
+]
+correct = 2
+explanation = "Si el gráfico tiene un mensaje, el título lo dice, y el lector lo confirma en los datos."
+
+[[questions]]
+text = "¿Qué es una buena práctica de accesibilidad?"
+options = [
+  "Usar rojo y verde para diferenciar series",
+  "Usar una paleta apta para daltonismo y sumar marcadores o estilos de línea además del color",
+  "Usar muchos colores distintos",
+  "Evitar las leyendas",
+]
+correct = 1
+explanation = "Rojo/verde es el par más problemático. `viridis`/`cividis`/`tableau-colorblind10`, junto con marcadores o estilos de línea, evitan depender solo del color."
+
+[[questions]]
+text = "¿Qué hace `ax.spines[['top', 'right']].set_visible(False)`?"
+options = [
+  "Oculta los ejes X e Y",
+  "Saca los bordes superior y derecho del panel: menos tinta sin perder información",
+  "Rota las etiquetas",
+  "Oculta la grilla",
+]
+correct = 1
+explanation = "Esos bordes no aportan datos. Quitarlos limpia el gráfico."

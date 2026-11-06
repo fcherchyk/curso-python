@@ -1,0 +1,6 @@
+{% from "_macros.html" import tab_mark %}
+<button id="read-button" class="btn {{ 'btn-done' if status.read }}"
+        hx-post="/c/{{ chapter.id }}/read" hx-swap="outerHTML">
+  {% if status.read %}✓ Read{% else %}Mark as read{% endif %}
+</button>
+{% if request and request.headers.get('HX-Request') %}{{ tab_mark('mark-read', status.read, oob=true) }}{% endif %}

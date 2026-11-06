@@ -1,0 +1,34 @@
+[[questions]]
+text = "Una acción sube 10 % un día y baja 10 % al siguiente. ¿Cuál es el retorno acumulado?"
+options = ["0 %", "−1 %", "+1 %", "−10 %"]
+correct = 1
+explanation = "Los retornos simples se componen: 1.10 × 0.90 − 1 = −0.01."
+
+[[questions]]
+text = "¿Qué retornos se pueden SUMAR a lo largo del tiempo para obtener el total?"
+options = ["Los simples", "Los logarítmicos", "Ambos", "Ninguno"]
+correct = 1
+explanation = "ln(P_T/P_0) es la suma de los ln(P_t/P_{t-1}). Con `exp(suma) - 1` se vuelve al retorno simple total."
+
+[[questions]]
+text = "¿Qué retornos se promedian con los pesos para obtener el retorno de un portafolio?"
+options = ["Los simples", "Los logarítmicos", "Ambos", "Ninguno"]
+correct = 0
+explanation = "El valor del portafolio es la suma de las posiciones, así que su retorno simple es el promedio ponderado de los simples. Con los log no vale."
+
+[[questions]]
+text = "Tenés 504 retornos diarios con un acumulado del 21 %. ¿Cuál es el retorno anualizado?"
+options = ["10.5 %", "1.21^(252/504) − 1 ≈ 10 %", "21 %", "21 % × 252"]
+correct = 1
+explanation = "504 ruedas son 2 años: (1.21)^(1/2) − 1 = 0.10. Se compone, no se divide."
+
+[[questions]]
+text = "¿Por qué aparece 252 al anualizar datos diarios?"
+options = [
+  "Es la cantidad aproximada de días hábiles bursátiles en un año",
+  "Es 365 menos los feriados de un país en particular",
+  "Es una constante de pandas",
+  "Por convención contable",
+]
+correct = 0
+explanation = "Los mercados operan unas 252 ruedas por año (sin fines de semana ni feriados), y los datos diarios solo tienen esos días."

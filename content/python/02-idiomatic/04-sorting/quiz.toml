@@ -1,0 +1,49 @@
+[[questions]]
+text = "Después de `xs = [3, 1, 2]` y `xs = xs.sort()`, ¿cuánto vale `xs`?"
+options = ["`[1, 2, 3]`", "`[3, 1, 2]`", "`None`", "Levanta `AttributeError`"]
+correct = 2
+explanation = "`list.sort()` ordena en el lugar y devuelve `None`. Al reasignar, perdés la lista."
+
+[[questions]]
+text = "¿Qué `key` ordena por edad **descendente** y, a igual edad, por nombre **ascendente**?"
+options = [
+  "`key=lambda p: (p.edad, p.nombre), reverse=True`",
+  "`key=lambda p: (-p.edad, p.nombre)`",
+  "`key=lambda p: (p.edad, -p.nombre)`",
+  "`key=lambda p: -p.edad + p.nombre`",
+]
+correct = 1
+explanation = "Negar la clave numérica la invierte solo a ella. `reverse=True` invertiría también el nombre, y no se puede negar un string."
+
+[[questions]]
+text = "¿Qué significa que el sort de Python sea **estable**?"
+options = [
+  "Que nunca levanta excepciones",
+  "Que los elementos con la misma clave conservan su orden relativo original",
+  "Que siempre tarda lo mismo sin importar los datos",
+  "Que no modifica la lista original",
+]
+correct = 1
+explanation = "La estabilidad es lo que permite ordenar en varias pasadas: primero por el criterio secundario y después por el principal."
+
+[[questions]]
+text = "¿Qué devuelve `sorted(filas, key=itemgetter(\"pais\", \"ciudad\"))`?"
+options = [
+  "Las filas ordenadas solo por `pais`",
+  "Las filas ordenadas por `pais` y, en caso de empate, por `ciudad`",
+  "Una lista de tuplas `(pais, ciudad)`",
+  "Levanta `TypeError` porque `itemgetter` acepta una sola clave",
+]
+correct = 1
+explanation = "Con varias claves, `itemgetter` devuelve una tupla, y las tuplas se comparan elemento a elemento. Lo que se ordena siguen siendo las filas completas."
+
+[[questions]]
+text = "Necesitás el producto más caro de una lista de 1 millón. ¿Qué conviene?"
+options = [
+  "`sorted(productos, key=precio)[-1]`",
+  "`max(productos, key=precio)`",
+  "`productos.sort(); productos[-1]`",
+  "`sorted(productos, reverse=True)[0]`",
+]
+correct = 1
+explanation = "`max` recorre una sola vez, en O(n), sin ordenar ni copiar. Ordenar cuesta O(n log n) y la última opción ni siquiera usa el precio."

@@ -1,19 +1,19 @@
-{% macro paso(ok, etiqueta) -%}
-<span class="paso {{ 'paso-ok' if ok }}" title="{{ etiqueta }}{{ ': listo' if ok else ': pendiente' }}">
+{% macro step(ok, label) -%}
+<span class="step {{ 'step-ok' if ok }}" title="{{ label }}{{ ': done' if ok else ': pending' }}">
   {%- if ok %}<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>{% endif -%}
-  {{ etiqueta }}
+  {{ label }}
 </span>
 {%- endmacro %}
 
-{% macro marca_tab(id, ok, oob=false) -%}
-<span id="{{ id }}" class="tab-marca {{ 'tab-marca-ok' if ok }}" {% if oob %}hx-swap-oob="true"{% endif %} aria-label="{{ 'listo' if ok else 'pendiente' }}"></span>
+{% macro tab_mark(id, ok, oob=false) -%}
+<span id="{{ id }}" class="tab-mark {{ 'tab-mark-ok' if ok }}" {% if oob %}hx-swap-oob="true"{% endif %} aria-label="{{ 'done' if ok else 'pending' }}"></span>
 {%- endmacro %}
 
-{% macro boton_resuelto(cap, paso, ok, oob=false) -%}
-<button type="button" id="resuelto-{{ paso }}" class="boton {{ 'boton-hecho' if ok else 'boton-texto' }}"
-        hx-post="/c/{{ cap.id }}/{{ paso }}/resuelto" hx-swap="outerHTML"
-        title="{{ 'Desmarcar' if ok else 'Dar este paso por resuelto sin hacerlo' }}"
+{% macro solved_button(chapter, step, ok, oob=false) -%}
+<button type="button" id="solved-{{ step }}" class="btn {{ 'btn-done' if ok else 'btn-text' }}"
+        hx-post="/c/{{ chapter.id }}/{{ step }}/solved" hx-swap="outerHTML"
+        title="{{ 'Unmark' if ok else 'Mark this step as solved without doing it' }}"
         {% if oob %}hx-swap-oob="true"{% endif %}>
-  {% if ok %}✓ Resuelto{% else %}Marcar como resuelto{% endif %}
+  {% if ok %}✓ Solved{% else %}Mark as solved{% endif %}
 </button>
 {%- endmacro %}

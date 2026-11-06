@@ -1,0 +1,49 @@
+[[questions]]
+text = "Un `APIRouter(prefix=\"/productos\")` incluido con `app.include_router(router, prefix=\"/api/v1\")` y una ruta `@router.get(\"/{id}\")`. ¿Cuál es la URL?"
+options = ["`/productos/{id}`", "`/api/v1/productos/{id}`", "`/api/v1/{id}`", "`/productos/api/v1/{id}`"]
+correct = 1
+explanation = "Los prefijos se acumulan: el de `include_router` va primero y después el del router."
+
+[[questions]]
+text = "¿Para qué sirve registrar un `exception_handler` para una excepción de dominio?"
+options = [
+  "Para que la excepción no se levante nunca",
+  "Para que la lógica de negocio levante sus excepciones sin saber de HTTP, y la capa web las traduzca a respuestas coherentes",
+  "Para loguear más rápido",
+  "Es obligatorio para cada endpoint",
+]
+correct = 1
+explanation = "Los servicios levantan `ProductoNoEncontrado` y el handler la convierte en un 404 con el formato de la API, en un solo lugar."
+
+[[questions]]
+text = "En un middleware HTTP, ¿cuándo corre el código que está después de `await call_next(request)`?"
+options = [
+  "Antes de la ruta",
+  "Después de que la ruta generó la respuesta",
+  "Solo si hubo un error",
+  "Nunca",
+]
+correct = 1
+explanation = "`call_next` ejecuta el resto de la cadena (otros middlewares y la ruta). Después se puede modificar la respuesta, por ejemplo agregando headers."
+
+[[questions]]
+text = "¿Para qué sirve el `lifespan` de FastAPI?"
+options = [
+  "Para limitar la duración de cada request",
+  "Para inicializar recursos al arrancar la app (clientes, cachés, conexiones) y liberarlos al apagarla",
+  "Para definir la expiración de los tokens",
+  "Para medir el tiempo de cada endpoint",
+]
+correct = 1
+explanation = "Es un context manager async: lo de antes del `yield` corre al arrancar y lo de después, al apagar. Reemplaza a `on_event`."
+
+[[questions]]
+text = "Un frontend en `https://front.com` no puede llamar a tu API en `https://api.com` desde el navegador. ¿Qué falta?"
+options = [
+  "Un `exception_handler`",
+  "Configurar CORS (`CORSMiddleware`) permitiendo ese origen",
+  "Usar `async def`",
+  "Un router",
+]
+correct = 1
+explanation = "El navegador bloquea los requests entre orígenes distintos, salvo que el servidor los autorice con los headers de CORS."

@@ -1,46 +1,46 @@
 {% extends "base.html" %}
-{% from "_macros.html" import paso %}
+{% from "_macros.html" import step %}
 
-{% block contenido %}
-<main class="indice">
+{% block content %}
+<main class="index">
   <section class="intro">
-    <h1>{{ curso.descripcion or curso.titulo }}</h1>
-    <p>Cada capítulo tiene tres pasos: leer la lección, aprobar el cuestionario (≥ {{ UMBRAL }} %) y
-      escribir el código que hace pasar los tests.</p>
-    {% if siguiente %}
-    <a class="continuar" href="/c/{{ siguiente.id }}">
-      <span class="continuar-label">Continuar</span>
-      <span class="continuar-titulo">{{ siguiente.titulo }}</span>
-      <span class="flecha" aria-hidden="true">→</span>
+    <h1>{{ course.description or course.title }}</h1>
+    <p>Every chapter has three steps: read the lesson, pass the quiz (≥ {{ THRESHOLD }} %) and
+      write the code that makes the tests pass.</p>
+    {% if next_chapter %}
+    <a class="continue" href="/c/{{ next_chapter.id }}">
+      <span class="continue-label">Continue</span>
+      <span class="continue-title">{{ next_chapter.title }}</span>
+      <span class="arrow" aria-hidden="true">→</span>
     </a>
     {% endif %}
   </section>
 
-  {% for m in curso.modulos %}
-  {% set hechos = completos[m.slug] %}
-  <section class="modulo">
-    <header class="modulo-cabecera">
-      <span class="modulo-num">{{ m.numero }}</span>
+  {% for m in course.modules %}
+  {% set done = completed[m.slug] %}
+  <section class="module">
+    <header class="module-header">
+      <span class="module-num">{{ m.number }}</span>
       <div>
-        <h2>{{ m.titulo }}</h2>
-        {% if m.descripcion %}<p>{{ m.descripcion }}</p>{% endif %}
+        <h2>{{ m.title }}</h2>
+        {% if m.description %}<p>{{ m.description }}</p>{% endif %}
       </div>
-      <span class="modulo-avance" title="Capítulos completos">
-        {{ hechos }}/{{ m.capitulos | length }}
-        <span class="barra-avance"><span style="width: {{ (100 * hechos / (m.capitulos | length or 1)) | round | int }}%"></span></span>
+      <span class="module-progress" title="Completed chapters">
+        {{ done }}/{{ m.chapters | length }}
+        <span class="progress-bar"><span style="width: {{ (100 * done / (m.chapters | length or 1)) | round | int }}%"></span></span>
       </span>
     </header>
-    <ol class="capitulos">
-      {% for c in m.capitulos %}
-      {% set e = estados.get(c.id) %}
+    <ol class="chapters">
+      {% for c in m.chapters %}
+      {% set s = statuses.get(c.id) %}
       <li>
-        <a href="/c/{{ c.id }}" class="capitulo-fila {{ 'completo' if e and e.completo }}">
-          <span class="capitulo-num">{{ c.numero }}</span>
-          <span class="capitulo-titulo">{{ c.titulo }}</span>
-          <span class="pasos">
-            {{ paso(e and e.leido, 'Lectura') }}
-            {{ paso(e and e.quiz_ok, 'Quiz') }}
-            {{ paso(e and e.tests_ok, 'Código') }}
+        <a href="/c/{{ c.id }}" class="chapter-row {{ 'complete' if s and s.complete }}">
+          <span class="chapter-num">{{ c.number }}</span>
+          <span class="chapter-title">{{ c.title }}</span>
+          <span class="steps">
+            {{ step(s and s.read, 'Reading') }}
+            {{ step(s and s.quiz_ok, 'Quiz') }}
+            {{ step(s and s.tests_ok, 'Code') }}
           </span>
         </a>
       </li>
@@ -48,7 +48,7 @@
     </ol>
   </section>
   {% else %}
-  <p class="nota">Este curso todavía no tiene capítulos cargados.</p>
+  <p class="note">This course has no chapters yet.</p>
   {% endfor %}
 </main>
 {% endblock %}

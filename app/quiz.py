@@ -1,48 +1,48 @@
-"""Corrección de cuestionarios."""
+"""Quiz grading."""
 
 from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
 
-from app.contenido import Pregunta
+from app.content import Question
 
-UMBRAL_APROBACION = 0.8
+PASS_THRESHOLD = 0.8
 
 
 @dataclass(frozen=True)
-class RespuestaCorregida:
-    pregunta: Pregunta
-    elegida: int | None
+class GradedAnswer:
+    question: Question
+    chosen: int | None
     ok: bool
 
 
 @dataclass(frozen=True)
-class ResultadoQuiz:
-    respuestas: list[RespuestaCorregida]
+class QuizResult:
+    answers: list[GradedAnswer]
 
     @property
-    def correctas(self) -> int:
-        return sum(r.ok for r in self.respuestas)
+    def correct(self) -> int:
+        return sum(a.ok for a in self.answers)
 
     @property
     def total(self) -> int:
-        return len(self.respuestas)
+        return len(self.answers)
 
     @property
-    def puntaje(self) -> float:
-        return self.correctas / self.total if self.total else 0.0
+    def score(self) -> float:
+        return self.correct / self.total if self.total else 0.0
 
     @property
-    def aprobado(self) -> bool:
-        return self.total > 0 and self.puntaje >= UMBRAL_APROBACION
+    def passed(self) -> bool:
+        return self.total > 0 and self.score >= PASS_THRESHOLD
 
 
-def corregir(preguntas: list[Pregunta], elegidas: Mapping[int, int | None]) -> ResultadoQuiz:
-    """`elegidas` mapea índice de pregunta -> índice de opción (None si no respondió)."""
-    return ResultadoQuiz(
+def grade(questions: list[Question], chosen: Mapping[int, int | None]) -> QuizResult:
+    """`chosen` maps question index -> option index (None if unanswered)."""
+    return QuizResult(
         [
-            RespuestaCorregida(p, elegidas.get(i), elegidas.get(i) == p.correcta)
-            for i, p in enumerate(preguntas)
+            GradedAnswer(q, chosen.get(i), chosen.get(i) == q.correct)
+            for i, q in enumerate(questions)
         ]
     )

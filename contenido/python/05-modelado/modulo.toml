@@ -1,2 +1,0 @@
-titulo = "Modelado de datos"
-descripcion = "Clases y el modelo de datos, property y classmethod, dataclasses, enums, Protocol vs ABC y tipado moderno con genéricos."

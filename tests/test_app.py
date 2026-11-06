@@ -6,192 +6,227 @@ from urllib.parse import urlparse
 import pytest
 from fastapi.testclient import TestClient
 
-from app.contenido import cargar_cursos
-from app.main import crear_app
-from app.progreso import Progreso
+from app.content import load_courses
+from app.main import create_app
+from app.progress import Progress
 
-CURSOS = {c.slug: c for c in cargar_cursos()}
-CAP = CURSOS["python"].capitulos()[0]
-URL = f"/c/{CAP.id}"
+COURSES = {c.slug: c for c in load_courses()}
+CHAPTER = COURSES["python"].chapters()[0]
+URL = f"/c/{CHAPTER.id}"
 
 
 @pytest.fixture
-def cliente(tmp_path: Path) -> TestClient:
-    return TestClient(crear_app(ruta_db=tmp_path / "progreso.db"))
+def client(tmp_path: Path) -> TestClient:
+    return TestClient(create_app(db_path=tmp_path / "progress.db", legacy_db_path=None))
 
 
-def crear_curso(raiz: Path, slug: str, orden: int) -> None:
-    """Un curso Python mínimo con un capítulo, para probar lo multi-curso."""
-    curso = raiz / slug
-    cap = curso / "01-modulo" / "01-capitulo"
-    cap.mkdir(parents=True)
-    (curso / "curso.toml").write_text(
-        f'titulo = "{slug.title()}"\nlenguaje = "python"\norden = {orden}\n'
+def make_course(root: Path, slug: str, order: int) -> None:
+    """A minimal Python course with one chapter, to test multi-course support."""
+    course = root / slug
+    chapter = course / "01-module" / "01-chapter"
+    chapter.mkdir(parents=True)
+    (course / "course.toml").write_text(
+        f'title = "{slug.title()}"\nlanguage = "python"\norder = {order}\n'
     )
-    (curso / "01-modulo" / "modulo.toml").write_text('titulo = "Módulo"\n')
-    (cap / "leccion.md").write_text(f"# Capítulo de {slug}\n\nTexto.\n")
-    for archivo in ("ejercicio.py", "solucion.py", "test_ejercicio.py"):
-        (cap / archivo).write_text("")
+    (course / "01-module" / "module.toml").write_text('title = "Module"\n')
+    (chapter / "lesson.md").write_text(f"# Chapter of {slug}\n\nText.\n")
+    for name in ("exercise.py", "solution.py", "test_exercise.py"):
+        (chapter / name).write_text("")
 
 
 @pytest.fixture
-def cliente_dos_cursos(tmp_path: Path) -> TestClient:
-    raiz = tmp_path / "contenido"
-    crear_curso(raiz, "python", 1)
-    crear_curso(raiz, "otro", 2)
-    return TestClient(crear_app(raiz_contenido=raiz, ruta_db=tmp_path / "progreso.db"))
+def two_courses_client(tmp_path: Path) -> TestClient:
+    root = tmp_path / "content"
+    make_course(root, "python", 1)
+    make_course(root, "other", 2)
+    return TestClient(
+        create_app(content_root=root, db_path=tmp_path / "progress.db", legacy_db_path=None)
+    )
 
 
-def respuestas_correctas() -> dict[str, str]:
-    return {f"p{i}": str(p.correcta) for i, p in enumerate(CAP.preguntas())}
+def correct_answers() -> dict[str, str]:
+    return {f"q{i}": str(q.correct) for i, q in enumerate(CHAPTER.questions())}
 
 
-def test_indice(cliente):
-    r = cliente.get("/")
+def test_index(client):
+    r = client.get("/")
     assert r.status_code == 200
-    assert CAP.titulo in r.text
+    assert CHAPTER.title in r.text
 
 
-def test_capitulo(cliente):
-    r = cliente.get(URL)
+def test_chapter(client):
+    r = client.get(URL)
     assert r.status_code == 200
-    assert "Cuestionario" in r.text and "ejercicio.py" in r.text
+    assert "Quiz" in r.text and "exercise.py" in r.text
 
 
-def test_capitulo_inexistente(cliente):
-    assert cliente.get("/c/nada/nada").status_code == 404
+def test_missing_chapter(client):
+    assert client.get("/c/python/nothing/nothing").status_code == 404
 
 
-def test_marcar_leido_alterna(cliente):
-    assert "✓ Leído" in cliente.post(f"{URL}/leido").text
-    assert "Marcar como leído" in cliente.post(f"{URL}/leido").text
+def test_mark_read_toggles(client):
+    assert "✓ Read" in client.post(f"{URL}/read").text
+    assert "Mark as read" in client.post(f"{URL}/read").text
 
 
-def test_quiz_aprobado(cliente):
-    r = cliente.post(f"{URL}/quiz", data=respuestas_correctas())
+def test_quiz_passed(client):
+    r = client.post(f"{URL}/quiz", data=correct_answers())
     assert r.status_code == 200
-    assert "Aprobado" in r.text
-    assert 'id="marca-quiz"' in r.text
+    assert "Passed" in r.text
+    assert 'id="mark-quiz"' in r.text
 
 
-def test_quiz_desaprobado_no_revela_explicaciones(cliente):
-    r = cliente.post(f"{URL}/quiz", data={})
-    assert "Necesitás" in r.text
-    assert CAP.preguntas()[0].explicacion[:20] not in r.text
+def test_failed_quiz_does_not_reveal_explanations(client):
+    r = client.post(f"{URL}/quiz", data={})
+    assert "You need" in r.text
+    assert CHAPTER.questions()[0].explanation[:20] not in r.text
 
 
-def test_tests_y_solucion(cliente):
-    assert "se habilita" in cliente.get(f"{URL}/solucion").text
+def test_tests_and_solution(client):
+    assert "unlocks" in client.get(f"{URL}/solution").text
 
-    r = cliente.post(f"{URL}/tests", data={"codigo": CAP.codigo_inicial()})
-    assert "0 de" in r.text
+    r = client.post(f"{URL}/tests", data={"code": CHAPTER.starter_code()})
+    assert "0 of" in r.text
 
-    r = cliente.post(f"{URL}/tests", data={"codigo": CAP.solucion()})
-    assert "Ejercicio aprobado" in r.text
-    assert "<pre><code" in cliente.get(f"{URL}/solucion").text
-
-
-def test_progreso_persiste_y_completa(cliente):
-    cliente.post(f"{URL}/leido")
-    cliente.post(f"{URL}/quiz", data=respuestas_correctas())
-    cliente.post(f"{URL}/tests", data={"codigo": CAP.solucion()})
-    # Un intento fallido posterior no borra lo aprobado.
-    cliente.post(f"{URL}/tests", data={"codigo": CAP.codigo_inicial()})
-    cliente.post(f"{URL}/quiz", data={})
-
-    indice = cliente.get("/").text
-    assert "capitulo-fila completo" in indice
+    r = client.post(f"{URL}/tests", data={"code": CHAPTER.solution()})
+    assert "Exercise passed" in r.text
+    assert "<pre><code" in client.get(f"{URL}/solution").text
 
 
-def test_autoguardado(cliente):
-    assert cliente.post(f"{URL}/codigo", data={"codigo": "# mi código"}).status_code == 204
-    assert "# mi código" in cliente.get(URL).text
-    assert cliente.get(f"{URL}/inicial").text == CAP.codigo_inicial()
+def test_progress_persists_and_completes(client):
+    client.post(f"{URL}/read")
+    client.post(f"{URL}/quiz", data=correct_answers())
+    client.post(f"{URL}/tests", data={"code": CHAPTER.solution()})
+    # A later failed attempt does not undo what was passed.
+    client.post(f"{URL}/tests", data={"code": CHAPTER.starter_code()})
+    client.post(f"{URL}/quiz", data={})
+
+    index = client.get("/").text
+    assert "chapter-row complete" in index
 
 
-def test_marcar_pasos_como_resueltos_completa_el_capitulo(cliente):
-    cliente.post(f"{URL}/leido")
-    r = cliente.post(f"{URL}/quiz/resuelto")
-    assert "✓ Resuelto" in r.text and 'id="marca-quiz"' in r.text
-    r = cliente.post(f"{URL}/tests/resuelto")
-    assert "✓ Resuelto" in r.text and 'id="marca-tests"' in r.text
-    assert "ver la solución de referencia" in r.text
-
-    assert "capitulo-fila completo" in cliente.get("/").text
-    assert "<pre><code" in cliente.get(f"{URL}/solucion").text
+def test_autosave(client):
+    assert client.post(f"{URL}/code", data={"code": "# my code"}).status_code == 204
+    assert "# my code" in client.get(URL).text
+    assert client.get(f"{URL}/starter").text == CHAPTER.starter_code()
 
 
-def test_marcar_resuelto_es_un_toggle(cliente):
-    cliente.post(f"{URL}/tests/resuelto")
-    r = cliente.post(f"{URL}/tests/resuelto")
-    assert "Marcar como resuelto" in r.text
-    assert "se habilita" in cliente.get(f"{URL}/solucion").text
+def test_marking_steps_solved_completes_the_chapter(client):
+    client.post(f"{URL}/read")
+    r = client.post(f"{URL}/quiz/solved")
+    assert "✓ Solved" in r.text and 'id="mark-quiz"' in r.text
+    r = client.post(f"{URL}/tests/solved")
+    assert "✓ Solved" in r.text and 'id="mark-tests"' in r.text
+    assert "see the reference solution" in r.text
+
+    assert "chapter-row complete" in client.get("/").text
+    assert "<pre><code" in client.get(f"{URL}/solution").text
 
 
-def test_marcar_resuelto_paso_invalido(cliente):
-    assert cliente.post(f"{URL}/leccion/resuelto").status_code == 422
+def test_mark_solved_is_a_toggle(client):
+    client.post(f"{URL}/tests/solved")
+    r = client.post(f"{URL}/tests/solved")
+    assert "Mark as solved" in r.text
+    assert "unlocks" in client.get(f"{URL}/solution").text
 
 
-def test_solapas_de_cursos(cliente_dos_cursos):
-    r = cliente_dos_cursos.get("/python")
-    assert 'class="solapa activa"' in r.text
-    assert 'href="/otro"' in r.text
+def test_mark_solved_invalid_step(client):
+    assert client.post(f"{URL}/lesson/solved").status_code == 422
 
 
-def test_sin_solapas_con_un_solo_curso(cliente):
-    assert 'class="solapas"' not in cliente.get("/python").text
+def test_course_tabs(two_courses_client):
+    r = two_courses_client.get("/python")
+    assert 'class="course-tab active"' in r.text
+    assert 'href="/other"' in r.text
 
 
-def test_raiz_recuerda_el_ultimo_curso(cliente_dos_cursos):
-    cliente_dos_cursos.get("/otro")
-    r = cliente_dos_cursos.get("/", follow_redirects=False)
-    assert r.headers["location"] == "/otro"
+def test_no_tabs_with_a_single_course(client):
+    assert 'class="course-tabs"' not in client.get("/python").text
 
 
-def test_curso_inexistente(cliente):
-    assert cliente.get("/cobol").status_code == 404
+def test_root_remembers_last_course(two_courses_client):
+    two_courses_client.get("/other")
+    r = two_courses_client.get("/", follow_redirects=False)
+    assert r.headers["location"] == "/other"
 
 
-def test_url_vieja_redirige_a_python(cliente):
-    viejo = CAP.id.removeprefix("python/")
-    r = cliente.get(f"/c/{viejo}", follow_redirects=False)
+def test_missing_course(client):
+    assert client.get("/cobol").status_code == 404
+
+
+def test_pre_course_spanish_url_redirects(client):
+    r = client.get("/c/01-fundamentos/01-objetos-y-mutabilidad", follow_redirects=False)
     assert r.status_code == 301
-    assert r.headers["location"] == f"/c/{CAP.id}"
+    assert r.headers["location"] == "/c/python/01-fundamentals/01-objects-and-mutability"
 
 
-def test_migra_ids_sin_curso(tmp_path):
-    db = tmp_path / "viejo.db"
-    Progreso(db).marcar_leido("02-idiomatico/01-comprehensions")
-    Progreso(db).marcar_leido("otro/01-modulo/01-capitulo")
-    assert Progreso(db).migrar_ids_sin_curso("python") == 1
-    assert Progreso(db).migrar_ids_sin_curso("python") == 0
-    with sqlite3.connect(db) as con:
-        ids = sorted(fila[0] for fila in con.execute("SELECT id FROM capitulos"))
-    assert ids == ["otro/01-modulo/01-capitulo", "python/02-idiomatico/01-comprehensions"]
+def test_spanish_chapter_url_redirects(client):
+    r = client.get("/c/python/14-finanzas/02-riesgo", follow_redirects=False)
+    assert r.status_code == 301
+    assert r.headers["location"] == "/c/python/14-finance/02-risk"
 
 
-def test_progreso_separado_por_curso(cliente_dos_cursos):
-    url = "/c/python/01-modulo/01-capitulo"
-    cliente_dos_cursos.post(f"{url}/leido")
-    cliente_dos_cursos.post(f"{url}/quiz/resuelto")
-    cliente_dos_cursos.post(f"{url}/tests/resuelto")
-    assert "capitulo-fila completo" in cliente_dos_cursos.get("/python").text
-    assert "capitulo-fila completo" not in cliente_dos_cursos.get("/otro").text
+def make_legacy_db(path: Path, rows: list[tuple]) -> None:
+    with sqlite3.connect(path) as con:
+        con.execute(
+            "CREATE TABLE capitulos (id TEXT PRIMARY KEY, leido INTEGER, quiz_ok INTEGER, "
+            "quiz_mejor REAL, tests_ok INTEGER, codigo TEXT, actualizado TEXT)"
+        )
+        con.executemany("INSERT INTO capitulos VALUES (?, ?, ?, ?, ?, ?, ?)", rows)
+    con.close()
 
 
-FUENTES = {"fonts.googleapis.com", "fonts.gstatic.com"}  # con respaldo local en el CSS
+def test_imports_legacy_progress(tmp_path):
+    legacy = tmp_path / "progreso.db"
+    make_legacy_db(
+        legacy,
+        [
+            ("python/01-fundamentos/01-objetos-y-mutabilidad", 1, 1, 0.8, 1, "x = 1", "2026-10-01"),
+            ("02-idiomatico/02-desempaquetado", 1, 0, 0.4, 0, None, "2026-10-02"),
+            ("other/01-module/01-chapter", 1, 0, 0.0, 0, None, "2026-10-03"),
+        ],
+    )
+    progress = Progress(tmp_path / "progress.db")
+    assert progress.import_legacy(legacy) == 3
+    statuses = progress.all()
+    first = statuses["python/01-fundamentals/01-objects-and-mutability"]
+    assert first.complete and first.quiz_best == 0.8 and first.code == "x = 1"
+    assert statuses["python/02-idiomatic/02-unpacking"].read
+    assert "other/01-module/01-chapter" in statuses
+    # Idempotent: a second import does nothing because the store is no longer empty.
+    assert progress.import_legacy(legacy) == 0
 
 
-def test_sin_dependencias_de_cdn(cliente):
-    """HTMX y CodeMirror se sirven desde /static/vendor/: la app anda sin internet."""
+def test_app_imports_legacy_db_on_startup(tmp_path):
+    legacy = tmp_path / "progreso.db"
+    row = ("python/01-fundamentos/01-objetos-y-mutabilidad", 1, 1, 1.0, 1, None, "")
+    make_legacy_db(legacy, [row])
+    client = TestClient(create_app(db_path=tmp_path / "progress.db", legacy_db_path=legacy))
+    assert "chapter-row complete" in client.get("/python").text
+
+
+def test_progress_is_separate_per_course(two_courses_client):
+    url = "/c/python/01-module/01-chapter"
+    two_courses_client.post(f"{url}/read")
+    two_courses_client.post(f"{url}/quiz/solved")
+    two_courses_client.post(f"{url}/tests/solved")
+    assert "chapter-row complete" in two_courses_client.get("/python").text
+    assert "chapter-row complete" not in two_courses_client.get("/other").text
+
+
+FONTS = {"fonts.googleapis.com", "fonts.gstatic.com"}  # with a local fallback in the CSS
+
+
+def test_no_cdn_dependencies(client):
+    """HTMX and CodeMirror are served from /static/vendor/: the app works offline."""
     for url in ("/python", URL):
-        html = cliente.get(url).text
-        recursos = re.findall(r'<(?:script|link)\b[^>]*\b(?:src|href)="([^"]+)"', html)
-        externos = {
-            urlparse(r).netloc for r in recursos if urlparse(r).netloc not in {"", "testserver"}
+        html = client.get(url).text
+        resources = re.findall(r'<(?:script|link)\b[^>]*\b(?:src|href)="([^"]+)"', html)
+        external = {
+            urlparse(r).netloc for r in resources if urlparse(r).netloc not in {"", "testserver"}
         }
-        assert externos <= FUENTES, f"{url} carga recursos de afuera: {externos - FUENTES}"
-        vendor = [urlparse(r).path for r in recursos if "/static/vendor/" in r]
-        assert vendor, "se esperaban recursos de /static/vendor/"
-        for ruta in vendor:
-            assert cliente.get(ruta).status_code == 200, ruta
+        assert external <= FONTS, f"{url} loads external resources: {external - FONTS}"
+        vendor = [urlparse(r).path for r in resources if "/static/vendor/" in r]
+        assert vendor, "expected resources from /static/vendor/"
+        for path in vendor:
+            assert client.get(path).status_code == 200, path

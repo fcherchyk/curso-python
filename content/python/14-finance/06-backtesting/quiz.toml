@@ -1,0 +1,54 @@
+[[questions]]
+text = "¿Por qué se hace `posicion = senal.shift(1)`?"
+options = [
+  "Para suavizar la señal",
+  "Porque la señal del día t usa el cierre de t: recién se puede operar al día siguiente",
+  "Para reducir costos",
+  "Por convención de pandas",
+]
+correct = 1
+explanation = "Usar la señal el mismo día es usar información que todavía no existía: es el look-ahead bias."
+
+[[questions]]
+text = "Un backtest da un 5000 % anual con una regla simple. ¿Qué es lo más probable?"
+options = [
+  "Encontraste una mina de oro",
+  "Hay un error, como look-ahead bias u overfitting",
+  "El mercado es ineficiente",
+  "Los costos lo mejoran",
+]
+correct = 1
+explanation = "Los resultados demasiado buenos casi siempre son un bug. El primer sospechoso es usar datos del futuro."
+
+[[questions]]
+text = "¿Cómo se modelan los costos de transacción en un backtest vectorizado simple?"
+options = [
+  "Restando un porcentaje fijo cada día",
+  "Restando costo × |cambio de posición| en los días en que se opera",
+  "Restando el costo una vez al final",
+  "No se modelan",
+]
+correct = 1
+explanation = "Solo se paga cuando la posición cambia. `posicion.diff().abs()` marca esos días."
+
+[[questions]]
+text = "Probaste 200 combinaciones de medias móviles y elegiste la mejor. ¿Qué riesgo corrés?"
+options = [
+  "Ninguno",
+  "Sobreajuste: la mejor combinación probablemente capturó ruido del período testeado",
+  "Look-ahead bias",
+  "Sesgo de supervivencia",
+]
+correct = 1
+explanation = "Con suficientes intentos, algo siempre funciona en el pasado por azar. Hay que validarlo en datos fuera de muestra."
+
+[[questions]]
+text = "¿Contra qué hay que comparar siempre una estrategia?"
+options = [
+  "Contra cero",
+  "Contra la alternativa simple: buy & hold del mismo activo o del índice",
+  "Contra la tasa de inflación únicamente",
+  "Contra otra estrategia compleja",
+]
+correct = 1
+explanation = "Si no le gana a comprar y no hacer nada (con costos y riesgo comparables), la estrategia no agrega valor."

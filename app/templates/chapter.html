@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tab_mark, solved_button %}
+
+{% block title %}{{ chapter.title }} · {{ course.title }}{% endblock %}
+
+{% block head %}
+<script src="{{ url_for('static', path='vendor/codemirror/codemirror.min.js') }}" defer></script>
+{% set mode = chapter.language.editor_mode %}
+<script src="{{ url_for('static', path='vendor/codemirror/mode/' ~ mode ~ '/' ~ mode ~ '.min.js') }}" defer></script>
+<script src="{{ url_for('static', path='vendor/codemirror/addon/edit/matchbrackets.min.js') }}" defer></script>
+<script src="{{ url_for('static', path='vendor/codemirror/addon/edit/closebrackets.min.js') }}" defer></script>
+<script src="{{ url_for('static', path='vendor/codemirror/addon/selection/active-line.min.js') }}" defer></script>
+<script src="{{ url_for('static', path='vendor/codemirror/addon/comment/comment.min.js') }}" defer></script>
+{% endblock %}
+
+{% block topbar %}
+<nav class="breadcrumbs" aria-label="Location">
+  <span>{{ module.number }} · {{ module.title }}</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="chapter-layout">
+  <aside class="sidebar" aria-label="Module chapters">
+    <p class="sidebar-title">{{ module.title }}</p>
+    <ol>
+      {% for c in module.chapters %}
+      {% set s = statuses.get(c.id) %}
+      <li>
+        <a href="/c/{{ c.id }}" class="{{ 'current' if c.id == chapter.id }} {{ 'complete' if s and s.complete }}">
+          <span class="dot" aria-hidden="true"></span>{{ c.title }}
+        </a>
+      </li>
+      {% endfor %}
+    </ol>
+    <a class="sidebar-back" href="/{{ course.slug }}">← Full {{ course.title }} syllabus</a>
+  </aside>
+
+  <main class="chapter" data-chapter="{{ chapter.id }}" data-mode="{{ chapter.language.editor_mode }}"
+        data-tabs="{{ 'yes' if chapter.language.indent_with_tabs else 'no' }}">
+    <header class="chapter-header">
+      <p class="overline">Chapter {{ module.number }}.{{ chapter.number }}</p>
+      <h1>{{ chapter.title }}</h1>
+    </header>
+
+    <div class="tabs" role="tablist">
+      <button role="tab" class="tab" data-tab="lesson" aria-selected="true">
+        {{ tab_mark('mark-read', status.read) }} Reading
+      </button>
+      <button role="tab" class="tab" data-tab="quiz" aria-selected="false">
+        {{ tab_mark('mark-quiz', status.quiz_ok) }} Quiz
+      </button>
+      <button role="tab" class="tab" data-tab="code" aria-selected="false">
+        {{ tab_mark('mark-tests', status.tests_ok) }} Code
+      </button>
+    </div>
+
+    <section class="panel" id="panel-lesson" role="tabpanel">
+      <article class="prose">{{ lesson }}</article>
+      <footer class="panel-footer">
+        {% include "_read.html" %}
+        <button class="btn btn-primary" data-go-to="quiz">Go to the quiz →</button>
+      </footer>
+    </section>
+
+    <section class="panel" id="panel-quiz" role="tabpanel" hidden>
+      {% set result = none %}
+      {% include "_quiz.html" %}
+    </section>
+
+    <section class="panel panel-wide" id="panel-code" role="tabpanel" hidden>
+      <div class="code-grid">
+        <form id="code-form" class="editor-box"
+              hx-post="/c/{{ chapter.id }}/tests" hx-target="#tests-result"
+              hx-indicator="#running" hx-disabled-elt="#run-button">
+          <div class="editor-bar">
+            <span class="filename">{{ chapter.language.exercise_file }}</span>
+            <span id="save-status" class="save-status" aria-live="polite"></span>
+            <button type="button" class="btn btn-text" id="reset-button">Reset to starter</button>
+            <button type="submit" class="btn btn-primary" id="run-button">
+              Run tests <kbd>⌘↵</kbd>
+            </button>
+          </div>
+          <textarea name="code" id="editor" spellcheck="false">{{ code }}</textarea>
+        </form>
+        <div class="results">
+          <div id="running" class="running htmx-indicator">Running pytest…</div>
+          <div class="results-bar">{{ solved_button(chapter, 'tests', status.tests_ok) }}</div>
+          <div id="tests-result">{% include "_tests_status.html" %}</div>
+        </div>
+      </div>
+    </section>
+
+    <nav class="chapter-nav">
+      {% if previous %}<a href="/c/{{ previous.id }}" class="nav-previous"><small>Previous</small>{{ previous.title }}</a>{% else %}<span></span>{% endif %}
+      {% if following %}<a href="/c/{{ following.id }}" class="nav-next"><small>Next</small>{{ following.title }}</a>{% endif %}
+    </nav>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='app.js') }}?v={{ V }}" defer></script>
+{% endblock %}

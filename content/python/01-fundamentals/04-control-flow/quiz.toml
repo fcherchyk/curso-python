@@ -1,0 +1,44 @@
+[[questions]]
+text = "¿Cuándo se ejecuta el bloque `else` de un `for`?"
+options = [
+  "Cuando el iterable está vacío",
+  "Cuando el bucle termina sin ejecutar un `break`",
+  "Cuando ocurre una excepción dentro del bucle",
+  "Nunca: es un error de sintaxis",
+]
+correct = 1
+explanation = "El `else` corre si el bucle terminó \"normalmente\", sin `break`. Con un iterable vacío también corre, porque tampoco hubo `break`."
+
+[[questions]]
+text = "¿Qué devuelve `\"\" or \"anónimo\"`?"
+options = ["`True`", "`''`", "`'anónimo'`", "`False`"]
+correct = 2
+explanation = "`or` devuelve el primer operando verdadero (o el último). Como el string vacío es falsy, devuelve `'anónimo'`."
+
+[[questions]]
+text = "¿Qué imprime `for i in range(3): pass` seguido de `print(i)`?"
+options = ["`NameError`", "`2`", "`3`", "`None`"]
+correct = 1
+explanation = "Los bucles no crean un scope nuevo: `i` sigue existiendo con el último valor asignado, que es 2."
+
+[[questions]]
+text = "¿A qué equivale `0 <= x < 10`?"
+options = [
+  "`(0 <= x) < 10`",
+  "`0 <= x and x < 10`",
+  "`0 <= (x < 10)`",
+  "Es un error de sintaxis",
+]
+correct = 1
+explanation = "Python encadena las comparaciones con `and` y evalúa `x` una sola vez."
+
+[[questions]]
+text = "¿Cuándo es preferible `while` a `for`?"
+options = [
+  "Para recorrer una lista con índices",
+  "Cuando no sabés de antemano cuántas vueltas vas a dar",
+  "Siempre, porque es más rápido",
+  "Para recorrer las claves de un dict",
+]
+correct = 1
+explanation = "Para recorrer colecciones se usa `for`. `while` es para reintentos, centinelas o algoritmos que iteran hasta que se cumple una condición."

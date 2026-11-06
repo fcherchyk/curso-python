@@ -1,0 +1,49 @@
+[[questions]]
+text = "¿Qué cubre `@app.errorhandler(HTTPException)`?"
+options = [
+  "Solo los 500",
+  "Todas las excepciones HTTP de Werkzeug: 400, 401, 404, 405, etc.",
+  "Solo los `abort()` explícitos, no las rutas inexistentes",
+  "Las excepciones de Python como `ValueError`",
+]
+correct = 1
+explanation = "`NotFound`, `MethodNotAllowed`, `Unauthorized` y las demás heredan de `HTTPException`, incluidas las que Flask levanta solo (ruta inexistente, método no permitido)."
+
+[[questions]]
+text = "¿Por qué el decorador de autenticación necesita `functools.wraps`?"
+options = [
+  "Para que sea más rápido",
+  "Porque Flask usa el nombre de la función como endpoint: sin `wraps`, todas las vistas protegidas se llamarían igual y chocarían",
+  "Para que funcione `g`",
+  "No hace falta",
+]
+correct = 1
+explanation = "Sin `wraps`, todas las envolturas se llaman igual y Flask levanta un error al registrar el segundo endpoint con el mismo nombre."
+
+[[questions]]
+text = "Un request llega sin el header `Authorization`. ¿Qué código corresponde?"
+options = ["400", "401", "403", "404"]
+correct = 1
+explanation = "401 significa que falta autenticarse o que la credencial es inválida. 403 es para un usuario identificado que no tiene permiso."
+
+[[questions]]
+text = "¿Qué es `flask.g`?"
+options = [
+  "Una variable global compartida por todos los requests",
+  "Un objeto donde guardar datos que viven durante un solo request (como el usuario autenticado)",
+  "La configuración de la app",
+  "El cliente de testing",
+]
+correct = 1
+explanation = "`g` se crea vacío en cada request y se descarta al terminar. Es ideal para compartir el usuario actual o una conexión."
+
+[[questions]]
+text = "¿En qué orden van los decoradores para proteger una vista?"
+options = [
+  "`@requiere_token` arriba y `@app.get` abajo",
+  "`@app.get` arriba y `@requiere_token` abajo",
+  "Da igual",
+  "No se pueden combinar",
+]
+correct = 1
+explanation = "Los decoradores se aplican de abajo hacia arriba: primero se protege la función y después se registra en la ruta la versión protegida."

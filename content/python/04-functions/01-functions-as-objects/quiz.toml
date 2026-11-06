@@ -1,0 +1,49 @@
+[[questions]]
+text = "¿Qué le estás pasando a `sorted` con `sorted(xs, key=len())`?"
+options = [
+  "La función `len`",
+  "El resultado de llamar a `len` sin argumentos, que levanta `TypeError`",
+  "Una lambda",
+  "Nada: `key` se ignora",
+]
+correct = 1
+explanation = "Con paréntesis se *llama* a la función. `key` espera la función en sí: `key=len`."
+
+[[questions]]
+text = "¿Qué devuelve `partial(int, base=16)(\"ff\")`?"
+options = ["`'ff'`", "`255`", "`16`", "Levanta `TypeError`"]
+correct = 1
+explanation = "`partial` fija `base=16`, así que la llamada equivale a `int(\"ff\", base=16)`, que es 255."
+
+[[questions]]
+text = "¿Por qué no conviene escribir `doble = lambda x: x * 2`?"
+options = [
+  "Porque las lambdas son más lentas",
+  "Porque si la vas a nombrar, un `def` da nombre en los tracebacks, admite docstring y es lo idiomático",
+  "Porque las lambdas no pueden devolver valores",
+  "Porque es un error de sintaxis",
+]
+correct = 1
+explanation = "Las lambdas son para funciones cortas pasadas como argumento. Asignada a un nombre, es un `def` peor (ruff la marca con E731)."
+
+[[questions]]
+text = "¿Qué ventaja tiene despachar con `OPERACIONES[op](a, b)` frente a una cadena de `if/elif`?"
+options = [
+  "Es la única forma de usar el módulo `operator`",
+  "Agregar un caso es agregar una entrada al dict, sin tocar la lógica",
+  "Evita tener que manejar errores",
+  "Es obligatorio en Python 3",
+]
+correct = 1
+explanation = "Separa los datos (la tabla de operaciones) de la lógica. Además, el dict se puede extender o inyectar desde afuera."
+
+[[questions]]
+text = "¿Qué hace que un objeto sea *callable*?"
+options = [
+  "Heredar de `function`",
+  "Tener un método `__call__`",
+  "Estar decorado con `@callable`",
+  "Tener un atributo `__name__`",
+]
+correct = 1
+explanation = "Cualquier objeto cuya clase define `__call__` se puede llamar con paréntesis. Las funciones, las clases y los `partial` lo cumplen."

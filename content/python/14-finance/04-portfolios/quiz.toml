@@ -1,0 +1,49 @@
+[[questions]]
+text = "Dos activos con volatilidad del 20 % cada uno, mitad y mitad. ¿Cuál es la volatilidad del portafolio?"
+options = [
+  "Siempre 20 %",
+  "Depende de la correlación: 20 % si es 1 y menos si es menor",
+  "Siempre 10 %",
+  "40 %",
+]
+correct = 1
+explanation = "σ²_p = 0.25·0.04 + 0.25·0.04 + 2·0.25·ρ·0.04. Con ρ = 1 da 20 %; con ρ = 0, unos 14 %."
+
+[[questions]]
+text = "¿Cómo se calcula la varianza de un portafolio con pesos w y matriz de covarianza Σ?"
+options = ["w · σ", "wᵀ Σ w", "Σ w", "suma de las varianzas"]
+correct = 1
+explanation = "La forma cuadrática wᵀΣw suma todos los términos wᵢwⱼcov(i,j), incluidas las covarianzas cruzadas."
+
+[[questions]]
+text = "¿Qué riesgo NO se puede eliminar diversificando?"
+options = [
+  "El de una empresa en particular",
+  "El riesgo sistemático, el del mercado en su conjunto",
+  "El de un sector",
+  "Ninguno: todo se diversifica",
+]
+correct = 1
+explanation = "Una recesión afecta a todos los activos. Diversificar elimina el riesgo idiosincrático, no el sistemático."
+
+[[questions]]
+text = "En buy & hold, ¿qué pasa con los pesos con el tiempo?"
+options = [
+  "Se mantienen fijos",
+  "Derivan: los activos que más suben pasan a pesar más",
+  "Se igualan solos",
+  "Bajan todos",
+]
+correct = 1
+explanation = "Las cantidades de acciones quedan fijas, pero sus precios cambian, y con ellos la proporción de cada una en el total."
+
+[[questions]]
+text = "¿Qué hace un rebalanceo?"
+options = [
+  "Compra más de lo que más subió",
+  "Vende parte de lo que subió y compra de lo que bajó para volver a los pesos objetivo",
+  "Liquida todo el portafolio",
+  "Cambia los pesos objetivo",
+]
+correct = 1
+explanation = "Restablece el riesgo elegido. Además, tiene un efecto contrario a la tendencia: vende caro y compra barato."

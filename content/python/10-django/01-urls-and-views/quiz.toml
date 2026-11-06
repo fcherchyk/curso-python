@@ -1,0 +1,44 @@
+[[questions]]
+text = "¿Qué recibe una vista de función de Django como primer argumento?"
+options = ["Nada: el request es global", "El objeto `request`", "Los parámetros del query string", "La app"]
+correct = 1
+explanation = "A diferencia de Flask, en Django el request se pasa explícitamente a la vista. Los parámetros de la ruta vienen después."
+
+[[questions]]
+text = "¿Para qué sirve `name=\"detalle\"` en `path(\"productos/<int:id>/\", views.detalle, name=\"detalle\")`?"
+options = [
+  "Para nombrar la función",
+  "Para poder generar la URL con `reverse(\"detalle\", args=[id])` o `{% url %}` sin escribirla a mano",
+  "Para el título de la página",
+  "Es obligatorio, sin otro efecto",
+]
+correct = 1
+explanation = "Las URLs con nombre se invierten. Si cambia la ruta, todos los links se actualizan."
+
+[[questions]]
+text = "¿Por qué `JsonResponse([1, 2, 3])` levanta un error?"
+options = [
+  "Porque JSON no soporta listas",
+  "Porque por defecto exige un dict; para otros tipos hay que pasar `safe=False`",
+  "Porque falta el status",
+  "Porque las listas se devuelven con `HttpResponse`",
+]
+correct = 1
+explanation = "Es una protección histórica contra el JSON hijacking. Con `safe=False` acepta cualquier valor serializable."
+
+[[questions]]
+text = "¿Cuál es la diferencia entre un proyecto y una app en Django?"
+options = [
+  "Son lo mismo",
+  "El proyecto tiene la configuración global y las URLs raíz; las apps agrupan modelos, vistas y URLs de cada área",
+  "La app es el servidor y el proyecto el código",
+  "El proyecto solo existe en producción",
+]
+correct = 1
+explanation = "Un proyecto contiene varias apps activadas en `INSTALLED_APPS`. Cada app puede reutilizarse en otros proyectos."
+
+[[questions]]
+text = "Una vista decorada con `@require_http_methods([\"GET\"])` recibe un POST. ¿Qué responde?"
+options = ["404", "405 Method Not Allowed", "400", "200"]
+correct = 1
+explanation = "El decorador rechaza los métodos no permitidos con 405 sin ejecutar la vista."

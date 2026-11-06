@@ -1,79 +1,79 @@
-// Pestañas, editor CodeMirror y autoguardado del capítulo.
+// Chapter tabs, CodeMirror editor and autosave.
 (() => {
-  const main = document.querySelector("main.capitulo");
+  const main = document.querySelector("main.chapter");
   if (!main) return;
-  const idCap = main.dataset.cap;
-  const conTabs = main.dataset.tabs === "si";
+  const chapterId = main.dataset.chapter;
+  const useTabs = main.dataset.tabs === "yes";
   let editor = null;
 
-  // ---------- Pestañas ----------
+  // ---------- Tabs ----------
   const tabs = [...document.querySelectorAll(".tab")];
-  const clave = `tab:${idCap}`;
+  const storageKey = `tab:${chapterId}`;
 
-  function mostrar(nombre, { guardar = true } = {}) {
+  function show(name, { remember = true } = {}) {
     for (const t of tabs) {
-      const activa = t.dataset.tab === nombre;
-      t.setAttribute("aria-selected", String(activa));
-      document.getElementById(`panel-${t.dataset.tab}`).hidden = !activa;
+      const active = t.dataset.tab === name;
+      t.setAttribute("aria-selected", String(active));
+      document.getElementById(`panel-${t.dataset.tab}`).hidden = !active;
     }
-    if (nombre === "codigo") iniciarEditor();
-    if (guardar) {
-      history.replaceState(null, "", `#${nombre}`);
-      try { sessionStorage.setItem(clave, nombre); } catch {}
+    if (name === "code") startEditor();
+    if (remember) {
+      history.replaceState(null, "", `#${name}`);
+      try { sessionStorage.setItem(storageKey, name); } catch {}
     }
   }
 
-  tabs.forEach((t) => t.addEventListener("click", () => mostrar(t.dataset.tab)));
+  tabs.forEach((t) => t.addEventListener("click", () => show(t.dataset.tab)));
   document.addEventListener("click", (e) => {
-    const destino = e.target.closest("[data-ir-a]");
-    if (!destino) return;
-    mostrar(destino.dataset.irA);
+    const target = e.target.closest("[data-go-to]");
+    if (!target) return;
+    show(target.dataset.goTo);
     window.scrollTo({ top: 0 });
   });
 
-  let inicial = location.hash.slice(1);
-  if (!tabs.some((t) => t.dataset.tab === inicial)) {
-    try { inicial = sessionStorage.getItem(clave) || "leccion"; } catch { inicial = "leccion"; }
+  let initial = location.hash.slice(1);
+  if (!tabs.some((t) => t.dataset.tab === initial)) {
+    try { initial = sessionStorage.getItem(storageKey) || "lesson"; } catch { initial = "lesson"; }
   }
-  // CodeMirror se carga con defer: esperamos al load para poder crear el editor.
-  window.addEventListener("load", () => mostrar(inicial, { guardar: false }));
+  // CodeMirror loads with defer: wait for load before creating the editor.
+  window.addEventListener("load", () => show(initial, { remember: false }));
   window.addEventListener("hashchange", () => {
-    const nombre = location.hash.slice(1);
-    if (tabs.some((t) => t.dataset.tab === nombre)) mostrar(nombre);
+    const name = location.hash.slice(1);
+    if (tabs.some((t) => t.dataset.tab === name)) show(name);
   });
 
   // ---------- Editor ----------
-  const indicador = document.getElementById("guardado");
-  let temporizador = null;
+  const saveStatus = document.getElementById("save-status");
+  let timer = null;
 
-  function guardar() {
-    const datos = new FormData();
-    datos.append("codigo", codigoActual());
-    fetch(`/c/${idCap}/codigo`, { method: "POST", body: datos })
-      .then((r) => { indicador.textContent = r.ok ? "Guardado" : "No se pudo guardar"; })
-      .catch(() => { indicador.textContent = "No se pudo guardar"; });
+  function save() {
+    const data = new FormData();
+    data.append("code", currentCode());
+    fetch(`/c/${chapterId}/code`, { method: "POST", body: data })
+      .then((r) => { saveStatus.textContent = r.ok ? "Saved" : "Could not save"; })
+      .catch(() => { saveStatus.textContent = "Could not save"; });
   }
 
-  function codigoActual() {
+  function currentCode() {
     return editor ? editor.getValue() : document.getElementById("editor").value;
   }
 
-  function iniciarEditor() {
+  function startEditor() {
     if (editor || !window.CodeMirror) return;
-    const form = document.getElementById("form-codigo");
+    const form = document.getElementById("code-form");
     editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
-      mode: main.dataset.modo || "python",
+      mode: main.dataset.mode || "python",
       lineNumbers: true,
       indentUnit: 4,
       tabSize: 4,
-      indentWithTabs: conTabs,
+      indentWithTabs: useTabs,
       matchBrackets: true,
       autoCloseBrackets: true,
       styleActiveLine: true,
       extraKeys: {
         Tab: (cm) => cm.somethingSelected()
           ? cm.indentSelection("add")
-          : cm.replaceSelection(conTabs ? "\t" : " ".repeat(cm.getOption("indentUnit"))),
+          : cm.replaceSelection(useTabs ? "\t" : " ".repeat(cm.getOption("indentUnit"))),
         "Shift-Tab": (cm) => cm.indentSelection("subtract"),
         "Cmd-Enter": () => htmx.trigger(form, "submit"),
         "Ctrl-Enter": () => htmx.trigger(form, "submit"),
@@ -81,26 +81,26 @@
       },
     });
     editor.on("change", () => {
-      indicador.textContent = "Sin guardar…";
-      clearTimeout(temporizador);
-      temporizador = setTimeout(guardar, 800);
+      saveStatus.textContent = "Unsaved…";
+      clearTimeout(timer);
+      timer = setTimeout(save, 800);
     });
   }
 
-  // HTMX manda el textarea: nos aseguramos de que tenga lo último del editor.
+  // HTMX sends the textarea: make sure it holds the editor's latest content.
   document.body.addEventListener("htmx:configRequest", (e) => {
-    if (e.detail.elt.id === "form-codigo") {
-      e.detail.parameters.codigo = codigoActual();
-      indicador.textContent = "Guardado";
-      clearTimeout(temporizador);
+    if (e.detail.elt.id === "code-form") {
+      e.detail.parameters.code = currentCode();
+      saveStatus.textContent = "Saved";
+      clearTimeout(timer);
     }
   });
 
-  document.getElementById("boton-restaurar").addEventListener("click", async () => {
-    if (!confirm("¿Reemplazar tu código por el código inicial del ejercicio?")) return;
-    const texto = await fetch(`/c/${idCap}/inicial`).then((r) => r.text());
-    if (editor) editor.setValue(texto);
-    else document.getElementById("editor").value = texto;
-    guardar();
+  document.getElementById("reset-button").addEventListener("click", async () => {
+    if (!confirm("Replace your code with the exercise's starter code?")) return;
+    const text = await fetch(`/c/${chapterId}/starter`).then((r) => r.text());
+    if (editor) editor.setValue(text);
+    else document.getElementById("editor").value = text;
+    save();
   });
 })();

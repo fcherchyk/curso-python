@@ -1,0 +1,49 @@
+[[questions]]
+text = "Con un `DatetimeIndex`, ¿qué devuelve `precios.loc[\"2024-03\"]`?"
+options = [
+  "La fila del 3 de 2024",
+  "Todas las filas de marzo de 2024",
+  "Un error",
+  "La fila del 1 de marzo",
+]
+correct = 1
+explanation = "El indexado parcial por fechas selecciona todo el período indicado (un año, un mes o un día)."
+
+[[questions]]
+text = "¿Cuál es el valor representativo de un mes para precios de cierre diarios?"
+options = [
+  "`resample(\"ME\").mean()`",
+  "`resample(\"ME\").last()`",
+  "`resample(\"ME\").sum()`",
+  "`resample(\"ME\").max()`",
+]
+correct = 1
+explanation = "El cierre mensual es el último precio del mes. Sumar precios no tiene sentido, y el promedio suaviza y cambia los retornos."
+
+[[questions]]
+text = "¿A qué es equivalente `s.pct_change()`?"
+options = ["`s.diff()`", "`s / s.shift(1) - 1`", "`s.shift(-1) / s`", "`s.cumprod()`"]
+correct = 1
+explanation = "Es el cambio relativo respecto del período anterior. La primera fila queda `NaN`."
+
+[[questions]]
+text = "En una media móvil `rolling(20).mean()`, ¿qué tienen las primeras 19 filas?"
+options = [
+  "La media de los datos disponibles",
+  "`NaN`, porque no hay 20 datos todavía (salvo que uses `min_periods`)",
+  "Ceros",
+  "El primer precio",
+]
+correct = 1
+explanation = "La ventana necesita la cantidad completa de observaciones, salvo que `min_periods` indique otra cosa."
+
+[[questions]]
+text = "¿Qué detecta `cond & ~cond.shift(1, fill_value=False)`?"
+options = [
+  "Los días en que la condición es falsa",
+  "Los días en que la condición pasa de falsa a verdadera (cambio de estado)",
+  "Los días en que la condición es siempre verdadera",
+  "Nada: es un error",
+]
+correct = 1
+explanation = "Es verdadero hoy y era falso ayer. Así se detectan los cruces de medias, las rupturas de umbrales, etc."

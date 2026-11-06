@@ -1,0 +1,44 @@
+[[questions]]
+text = "¿Qué familia de reglas de ruff te pide cambiar `List[int]` por `list[int]`?"
+options = ["`E`", "`F`", "`UP` (pyupgrade)", "`B`"]
+correct = 2
+explanation = "`UP` moderniza la sintaxis según el `target-version`: tipos built-in genéricos, `X | None`, f-strings, etc."
+
+[[questions]]
+text = "`def f(d: dict[int, str], k: int) -> str: return d.get(k)`. ¿Qué dice mypy?"
+options = [
+  "Nada: está bien",
+  "Error: `d.get` devuelve `str | None` y la función promete `str`",
+  "Error de sintaxis",
+  "Advertencia de estilo",
+]
+correct = 1
+explanation = "`dict.get` puede devolver `None`. mypy detecta que el tipo de retorno no coincide: es un bug real si la clave no existe."
+
+[[questions]]
+text = "¿Qué exige, entre otras cosas, `mypy --strict`?"
+options = [
+  "Que el código esté formateado",
+  "Que todas las funciones estén completamente anotadas",
+  "Que no haya líneas de más de 79 caracteres",
+  "Que haya tests",
+]
+correct = 1
+explanation = "El modo estricto incluye `--disallow-untyped-defs`, entre otros chequeos: no se permiten funciones sin anotaciones."
+
+[[questions]]
+text = "¿Cuál es la forma correcta de silenciar una regla puntual de ruff?"
+options = ["`# noqa`", "`# noqa: F401`", "`# ruff: ignore`", "`# type: ignore`"]
+correct = 1
+explanation = "Siempre con el código de la regla, para no ocultar otros problemas de la misma línea. `# type: ignore` es para mypy."
+
+[[questions]]
+text = "¿Para qué sirve `ruff format --check`?"
+options = [
+  "Para formatear los archivos",
+  "Para verificar el formato sin modificar nada (útil en el CI)",
+  "Para chequear tipos",
+  "Para ordenar los imports",
+]
+correct = 1
+explanation = "Con `--check`, ruff solo informa si algún archivo no está formateado y sale con error, sin tocarlo."

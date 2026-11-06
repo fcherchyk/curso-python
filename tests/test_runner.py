@@ -2,72 +2,72 @@ from pathlib import Path
 
 import pytest
 
-from app.runner import correr_tests
+from app.runner import run_tests
 
 TESTS = """\
-from ejercicio import doble
+from exercise import double
 
 
-def test_doble():
-    assert doble(2) == 4
+def test_double():
+    assert double(2) == 4
 
 
-def test_doble_negativo():
-    assert doble(-3) == -6
+def test_double_negative():
+    assert double(-3) == -6
 """
 
 
 @pytest.fixture
-def archivos(tmp_path: Path) -> list[Path]:
-    ruta = tmp_path / "test_ejercicio.py"
-    ruta.write_text(TESTS)
-    return [ruta]
+def files(tmp_path: Path) -> list[Path]:
+    path = tmp_path / "test_exercise.py"
+    path.write_text(TESTS)
+    return [path]
 
 
-def test_codigo_correcto(archivos):
-    r = correr_tests("def doble(x):\n    return x * 2\n", archivos)
-    assert r.aprobado
-    assert r.cantidad_ok == 2
-    assert [t.nombre for t in r.tests] == ["test_doble", "test_doble_negativo"]
+def test_correct_code(files):
+    r = run_tests("def double(x):\n    return x * 2\n", files)
+    assert r.passed
+    assert r.passed_count == 2
+    assert [t.name for t in r.tests] == ["test_double", "test_double_negative"]
 
 
-def test_codigo_incorrecto_muestra_el_assert(archivos):
-    r = correr_tests("def doble(x):\n    return x + 2\n", archivos)
-    assert not r.aprobado
-    assert r.cantidad_ok == 1
-    fallido = next(t for t in r.tests if not t.ok)
-    assert "assert" in fallido.mensaje
-    assert "/tmp" not in fallido.mensaje and "curso-" not in fallido.mensaje
+def test_wrong_code_shows_the_assert(files):
+    r = run_tests("def double(x):\n    return x + 2\n", files)
+    assert not r.passed
+    assert r.passed_count == 1
+    failed = next(t for t in r.tests if not t.ok)
+    assert "assert" in failed.message
+    assert "/tmp" not in failed.message and "course-" not in failed.message
 
 
-def test_todo_pendiente(archivos):
-    r = correr_tests('def doble(x):\n    raise NotImplementedError("TODO")\n', archivos)
-    assert r.cantidad_ok == 0
-    assert all("Pendiente" in t.mensaje for t in r.tests)
+def test_everything_pending(files):
+    r = run_tests('def double(x):\n    raise NotImplementedError("TODO")\n', files)
+    assert r.passed_count == 0
+    assert all("Pending" in t.message for t in r.tests)
 
 
-def test_error_de_sintaxis(archivos):
-    r = correr_tests("def doble(x:\n", archivos)
-    assert not r.aprobado
+def test_syntax_error(files):
+    r = run_tests("def double(x:\n", files)
+    assert not r.passed
     assert r.error is not None and "SyntaxError" in r.error
     assert "site-packages" not in r.error
 
 
-def test_bucle_infinito_corta_por_timeout(archivos):
-    r = correr_tests("while True:\n    pass\n", archivos, timeout=2)
-    assert not r.aprobado
-    assert r.error is not None and "Se cortó" in r.error
+def test_infinite_loop_stops_on_timeout(files):
+    r = run_tests("while True:\n    pass\n", files, timeout=2)
+    assert not r.passed
+    assert r.error is not None and "stopped" in r.error
 
 
-def test_copia_carpetas_de_soporte(tmp_path):
-    plantillas = tmp_path / "templates"
-    plantillas.mkdir()
-    (plantillas / "hola.txt").write_text("hola")
-    tests = tmp_path / "test_ejercicio.py"
+def test_copies_support_folders(tmp_path):
+    templates = tmp_path / "templates"
+    templates.mkdir()
+    (templates / "hello.txt").write_text("hello")
+    tests = tmp_path / "test_exercise.py"
     tests.write_text(
         "from pathlib import Path\n\n\n"
-        "def test_lee_plantilla():\n"
-        "    assert Path('templates/hola.txt').read_text() == 'hola'\n"
+        "def test_reads_template():\n"
+        "    assert Path('templates/hello.txt').read_text() == 'hello'\n"
     )
-    r = correr_tests("", [tests, plantillas])
-    assert r.aprobado, r.tests
+    r = run_tests("", [tests, templates])
+    assert r.passed, r.tests

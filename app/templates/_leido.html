@@ -1,6 +1,0 @@
-{% from "_macros.html" import marca_tab %}
-<button id="boton-leido" class="boton {{ 'boton-hecho' if estado.leido }}"
-        hx-post="/c/{{ cap.id }}/leido" hx-swap="outerHTML">
-  {% if estado.leido %}✓ Leído{% else %}Marcar como leído{% endif %}
-</button>
-{% if request and request.headers.get('HX-Request') %}{{ marca_tab('marca-leido', estado.leido, oob=true) }}{% endif %}

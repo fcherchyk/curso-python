@@ -1,0 +1,49 @@
+[[questions]]
+text = "¿Qué hace `pytest.raises(ValueError, match=\"mes\")`?"
+options = [
+  "Levanta un `ValueError` con el mensaje \"mes\"",
+  "Verifica que el bloque levante `ValueError` y que el mensaje contenga (regex) \"mes\"",
+  "Ignora los `ValueError` del bloque",
+  "Verifica que NO se levante `ValueError`",
+]
+correct = 1
+explanation = "El test falla si no se levanta la excepción, si es de otro tipo o si el mensaje no matchea la regex."
+
+[[questions]]
+text = "¿Por qué pytest usa `assert` plano en lugar de métodos como `assertEqual`?"
+options = [
+  "Porque es más rápido",
+  "Porque reescribe los `assert` para mostrar los valores y las diferencias cuando fallan",
+  "Porque `assertEqual` no existe en Python 3",
+  "Por compatibilidad con unittest",
+]
+correct = 1
+explanation = "pytest reescribe los asserts de los módulos de test para mostrar los valores intermedios y las diferencias. No hace falta aprender una API de asserts."
+
+[[questions]]
+text = "Tenés 100 % de cobertura en `es_bisiesto` con los casos 2024 y 2023. ¿Qué te dice eso?"
+options = [
+  "Que la función está completamente testeada",
+  "Solo que las líneas se ejecutaron: las reglas del 100 y del 400 pueden estar mal y los tests seguir en verde",
+  "Que no hacen falta más tests",
+  "Que hay un bug",
+]
+correct = 1
+explanation = "La cobertura mide ejecución, no verificación. Hacen falta casos como 1900 y 2000 para matar a los mutantes de esas reglas."
+
+[[questions]]
+text = "¿Qué genera `@pytest.mark.parametrize(\"x\", [1, 2, 3])` sobre un test?"
+options = [
+  "Un test que recibe la lista `[1, 2, 3]`",
+  "Tres tests independientes, uno por valor",
+  "Un test que corre tres veces y solo reporta el último",
+  "Un error: falta `ids`",
+]
+correct = 1
+explanation = "Cada valor crea un caso de test separado, con su propio resultado en el reporte (`test_x[1]`, `test_x[2]`…)."
+
+[[questions]]
+text = "¿Qué opción de pytest corre solo los tests que fallaron la última vez?"
+options = ["`-x`", "`--lf`", "`-k`", "`-q`"]
+correct = 1
+explanation = "`--lf` (*last failed*) reusa el caché de la corrida anterior. `-x` frena en el primer fallo y `-k` filtra por nombre."

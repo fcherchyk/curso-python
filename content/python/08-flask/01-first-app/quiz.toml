@@ -1,0 +1,54 @@
+[[questions]]
+text = "Con `@app.get(\"/productos/<int:id>\")`, ¿qué pasa con un request a `/productos/abc`?"
+options = [
+  "La vista recibe `id = \"abc\"`",
+  "Flask responde 404 sin llamar a la vista",
+  "Levanta `ValueError` dentro de la vista",
+  "Responde 400",
+]
+correct = 1
+explanation = "Los converters forman parte del matcheo de la ruta: si `abc` no es un int, la ruta no coincide y Flask devuelve 404."
+
+[[questions]]
+text = "¿Qué devuelve Flask si una vista hace `return {\"ok\": True}, 201`?"
+options = [
+  "Un error: no se puede devolver una tupla",
+  "Una respuesta JSON con status 201",
+  "El texto `({'ok': True}, 201)`",
+  "Un 200 con el dict como texto",
+]
+correct = 1
+explanation = "Un dict se serializa a JSON automáticamente y el segundo elemento de la tupla es el código de estado."
+
+[[questions]]
+text = "¿Cómo leés `?pagina=2` como entero, con default 1 si falta o es inválido?"
+options = [
+  "`int(request.args[\"pagina\"])`",
+  "`request.args.get(\"pagina\", 1, type=int)`",
+  "`request.query.pagina`",
+  "`request.get_json()[\"pagina\"]`",
+]
+correct = 1
+explanation = "Con `type=int`, si la conversión falla se devuelve el default en lugar de levantar una excepción."
+
+[[questions]]
+text = "¿Para qué sirve `app.test_client()`?"
+options = [
+  "Para levantar un servidor de desarrollo",
+  "Para hacer requests a la app en los tests sin levantar un servidor",
+  "Para generar documentación",
+  "Para medir el rendimiento",
+]
+correct = 1
+explanation = "El cliente de testing llama a la app directamente (WSGI) y devuelve respuestas que se pueden inspeccionar con `status_code`, `get_json()`, etc."
+
+[[questions]]
+text = "¿Por qué nunca hay que usar `--debug` en producción?"
+options = [
+  "Porque es más lento",
+  "Porque el debugger interactivo permite ejecutar código arbitrario desde el navegador",
+  "Porque desactiva el logging",
+  "Porque no soporta HTTPS",
+]
+correct = 1
+explanation = "El debugger de Werkzeug abre una consola Python en la página de error. En un servidor público, es una puerta de entrada."

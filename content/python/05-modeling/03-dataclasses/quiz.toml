@@ -1,0 +1,54 @@
+[[questions]]
+text = "¿Qué pasa con `items: list[str] = []` dentro de un `@dataclass`?"
+options = [
+  "Funciona, pero todas las instancias comparten la lista",
+  "Levanta `ValueError` al definir la clase: hay que usar `field(default_factory=list)`",
+  "Se ignora el default",
+  "Se convierte automáticamente en `default_factory`",
+]
+correct = 1
+explanation = "`dataclass` detecta los defaults mutables comunes y se niega a crear la clase. La solución es `field(default_factory=list)`."
+
+[[questions]]
+text = "¿Qué dos cosas te da `frozen=True`?"
+options = [
+  "Validación de tipos y serialización",
+  "Inmutabilidad y hash (se puede usar en sets y como clave)",
+  "Orden y comparación",
+  "Menos memoria y acceso más rápido",
+]
+correct = 1
+explanation = "Con `frozen=True`, asignar levanta `FrozenInstanceError` y además se genera `__hash__` a partir de los campos. Menos memoria es `slots=True`."
+
+[[questions]]
+text = "Con `@dataclass(order=True)` y campos `mayor, menor, parche`, ¿cómo se comparan dos instancias?"
+options = [
+  "Por la suma de los campos",
+  "Como tuplas `(mayor, menor, parche)`, en el orden de declaración",
+  "Solo por el primer campo",
+  "Por el `repr`",
+]
+correct = 1
+explanation = "`order=True` compara los campos como una tupla, respetando el orden en que se declararon."
+
+[[questions]]
+text = "¿Cómo obtenés una copia de un dataclass frozen con un campo cambiado?"
+options = [
+  "`obj.campo = valor`",
+  "`dataclasses.replace(obj, campo=valor)`",
+  "`copy.copy(obj, campo=valor)`",
+  "No se puede",
+]
+correct = 1
+explanation = "`replace` crea una instancia nueva con los campos indicados cambiados y deja la original intacta."
+
+[[questions]]
+text = "`@dataclass class P: precio: float`. ¿Qué pasa con `P(\"caro\")`?"
+options = [
+  "Levanta `TypeError`",
+  "Se crea sin error: las dataclasses no validan tipos",
+  "Convierte `\"caro\"` a float",
+  "Levanta `ValueError`",
+]
+correct = 1
+explanation = "Las anotaciones no se verifican al ejecutar. Para validar y convertir datos externos está Pydantic, o una validación manual en `__post_init__`."

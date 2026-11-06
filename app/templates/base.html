@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block titulo %}{{ curso.titulo if curso else "Cursos" }} · Cursos{% endblock %}</title>
+  <title>{% block title %}{{ course.title if course else "Courses" }} · Courses{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -11,22 +11,22 @@
   <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}?v={{ V }}">
   <link rel="stylesheet" href="/pygments.css">
   <script src="{{ url_for('static', path='vendor/htmx/htmx.min.js') }}" defer></script>
-  {% block cabecera %}{% endblock %}
+  {% block head %}{% endblock %}
 </head>
 <body>
-  <header class="barra">
-    <a class="marca" href="/{{ curso.slug if curso else '' }}"><span class="marca-logo">{{ '{ }' }}</span> Cursos</a>
-    {% if cursos | length > 1 %}
-    <nav class="solapas" aria-label="Cursos">
-      {% for c in cursos %}
-      <a href="/{{ c.slug }}" class="solapa {{ 'activa' if curso and c.slug == curso.slug }}"
-         {% if curso and c.slug == curso.slug %}aria-current="page"{% endif %}>{{ c.titulo }}</a>
+  <header class="topbar">
+    <a class="brand" href="/{{ course.slug if course else '' }}"><span class="brand-logo">{{ '{ }' }}</span> Courses</a>
+    {% if courses | length > 1 %}
+    <nav class="course-tabs" aria-label="Courses">
+      {% for c in courses %}
+      <a href="/{{ c.slug }}" class="course-tab {{ 'active' if course and c.slug == course.slug }}"
+         {% if course and c.slug == course.slug %}aria-current="page"{% endif %}>{{ c.title }}</a>
       {% endfor %}
     </nav>
     {% endif %}
-    {% block barra %}{% endblock %}
+    {% block topbar %}{% endblock %}
   </header>
-  {% block contenido %}{% endblock %}
+  {% block content %}{% endblock %}
   {% block scripts %}{% endblock %}
 </body>
 </html>

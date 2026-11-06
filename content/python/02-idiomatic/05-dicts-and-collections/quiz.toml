@@ -1,0 +1,49 @@
+[[questions]]
+text = "Con `d = defaultdict(list)` vacío, ¿qué pasa después de evaluar `if d[\"x\"]: ...`?"
+options = [
+  "Levanta `KeyError`",
+  "No pasa nada: `d` sigue vacío",
+  "`d` pasa a tener la clave `\"x\"` con `[]`",
+  "`d[\"x\"]` vale `None`",
+]
+correct = 2
+explanation = "Acceder con `[]` a una clave inexistente de un `defaultdict` llama a la fábrica e **inserta** la clave. Para consultar sin modificar, usá `in` o `.get()`."
+
+[[questions]]
+text = "¿Qué devuelve `Counter(\"hola\")[\"z\"]`?"
+options = ["`None`", "`0`", "Levanta `KeyError`", "`Counter()`"]
+correct = 1
+explanation = "Un `Counter` devuelve 0 para los elementos ausentes y, a diferencia de `defaultdict`, no los inserta."
+
+[[questions]]
+text = "¿Cuál es el problema de `dict.fromkeys([\"a\", \"b\"], [])`?"
+options = [
+  "Levanta `TypeError` porque las listas no son hashables",
+  "Las dos claves comparten la **misma** lista",
+  "Crea las claves en orden inverso",
+  "Ninguno: es la forma recomendada",
+]
+correct = 1
+explanation = "`fromkeys` usa el mismo objeto como valor de todas las claves. Si agregás algo en `d[\"a\"]`, también aparece en `d[\"b\"]`. Usá `{k: [] for k in claves}`."
+
+[[questions]]
+text = "Con `stock = Counter(a=2)` y `pedido = Counter(a=3, b=1)`, ¿qué es `pedido - stock`?"
+options = [
+  "`Counter({'a': 1, 'b': 1})`",
+  "`Counter({'a': -1})`",
+  "`Counter({'b': 1})`",
+  "`Counter({'a': 1, 'b': 1, 'c': 0})`",
+]
+correct = 0
+explanation = "La resta de `Counter` descuenta cantidades y descarta los resultados <= 0. Lo que queda es lo que falta: una `a` y una `b`."
+
+[[questions]]
+text = "¿Por qué conviene devolver `dict(grupos)` en lugar del `defaultdict` directamente?"
+options = [
+  "Porque `defaultdict` no se puede serializar a JSON",
+  "Porque quien lo reciba podría crear claves sin darse cuenta al leer con `[]`",
+  "Porque `dict` es más rápido para leer",
+  "Porque `defaultdict` no conserva el orden",
+]
+correct = 1
+explanation = "El comportamiento de \"crear al leer\" es útil mientras construís el resultado, pero queda como una sorpresa para quien lo usa después."

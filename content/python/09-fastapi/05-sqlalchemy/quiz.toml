@@ -1,0 +1,54 @@
+[[questions]]
+text = "¿Por qué se separan los modelos del ORM de los schemas de Pydantic?"
+options = [
+  "Porque SQLAlchemy no funciona con FastAPI",
+  "Para controlar qué puede enviar el cliente y qué devuelve la API (sin exponer campos internos), independientemente de la tabla",
+  "Por rendimiento",
+  "Porque Pydantic no soporta enteros",
+]
+correct = 1
+explanation = "El schema de entrada no tiene `id` y el de salida no expone campos sensibles. La API y la tabla evolucionan por separado."
+
+[[questions]]
+text = "¿Para qué sirve `model_config = ConfigDict(from_attributes=True)` en un schema?"
+options = [
+  "Para leer el schema desde un archivo",
+  "Para poder construirlo desde un objeto con atributos (por ejemplo, una instancia del ORM)",
+  "Para hacerlo inmutable",
+  "Para validar en modo estricto",
+]
+correct = 1
+explanation = "Permite `TareaPublica.model_validate(tarea_orm)`, que es lo que hace FastAPI con el `response_model` cuando devolvés un objeto del ORM."
+
+[[questions]]
+text = "En un PATCH con body `{\"hecha\": true}`, ¿qué devuelve `datos.model_dump(exclude_unset=True)`?"
+options = [
+  "`{\"titulo\": None, \"hecha\": True}`",
+  "`{\"hecha\": True}`",
+  "`{}`",
+  "Todos los campos con sus defaults",
+]
+correct = 1
+explanation = "Solo incluye los campos que vinieron en el JSON. Así no se pisan los demás con `None`."
+
+[[questions]]
+text = "¿Qué hace `session.refresh(tarea)` después del `commit`?"
+options = [
+  "Borra la tarea",
+  "Recarga el objeto desde la base (por ejemplo, el id y los defaults generados)",
+  "Deshace los cambios",
+  "Cierra la sesión",
+]
+correct = 1
+explanation = "Sincroniza el objeto con lo que quedó guardado, para que la respuesta tenga los valores definitivos."
+
+[[questions]]
+text = "Un endpoint usa una `Session` sincrónica de SQLAlchemy. ¿Cómo conviene declararlo?"
+options = [
+  "`async def`",
+  "`def`, para que FastAPI lo ejecute en el thread pool sin bloquear el loop",
+  "Da igual",
+  "Con `@app.sync`",
+]
+correct = 1
+explanation = "El driver sincrónico bloquea. Con `def`, ese bloqueo ocurre en un thread aparte. Para todo async, `AsyncSession`."

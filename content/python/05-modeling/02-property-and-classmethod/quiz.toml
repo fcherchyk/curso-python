@@ -1,0 +1,54 @@
+[[questions]]
+text = "¿Qué pasa al asignar a una property que no tiene setter?"
+options = [
+  "Se crea un atributo nuevo con ese nombre",
+  "Levanta `AttributeError`",
+  "Se ignora en silencio",
+  "Se llama al getter",
+]
+correct = 1
+explanation = "Una property sin setter es de solo lectura: asignarle levanta `AttributeError`."
+
+[[questions]]
+text = "Dentro del getter `@property def precio(self)`, ¿qué problema tiene `return self.precio`?"
+options = [
+  "Ninguno",
+  "Recursión infinita: `self.precio` vuelve a llamar al getter",
+  "Devuelve la función, no el valor",
+  "Levanta `TypeError`",
+]
+correct = 1
+explanation = "`self.precio` pasa por la property otra vez. El valor real se guarda en otro atributo, como `self._precio`."
+
+[[questions]]
+text = "¿Por qué un constructor alternativo usa `cls(...)` en lugar del nombre de la clase?"
+options = [
+  "Porque es más rápido",
+  "Para que las subclases creen instancias de sí mismas",
+  "Porque el nombre de la clase no existe dentro de sus métodos",
+  "Por convención, sin diferencia práctica",
+]
+correct = 1
+explanation = "Si `Empleado` hereda de `Persona`, `Empleado.desde_dict(...)` recibe `cls = Empleado` y crea un `Empleado`."
+
+[[questions]]
+text = "En el `__init__`, ¿por qué conviene `self.precio = precio` (por la property) y no `self._precio = precio`?"
+options = [
+  "Porque `_precio` no se puede asignar en `__init__`",
+  "Para que la validación del setter corra también al construir el objeto",
+  "Porque es más corto",
+  "Para que el atributo sea público",
+]
+correct = 1
+explanation = "Así se valida en un solo lugar y no se puede crear un objeto en un estado inválido."
+
+[[questions]]
+text = "¿Cuándo **no** conviene una property?"
+options = [
+  "Para un valor derivado barato como `nombre_completo`",
+  "Cuando el cálculo hace una consulta a una API o a una base",
+  "Para validar un valor al asignarlo",
+  "Para convertir un atributo en calculado sin cambiar la API",
+]
+correct = 1
+explanation = "Quien lee `obj.x` espera algo instantáneo y sin efectos. Para cálculos caros o con I/O, usá un método con verbo o `cached_property`."

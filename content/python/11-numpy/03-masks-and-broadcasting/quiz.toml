@@ -1,0 +1,39 @@
+[[questions]]
+text = "¿Por qué `v[v > 0 and v < 5]` falla?"
+options = [
+  "Porque las máscaras no existen",
+  "Porque `and` intenta convertir un array a un solo bool; hay que usar `(v > 0) & (v < 5)`",
+  "Porque falta `np.where`",
+  "No falla",
+]
+correct = 1
+explanation = "Con arrays se usan los operadores bit a bit `&`, `|` y `~`, y con paréntesis por la precedencia."
+
+[[questions]]
+text = "¿Qué devuelve `(np.array([3, -1, 4, -5]) < 0).sum()`?"
+options = ["`-6`", "`2`", "`[False True False True]`", "`True`"]
+correct = 1
+explanation = "La máscara tiene dos `True`, y al sumar, `True` cuenta como 1."
+
+[[questions]]
+text = "¿Son compatibles para broadcasting las formas `(4, 3)` y `(3,)`?"
+options = [
+  "No, tienen distinta cantidad de dimensiones",
+  "Sí: `(3,)` se trata como `(1, 3)` y se estira a `(4, 3)`",
+  "Solo con `keepdims=True`",
+  "Solo si son de tipo float",
+]
+correct = 1
+explanation = "Se comparan desde la derecha: 3 con 3 es igual, y la dimensión faltante cuenta como 1."
+
+[[questions]]
+text = "Con `m` de forma `(5, 3)`, ¿qué forma tiene `m.mean(axis=1, keepdims=True)`?"
+options = ["`(5,)`", "`(5, 1)`", "`(1, 3)`", "`(3,)`"]
+correct = 1
+explanation = "Se reduce el eje 1 (las columnas), pero `keepdims` lo conserva con tamaño 1. Así se puede restar a `m` fila por fila."
+
+[[questions]]
+text = "¿Qué devuelve `np.argmax(np.array([7, 2, 9, 4]))`?"
+options = ["`9`", "`2`", "`3`", "`[False, False, True, False]`"]
+correct = 1
+explanation = "`argmax` devuelve la **posición** del máximo (índice 2), no el valor. Sirve para buscar en un array paralelo (`nombres[np.argmax(ventas)]`)."

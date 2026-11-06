@@ -1,0 +1,54 @@
+[[questions]]
+text = "¿Qué es la frontera eficiente?"
+options = [
+  "El portafolio con mayor retorno",
+  "El conjunto de portafolios con el máximo retorno posible para cada nivel de riesgo",
+  "Los portafolios con Sharpe mayor que 1",
+  "El portafolio de pesos iguales",
+]
+correct = 1
+explanation = "Es el borde superior de la nube riesgo-retorno. Por debajo, siempre hay otro portafolio mejor con el mismo riesgo."
+
+[[questions]]
+text = "¿Para qué sirve `keepdims=True` en `W /= W.sum(axis=1, keepdims=True)`?"
+options = [
+  "Para no modificar W",
+  "Para que la suma quede con forma (n, 1) y el broadcasting divida cada fila por su suma",
+  "Para ordenar las filas",
+  "Para que sea más rápido",
+]
+correct = 1
+explanation = "Sin keepdims, la suma tiene forma (n,) y no se alinea con las filas de una matriz (n, 4)."
+
+[[questions]]
+text = "¿Qué calcula `np.einsum('ij,jk,ik->i', W, cov, W)`?"
+options = [
+  "El retorno de cada portafolio",
+  "La varianza wᵀΣw de cada portafolio (cada fila de W)",
+  "La covarianza entre portafolios",
+  "La suma de los pesos",
+]
+correct = 1
+explanation = "Para cada fila i, suma W[i,j]·cov[j,k]·W[i,k] sobre j y k: la forma cuadrática fila por fila."
+
+[[questions]]
+text = "¿Por qué es importante fijar la semilla en la simulación?"
+options = [
+  "Para que los resultados sean reproducibles (y testeables)",
+  "Para que el resultado sea más óptimo",
+  "Porque numpy lo exige",
+  "Para que sea más rápido",
+]
+correct = 0
+explanation = "La misma semilla genera los mismos números. Así podés repetir el análisis y comparar los cambios."
+
+[[questions]]
+text = "¿Cuál es la principal crítica a la optimización de Markowitz en la práctica?"
+options = [
+  "Es muy lenta",
+  "Es muy sensible a los errores de estimación de los retornos esperados: los pesos cambian mucho con otros datos",
+  "No admite más de 4 activos",
+  "Ignora la volatilidad",
+]
+correct = 1
+explanation = "Pequeños cambios en los retornos esperados (que se estiman muy mal) producen pesos óptimos muy distintos y concentrados."

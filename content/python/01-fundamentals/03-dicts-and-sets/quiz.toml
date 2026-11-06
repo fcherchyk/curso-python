@@ -1,0 +1,39 @@
+[[questions]]
+text = "¿Qué tipo tiene `{}`?"
+options = ["`set`", "`dict`", "`frozenset`", "`tuple`"]
+correct = 1
+explanation = "Las llaves vacías son un dict. Para un set vacío hay que escribir `set()`."
+
+[[questions]]
+text = "¿Cuál de estos objetos **no** puede ser clave de un dict?"
+options = ["`(1, 2)`", "`\"abc\"`", "`[1, 2]`", "`frozenset({1, 2})`"]
+correct = 2
+explanation = "Las listas son mutables y no son hashables. Si la clave cambiara, su hash dejaría de coincidir con el lugar de la tabla donde se guardó."
+
+[[questions]]
+text = "Con `a = {1, 2, 3}` y `b = {2, 3, 4}`, ¿qué es `a ^ b`?"
+options = ["`{2, 3}`", "`{1, 4}`", "`{1, 2, 3, 4}`", "`{1}`"]
+correct = 1
+explanation = "`^` es la diferencia simétrica: los elementos que están en uno solo de los dos conjuntos."
+
+[[questions]]
+text = "¿Cómo obtenés los elementos únicos de una lista **respetando el orden** de aparición?"
+options = [
+  "`list(set(xs))`",
+  "`sorted(set(xs))`",
+  "`list(dict.fromkeys(xs))`",
+  "`set(xs).sort()`",
+]
+correct = 2
+explanation = "Un set no garantiza el orden y `sorted` cambia el orden original. Los dicts conservan el orden de inserción, así que `dict.fromkeys` deduplica respetándolo."
+
+[[questions]]
+text = "Tenés 100.000 palabras y una lista de 5.000 prohibidas. ¿Qué conviene para filtrar?"
+options = [
+  "Hacer `p not in lista_prohibidas` para cada palabra",
+  "Convertir las prohibidas a un `set` una vez y después preguntar `p not in prohibidas`",
+  "Ordenar las dos listas",
+  "Usar `lista_prohibidas.index(p)` dentro de un `try`",
+]
+correct = 1
+explanation = "En una lista, cada `in` es O(n): serían unos 500 millones de comparaciones. En un set es O(1), así que convertir una sola vez vuelve lineal todo el filtro."

@@ -1,0 +1,39 @@
+[[questions]]
+text = "¿Qué devuelve `[x for fila in [[1, 2], [3]] for x in fila]`?"
+options = ["`[[1, 2], [3]]`", "`[1, 2, 3]`", "`NameError`", "`[3, 1, 2]`"]
+correct = 1
+explanation = "Dos `for` seguidos se leen como bucles anidados en el mismo orden: primero `fila`, después `x`. El resultado queda aplanado."
+
+[[questions]]
+text = "¿Cuál de estas expresiones es un **generador** y no una colección?"
+options = ["`[x * 2 for x in xs]`", "`{x * 2 for x in xs}`", "`(x * 2 for x in xs)`", "`{x: x * 2 for x in xs}`"]
+correct = 2
+explanation = "Con paréntesis se obtiene un *generator expression*: produce los valores de a uno y no construye nada en memoria. La \"tuple comprehension\" no existe."
+
+[[questions]]
+text = "Querés reemplazar los negativos por 0 y dejar el resto igual. ¿Qué expresión es correcta?"
+options = [
+  "`[x for x in xs if x >= 0 else 0]`",
+  "`[0 if x < 0 else x for x in xs]`",
+  "`[x for x in xs if x >= 0]`",
+  "`[if x < 0: 0 else: x for x in xs]`",
+]
+correct = 1
+explanation = "Para **transformar** todos los elementos, el `if/else` va al principio como expresión condicional. El `if` del final solo **filtra** y no admite `else`."
+
+[[questions]]
+text = "¿Qué devuelve `{len(p): p for p in [\"ab\", \"cd\", \"e\"]}`?"
+options = ["`{2: 'ab', 1: 'e'}`", "`{2: 'cd', 1: 'e'}`", "`{2: ['ab', 'cd'], 1: ['e']}`", "Levanta `KeyError` por clave duplicada"]
+correct = 1
+explanation = "En un dict, cuando una clave se repite gana la última asignación: `'cd'` pisa a `'ab'`."
+
+[[questions]]
+text = "¿En cuál de estos casos es mejor un `for` común que una comprehension?"
+options = [
+  "Para construir una lista con los cuadrados de los números pares",
+  "Para mandar un email por cada usuario (efecto secundario)",
+  "Para armar un dict `id -> objeto`",
+  "Para calcular una suma con `sum(...)`",
+]
+correct = 1
+explanation = "Las comprehensions sirven para *construir* valores. Usarlas solo por el efecto secundario genera una lista de `None` que no se usa y confunde a quien lee el código."

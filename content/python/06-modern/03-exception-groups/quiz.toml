@@ -1,0 +1,39 @@
+[[questions]]
+text = "¿Un `except ValueError:` común atrapa un `ExceptionGroup` que contiene solo `ValueError`s?"
+options = ["Sí", "No: hace falta `except* ValueError` o `except ExceptionGroup`", "Solo si el grupo tiene un elemento", "Solo en 3.13+"]
+correct = 1
+explanation = "El grupo no es un `ValueError`: es un `ExceptionGroup`. `except*` es el que mira adentro del grupo."
+
+[[questions]]
+text = "En un `try` con `except* ValueError` y `except* TypeError`, si el grupo tiene de los dos tipos, ¿qué ramas se ejecutan?"
+options = ["Solo la primera", "Las dos", "Ninguna", "Solo la del tipo más frecuente"]
+correct = 1
+explanation = "Con `except*`, cada rama se queda con su parte del grupo, así que pueden ejecutarse varias."
+
+[[questions]]
+text = "Dentro de `except* ValueError as g:`, ¿qué es `g`?"
+options = [
+  "Un `ValueError`",
+  "Un `ExceptionGroup` con solo los `ValueError`",
+  "Una lista de strings",
+  "El grupo original completo",
+]
+correct = 1
+explanation = "La variable es siempre un grupo filtrado. Las excepciones individuales están en `g.exceptions`."
+
+[[questions]]
+text = "¿Qué pasa con las excepciones del grupo que ninguna rama `except*` manejó?"
+options = ["Se descartan", "Se re-levantan en un grupo", "Se convierten en warnings", "Se imprimen y siguen"]
+correct = 1
+explanation = "Lo que no se manejó se vuelve a levantar automáticamente como un `ExceptionGroup` con lo que sobró."
+
+[[questions]]
+text = "¿Para qué sirve `e.add_note(\"en la fila 3\")`?"
+options = [
+  "Para cambiar el mensaje de la excepción",
+  "Para agregar contexto que aparece en el traceback sin cambiar el tipo ni el mensaje",
+  "Para suprimir la excepción",
+  "Para convertirla en un `ExceptionGroup`",
+]
+correct = 1
+explanation = "Las notas se guardan en `__notes__` y se muestran debajo del mensaje original en el traceback."

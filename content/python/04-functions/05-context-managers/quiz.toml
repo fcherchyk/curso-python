@@ -1,0 +1,49 @@
+[[questions]]
+text = "En `with cm as x:`, ¿qué valor toma `x`?"
+options = [
+  "El objeto `cm`",
+  "Lo que devuelve `cm.__enter__()`",
+  "Lo que devuelve `cm.__exit__()`",
+  "`None`",
+]
+correct = 1
+explanation = "`x` recibe el resultado de `__enter__`. Muchas veces es `self`, pero no siempre: por ejemplo, un lock o una transacción pueden devolver otra cosa."
+
+[[questions]]
+text = "Si `__exit__` devuelve `True` cuando hubo una excepción en el bloque, ¿qué pasa?"
+options = [
+  "La excepción se re-levanta",
+  "La excepción se suprime y la ejecución sigue después del `with`",
+  "Se ejecuta el bloque de nuevo",
+  "Levanta `RuntimeError`",
+]
+correct = 1
+explanation = "Un valor verdadero le indica a Python que la excepción ya se manejó y no hay que propagarla. Casi nunca es lo que querés."
+
+[[questions]]
+text = "En un `@contextmanager`, ¿por qué hay que envolver el `yield` en `try/finally`?"
+options = [
+  "Porque si no, el generador no compila",
+  "Porque una excepción del bloque `with` se re-levanta en el `yield` y sin `finally` la limpieza no corre",
+  "Porque `yield` solo funciona dentro de `try`",
+  "No hace falta: `contextmanager` limpia solo",
+]
+correct = 1
+explanation = "Si el cuerpo del `with` falla, la excepción aparece en la línea del `yield`. El `finally` garantiza que el código de limpieza se ejecute igual."
+
+[[questions]]
+text = "¿Qué herramienta de `contextlib` usás para abrir una cantidad **variable** de archivos en un solo `with`?"
+options = ["`suppress`", "`ExitStack`", "`closing`", "`nullcontext`"]
+correct = 1
+explanation = "`ExitStack` permite registrar context managers dinámicamente con `enter_context` y los cierra todos en orden inverso."
+
+[[questions]]
+text = "¿Qué hace `with suppress(FileNotFoundError): os.remove(\"x\")`?"
+options = [
+  "Borra el archivo o levanta `FileNotFoundError`",
+  "Borra el archivo si existe y, si no existe, sigue sin error",
+  "Crea el archivo si no existe",
+  "Suprime cualquier excepción",
+]
+correct = 1
+explanation = "`suppress` ignora solo los tipos indicados. Otros errores (por ejemplo, `PermissionError`) se siguen propagando."

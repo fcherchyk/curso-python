@@ -1,0 +1,49 @@
+[[questions]]
+text = "Si `def f(): print(\"hola\"); yield 1`, ¿qué imprime `g = f()`?"
+options = ["`hola`", "Nada", "`1`", "`hola` y `1`"]
+correct = 1
+explanation = "Llamar a una función generadora solo crea el generador. El cuerpo empieza a correr en el primer `next()`."
+
+[[questions]]
+text = "¿Qué hace `yield from sub`?"
+options = [
+  "Devuelve `sub` entero como un solo valor",
+  "Produce uno por uno los elementos de `sub`",
+  "Convierte `sub` en lista",
+  "Termina el generador",
+]
+correct = 1
+explanation = "Delega en `sub` y produce cada uno de sus elementos. Equivale a `for x in sub: yield x`."
+
+[[questions]]
+text = "¿Por qué `sum(x * x for x in range(10**8))` usa memoria constante?"
+options = [
+  "Porque `sum` es una función built-in",
+  "Porque el generador produce un valor a la vez y nunca arma la lista completa",
+  "Porque Python comprime los enteros",
+  "No es cierto: usa la misma memoria que una lista",
+]
+correct = 1
+explanation = "La generator expression es perezosa: `sum` pide un valor, lo acumula y pide el siguiente. En ningún momento existen los 10⁸ valores juntos."
+
+[[questions]]
+text = "¿En qué caso conviene devolver una **lista** en lugar de un generador?"
+options = [
+  "Cuando los datos son infinitos",
+  "Cuando vas a recorrer el resultado varias veces o necesitás `len()`",
+  "Cuando los datos no entran en memoria",
+  "Cuando querés procesar un archivo línea por línea",
+]
+correct = 1
+explanation = "Un generador se consume una vez y no tiene `len()`, índices ni slicing. Si necesitás eso, devolvé una lista."
+
+[[questions]]
+text = "Un generador abre un archivo con `with`. Si el consumidor hace `break` en la primera línea, ¿qué pasa con el archivo?"
+options = [
+  "Queda abierto hasta que termine el programa",
+  "Se cierra cuando el generador se cierra o se destruye",
+  "Levanta `RuntimeError`",
+  "Se lee completo igual",
+]
+correct = 1
+explanation = "Al cerrarse el generador (`close()`, que se llama también al destruirlo), se ejecuta la salida del `with` y el archivo se cierra."

@@ -1,0 +1,2 @@
+title = "Iteradores y generadores"
+description = "El protocolo de iteración, generadores, pipelines perezosos e itertools: procesar datos grandes con memoria constante."

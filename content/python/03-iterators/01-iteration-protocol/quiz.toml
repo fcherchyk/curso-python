@@ -1,0 +1,39 @@
+[[questions]]
+text = "Con `gen = (x for x in [1, 2, 3])`, ¿qué devuelve `list(gen), list(gen)`?"
+options = [
+  "`([1, 2, 3], [1, 2, 3])`",
+  "`([1, 2, 3], [])`",
+  "`([], [])`",
+  "Levanta `StopIteration`",
+]
+correct = 1
+explanation = "Un generador es un iterador: se consume una sola vez. La segunda vez ya no quedan elementos."
+
+[[questions]]
+text = "¿Qué tiene que devolver `__iter__` en un **iterable** (como una lista)?"
+options = [
+  "`self`",
+  "Un iterador nuevo cada vez",
+  "El primer elemento",
+  "Una lista con todos los elementos",
+]
+correct = 1
+explanation = "Un iterable entrega un iterador nuevo en cada `iter()`, por eso se puede recorrer muchas veces. El que devuelve `self` es un **iterador**."
+
+[[questions]]
+text = "¿Cómo señala `__next__` que no quedan más elementos?"
+options = ["Devuelve `None`", "Levanta `StopIteration`", "Devuelve `False`", "Levanta `IndexError`"]
+correct = 1
+explanation = "El protocolo usa la excepción `StopIteration`. El `for` la atrapa y termina el bucle."
+
+[[questions]]
+text = "¿Qué devuelve `next(iter([]), \"vacío\")`?"
+options = ["`None`", "`'vacío'`", "Levanta `StopIteration`", "`[]`"]
+correct = 1
+explanation = "Con un segundo argumento, `next` devuelve ese valor por defecto en lugar de levantar `StopIteration`."
+
+[[questions]]
+text = "Una función recorre dos veces el parámetro `datos` (para el total y para los porcentajes). ¿Con qué argumento falla en silencio?"
+options = ["Una lista", "Una tupla", "Un generador", "Un `range`"]
+correct = 2
+explanation = "Lista, tupla y `range` son iterables que se pueden recorrer muchas veces. El generador se agota en la primera pasada y la segunda queda vacía, sin error."

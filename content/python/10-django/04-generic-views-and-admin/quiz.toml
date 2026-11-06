@@ -1,0 +1,44 @@
+[[questions]]
+text = "¿Qué método sobrescribís en una `ListView` para filtrar según `?q=` del request?"
+options = ["`get_context_data`", "`get_queryset`", "`as_view`", "`dispatch`"]
+correct = 1
+explanation = "`get_queryset` decide qué objetos se listan. `get_context_data` agrega variables a la plantilla."
+
+[[questions]]
+text = "¿Por qué `success_url = reverse_lazy(\"lista\")` y no `reverse(\"lista\")`?"
+options = [
+  "Porque `reverse` está deprecado",
+  "Porque el atributo se evalúa al definir la clase, antes de que las URLs estén cargadas; `reverse_lazy` lo resuelve recién al usarse",
+  "Porque es más rápido",
+  "No hay diferencia",
+]
+correct = 1
+explanation = "`reverse` en un atributo de clase puede fallar por import circular o porque las URLs no están listas. `reverse_lazy` difiere la resolución."
+
+[[questions]]
+text = "Una `CreateView` recibe un POST con datos inválidos. ¿Qué hace?"
+options = [
+  "Responde 400 en JSON",
+  "Vuelve a renderizar el formulario con los errores",
+  "Redirige a `success_url`",
+  "Levanta una excepción",
+]
+correct = 1
+explanation = "Implementa el patrón completo: si es válido, guarda y redirige; si no, re-renderiza el form con los errores (`form_invalid`)."
+
+[[questions]]
+text = "Con `paginate_by = 10` en una `ListView`, ¿cómo se pide la segunda página?"
+options = ["`/libros/2/`", "`/libros/?page=2`", "`/libros/?pagina=2`", "No se puede"]
+correct = 1
+explanation = "El parámetro por defecto es `page`. La plantilla recibe `page_obj` y `paginator` para armar la navegación."
+
+[[questions]]
+text = "¿Qué controla `list_display` en un `ModelAdmin`?"
+options = [
+  "Los campos del formulario de edición",
+  "Las columnas que se ven en el listado del admin",
+  "Los permisos",
+  "El orden de las URLs",
+]
+correct = 1
+explanation = "`list_display` define las columnas; `search_fields`, la búsqueda; y `list_filter`, los filtros laterales."

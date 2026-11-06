@@ -1,0 +1,39 @@
+[[questions]]
+text = "Definís `__eq__` en una clase y no definís `__hash__`. ¿Qué pasa al hacer `{obj}`?"
+options = [
+  "Funciona, con el hash por identidad",
+  "Levanta `TypeError: unhashable type`",
+  "Usa `__eq__` para calcular el hash",
+  "Devuelve un set vacío",
+]
+correct = 1
+explanation = "Al definir `__eq__`, Python pone `__hash__ = None` para no romper la regla \"iguales implica mismo hash\". Hay que definir `__hash__` explícitamente."
+
+[[questions]]
+text = "¿Qué debería devolver `__add__` si recibe un tipo que no sabe sumar?"
+options = ["`None`", "`NotImplemented`", "Levantar `NotImplementedError`", "`False`"]
+correct = 1
+explanation = "`NotImplemented` le avisa a Python que pruebe con el método reflejado del otro operando (`__radd__`). Si nadie puede, Python levanta `TypeError`."
+
+[[questions]]
+text = "¿Qué se ve al hacer `print([p])` si `p` tiene `__repr__` y `__str__` distintos?"
+options = [
+  "El `__str__` de `p`",
+  "El `__repr__` de `p`",
+  "`<Punto object at …>`",
+  "Levanta `TypeError`",
+]
+correct = 1
+explanation = "Los contenedores muestran el `repr` de sus elementos, aunque el contenedor se imprima con `str`."
+
+[[questions]]
+text = "¿Qué método hace falta para que funcione `3 * v`, si `v` es tu Vector?"
+options = ["`__mul__`", "`__rmul__`", "`__imul__`", "`__pow__`"]
+correct = 1
+explanation = "`int.__mul__(3, v)` devuelve `NotImplemented`, así que Python prueba `v.__rmul__(3)`, que maneja el caso en que tu objeto es el operando derecho."
+
+[[questions]]
+text = "Una clase implementa solo `__len__` y `__getitem__` con índices. ¿Qué **no** funciona automáticamente?"
+options = ["`for x in obj`", "`x in obj`", "`obj[1:3]`", "`obj + obj`"]
+correct = 3
+explanation = "La iteración, `in` y el slicing (si delegás en una lista) salen de `__getitem__`. El `+` necesita `__add__`."

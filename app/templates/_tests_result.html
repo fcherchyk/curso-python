@@ -1,0 +1,28 @@
+{% from "_macros.html" import tab_mark, solved_button %}
+{% if result.error %}
+<div class="tests-summary wrong" role="status"><strong>The tests could not run.</strong></div>
+<pre class="trace">{{ result.error }}</pre>
+{% else %}
+<div class="tests-summary {{ 'ok' if result.passed else 'wrong' }}" role="status">
+  <strong>{{ result.passed_count }} of {{ result.tests | length }} tests pass.</strong>
+  {% if result.passed %}Done! Exercise passed.{% endif %}
+</div>
+<ul class="tests-list">
+  {% for t in result.tests %}
+  <li class="{{ 'ok' if t.ok else 'wrong' }}">
+    <span class="test-icon" aria-hidden="true">{{ '✓' if t.ok else '✗' }}</span>
+    <code>{{ t.name }}</code>
+    {% if not t.ok and t.message %}<pre class="trace">{{ t.message }}</pre>{% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% if status.tests_ok %}
+<p class="note note-ok">
+  <button class="link-button" hx-get="/c/{{ chapter.id }}/solution" hx-target="#solution">See the reference solution</button>
+  to compare approaches.
+</p>
+<div id="solution"></div>
+{% endif %}
+{{ tab_mark('mark-tests', status.tests_ok, oob=true) }}
+{{ solved_button(chapter, 'tests', status.tests_ok, oob=true) }}

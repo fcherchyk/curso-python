@@ -1,4 +1,4 @@
-"""App web del curso: lectura → cuestionario → ejercicio con tests.
+"""Course web app: reading → quiz → exercise checked by tests.
 
 uv run uvicorn app.main:app --reload
 """
@@ -15,200 +15,214 @@ from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app import render
-from app.contenido import RAIZ_CONTENIDO, Capitulo, Curso, cargar_cursos
-from app.progreso import Estado, Progreso
-from app.quiz import UMBRAL_APROBACION, corregir
+from app import legacy_ids, render
+from app.content import CONTENT_ROOT, Chapter, Course, load_courses
+from app.progress import Progress, Status
+from app.quiz import PASS_THRESHOLD, grade
 
-AQUI = Path(__file__).resolve().parent
-DB_POR_DEFECTO = AQUI.parent / "progreso.db"
-COOKIE_CURSO = "curso"
+HERE = Path(__file__).resolve().parent
+DEFAULT_DB = HERE.parent / "progress.db"
+LEGACY_DB = HERE.parent / "progreso.db"  # Spanish-era progress file, imported once
+COURSE_COOKIE = "course"
 
 
-def crear_app(
-    raiz_contenido: Path = RAIZ_CONTENIDO,
-    ruta_db: Path | None = None,
-    recargar_contenido: bool = True,
+def create_app(
+    content_root: Path = CONTENT_ROOT,
+    db_path: Path | None = None,
+    reload_content: bool = True,
+    legacy_db_path: Path | None = LEGACY_DB,
 ) -> FastAPI:
-    app = FastAPI(title="Cursos de programación", docs_url=None, redoc_url=None)
-    app.mount("/static", StaticFiles(directory=AQUI / "static"), name="static")
+    app = FastAPI(title="Programming courses", docs_url=None, redoc_url=None)
+    app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
 
-    plantillas = Jinja2Templates(directory=AQUI / "templates")
-    plantillas.env.filters["markdown"] = render.markdown
-    plantillas.env.filters["markdown_inline"] = render.markdown_inline
-    plantillas.env.globals["UMBRAL"] = int(UMBRAL_APROBACION * 100)
-    # Cache-busting de app.css/app.js: cambia cuando se edita cualquier estático.
-    plantillas.env.globals["V"] = max(int(p.stat().st_mtime) for p in (AQUI / "static").iterdir())
+    templates = Jinja2Templates(directory=HERE / "templates")
+    templates.env.filters["markdown"] = render.markdown
+    templates.env.filters["markdown_inline"] = render.markdown_inline
+    templates.env.globals["THRESHOLD"] = int(PASS_THRESHOLD * 100)
+    # Cache-busting for app.css/app.js: changes whenever any static file is edited.
+    templates.env.globals["V"] = max(int(p.stat().st_mtime) for p in (HERE / "static").iterdir())
 
-    progreso = Progreso(ruta_db or Path(os.environ.get("CURSO_DB", DB_POR_DEFECTO)))
-    progreso.migrar_ids_sin_curso("python")
-    cache: dict[str, list[Curso]] = {}
+    progress = Progress(db_path or Path(os.environ.get("COURSE_DB", DEFAULT_DB)))
+    if legacy_db_path is not None:
+        progress.import_legacy(legacy_db_path)
+    cache: dict[str, list[Course]] = {}
 
-    def cursos() -> list[Curso]:
-        # En desarrollo se relee el contenido en cada request para ver cambios al instante.
-        if recargar_contenido or "c" not in cache:
-            cache["c"] = cargar_cursos(raiz_contenido)
+    def courses() -> list[Course]:
+        # In development the content is re-read on every request so changes show up at once.
+        if reload_content or "c" not in cache:
+            cache["c"] = load_courses(content_root)
         return cache["c"]
 
-    def buscar_curso(slug: str) -> Curso:
-        curso = next((c for c in cursos() if c.slug == slug), None)
-        if curso is None:
-            raise HTTPException(404, "Curso no encontrado")
-        return curso
+    def find_course(slug: str) -> Course:
+        course = next((c for c in courses() if c.slug == slug), None)
+        if course is None:
+            raise HTTPException(404, "Course not found")
+        return course
 
-    def buscar(curso: str, modulo: str, cap: str) -> tuple[Curso, Capitulo]:
-        c = buscar_curso(curso)
-        capitulo = c.capitulo(modulo, cap)
-        if capitulo is None:
-            raise HTTPException(404, "Capítulo no encontrado")
-        return c, capitulo
+    def find(course: str, module: str, chapter: str) -> tuple[Course, Chapter]:
+        c = find_course(course)
+        found = c.chapter(module, chapter)
+        if found is None:
+            raise HTTPException(404, "Chapter not found")
+        return c, found
 
-    def pagina(
-        request: Request, plantilla: str, curso: Curso, contexto: dict[str, object]
+    def page(
+        request: Request, template: str, course: Course, context: dict[str, object]
     ) -> HTMLResponse:
-        respuesta = plantillas.TemplateResponse(
-            request, plantilla, {"cursos": cursos(), "curso": curso, **contexto}
+        response = templates.TemplateResponse(
+            request, template, {"courses": courses(), "course": course, **context}
         )
-        respuesta.set_cookie(COOKIE_CURSO, curso.slug, max_age=60 * 60 * 24 * 365)
-        return respuesta
+        response.set_cookie(COURSE_COOKIE, course.slug, max_age=60 * 60 * 24 * 365)
+        return response
 
     @app.get("/pygments.css", include_in_schema=False)
     def pygments_css() -> Response:
-        return Response(render.css_pygments(), media_type="text/css")
+        return Response(render.pygments_css(), media_type="text/css")
 
     @app.get("/", include_in_schema=False)
-    def raiz(request: Request) -> RedirectResponse:
-        slugs = [c.slug for c in cursos()]
-        preferido = request.cookies.get(COOKIE_CURSO)
-        return RedirectResponse(f"/{preferido if preferido in slugs else slugs[0]}")
+    def root(request: Request) -> RedirectResponse:
+        slugs = [c.slug for c in courses()]
+        preferred = request.cookies.get(COURSE_COOKIE)
+        return RedirectResponse(f"/{preferred if preferred in slugs else slugs[0]}")
 
-    @app.get("/c/{modulo}/{cap}", include_in_schema=False)
-    def url_vieja(modulo: str, cap: str) -> RedirectResponse:
-        # Antes de los cursos, los capítulos de Python vivían en /c/{modulo}/{cap}.
-        return RedirectResponse(f"/c/python/{modulo}/{cap}", status_code=301)
+    @app.get("/c/{module}/{chapter}", include_in_schema=False)
+    def pre_course_url(module: str, chapter: str) -> RedirectResponse:
+        # Before multi-course support, Python chapters lived at /c/{module}/{chapter}.
+        new_id = legacy_ids.translate_id(f"{module}/{chapter}")
+        return RedirectResponse(f"/c/{new_id}", status_code=301)
 
-    @app.get("/{curso}", response_class=HTMLResponse)
-    def indice(request: Request, curso: str) -> HTMLResponse:
-        c = buscar_curso(curso)
-        estados = progreso.todos()
-        siguiente = next(
-            (cap for cap in c.capitulos() if not estados.get(cap.id, Estado()).completo), None
+    @app.get("/{course}", response_class=HTMLResponse)
+    def index(request: Request, course: str) -> HTMLResponse:
+        c = find_course(course)
+        statuses = progress.all()
+        next_chapter = next(
+            (ch for ch in c.chapters() if not statuses.get(ch.id, Status()).complete), None
         )
-        completos = {
-            m.slug: sum(estados.get(cap.id, Estado()).completo for cap in m.capitulos)
-            for m in c.modulos
+        completed = {
+            m.slug: sum(statuses.get(ch.id, Status()).complete for ch in m.chapters)
+            for m in c.modules
         }
-        return pagina(
+        return page(
             request,
             "index.html",
             c,
-            {"estados": estados, "siguiente": siguiente, "completos": completos},
+            {"statuses": statuses, "next_chapter": next_chapter, "completed": completed},
         )
 
-    @app.get("/c/{curso}/{modulo}/{cap}", response_class=HTMLResponse)
-    def capitulo(request: Request, curso: str, modulo: str, cap: str) -> HTMLResponse:
-        cur, c = buscar(curso, modulo, cap)
-        estado = progreso.estado(c.id)
-        anterior, siguiente = cur.vecinos(c)
-        return pagina(
+    @app.get("/c/{course}/{module}/{chapter}", response_class=HTMLResponse, response_model=None)
+    def chapter_page(
+        request: Request, course: str, module: str, chapter: str
+    ) -> HTMLResponse | RedirectResponse:
+        cur = find_course(course)
+        if cur.chapter(module, chapter) is None and (
+            new := legacy_ids.translate_path(module, chapter)
+        ):
+            # Old Spanish URL: send it to the chapter's current address.
+            return RedirectResponse(f"/c/{course}/{new[0]}/{new[1]}", status_code=301)
+        cur, c = find(course, module, chapter)
+        status = progress.status(c.id)
+        previous, following = cur.neighbors(c)
+        return page(
             request,
-            "capitulo.html",
+            "chapter.html",
             cur,
             {
-                "cap": c,
-                "modulo": cur.modulo(c.modulo),
-                "estados": progreso.todos(),
-                "estado": estado,
-                "leccion": render.markdown(c.leccion()),
-                "preguntas": c.preguntas(),
-                "codigo": estado.codigo if estado.codigo is not None else c.codigo_inicial(),
-                "anterior": anterior,
-                "siguiente": siguiente,
+                "chapter": c,
+                "module": cur.module(c.module),
+                "statuses": progress.all(),
+                "status": status,
+                "lesson": render.markdown(c.lesson()),
+                "questions": c.questions(),
+                "code": status.code if status.code is not None else c.starter_code(),
+                "previous": previous,
+                "following": following,
             },
         )
 
-    @app.post("/c/{curso}/{modulo}/{cap}/leido", response_class=HTMLResponse)
-    def marcar_leido(request: Request, curso: str, modulo: str, cap: str) -> HTMLResponse:
-        _, c = buscar(curso, modulo, cap)
-        progreso.marcar_leido(c.id, not progreso.estado(c.id).leido)
-        return plantillas.TemplateResponse(
-            request, "_leido.html", {"cap": c, "estado": progreso.estado(c.id)}
+    @app.post("/c/{course}/{module}/{chapter}/read", response_class=HTMLResponse)
+    def mark_read(request: Request, course: str, module: str, chapter: str) -> HTMLResponse:
+        _, c = find(course, module, chapter)
+        progress.mark_read(c.id, not progress.status(c.id).read)
+        return templates.TemplateResponse(
+            request, "_read.html", {"chapter": c, "status": progress.status(c.id)}
         )
 
-    @app.post("/c/{curso}/{modulo}/{cap}/{paso}/resuelto", response_class=HTMLResponse)
-    def marcar_resuelto(
-        request: Request, curso: str, modulo: str, cap: str, paso: Literal["quiz", "tests"]
+    @app.post("/c/{course}/{module}/{chapter}/{step}/solved", response_class=HTMLResponse)
+    def mark_solved(
+        request: Request,
+        course: str,
+        module: str,
+        chapter: str,
+        step: Literal["quiz", "tests"],
     ) -> HTMLResponse:
-        """Alterna a mano un paso, para saltearlo sin hacerlo. Cuenta igual que aprobarlo."""
-        _, c = buscar(curso, modulo, cap)
-        actual = progreso.estado(c.id)
-        if paso == "quiz":
-            progreso.marcar_quiz(c.id, not actual.quiz_ok)
+        """Toggles a step by hand, to skip it without doing it. Counts the same as passing it."""
+        _, c = find(course, module, chapter)
+        current = progress.status(c.id)
+        if step == "quiz":
+            progress.mark_quiz(c.id, not current.quiz_ok)
         else:
-            progreso.marcar_tests(c.id, not actual.tests_ok)
-        estado = progreso.estado(c.id)
-        ok = estado.quiz_ok if paso == "quiz" else estado.tests_ok
-        return plantillas.TemplateResponse(
-            request, "_resuelto.html", {"cap": c, "paso": paso, "ok": ok, "estado": estado}
+            progress.mark_tests(c.id, not current.tests_ok)
+        status = progress.status(c.id)
+        ok = status.quiz_ok if step == "quiz" else status.tests_ok
+        return templates.TemplateResponse(
+            request, "_solved.html", {"chapter": c, "step": step, "ok": ok, "status": status}
         )
 
-    @app.post("/c/{curso}/{modulo}/{cap}/quiz", response_class=HTMLResponse)
-    async def responder_quiz(request: Request, curso: str, modulo: str, cap: str) -> HTMLResponse:
-        _, c = buscar(curso, modulo, cap)
-        preguntas = c.preguntas()
+    @app.post("/c/{course}/{module}/{chapter}/quiz", response_class=HTMLResponse)
+    async def answer_quiz(request: Request, course: str, module: str, chapter: str) -> HTMLResponse:
+        _, c = find(course, module, chapter)
+        questions = c.questions()
         form = await request.form()
-        elegidas: dict[int, int | None] = {}
-        for i in range(len(preguntas)):
-            valor = form.get(f"p{i}")
-            elegidas[i] = int(valor) if isinstance(valor, str) and valor.isdigit() else None
-        resultado = corregir(preguntas, elegidas)
-        progreso.registrar_quiz(c.id, resultado.puntaje, resultado.aprobado)
-        return plantillas.TemplateResponse(
+        chosen: dict[int, int | None] = {}
+        for i in range(len(questions)):
+            value = form.get(f"q{i}")
+            chosen[i] = int(value) if isinstance(value, str) and value.isdigit() else None
+        result = grade(questions, chosen)
+        progress.record_quiz(c.id, result.score, result.passed)
+        return templates.TemplateResponse(
             request,
             "_quiz.html",
             {
-                "cap": c,
-                "preguntas": preguntas,
-                "resultado": resultado,
-                "estado": progreso.estado(c.id),
+                "chapter": c,
+                "questions": questions,
+                "result": result,
+                "status": progress.status(c.id),
             },
         )
 
-    @app.post("/c/{curso}/{modulo}/{cap}/codigo", status_code=204)
-    def guardar_codigo(
-        curso: str, modulo: str, cap: str, codigo: Annotated[str, Form()]
-    ) -> Response:
-        _, c = buscar(curso, modulo, cap)
-        progreso.guardar_codigo(c.id, codigo)
+    @app.post("/c/{course}/{module}/{chapter}/code", status_code=204)
+    def save_code(course: str, module: str, chapter: str, code: Annotated[str, Form()]) -> Response:
+        _, c = find(course, module, chapter)
+        progress.save_code(c.id, code)
         return Response(status_code=204)
 
-    @app.post("/c/{curso}/{modulo}/{cap}/tests", response_class=HTMLResponse)
-    async def ejecutar_tests(
-        request: Request, curso: str, modulo: str, cap: str, codigo: Annotated[str, Form()]
+    @app.post("/c/{course}/{module}/{chapter}/tests", response_class=HTMLResponse)
+    async def run_tests(
+        request: Request, course: str, module: str, chapter: str, code: Annotated[str, Form()]
     ) -> HTMLResponse:
-        _, c = buscar(curso, modulo, cap)
-        resultado = await run_in_threadpool(c.lenguaje.correr, codigo, c.archivos_de_soporte())
-        progreso.registrar_tests(c.id, codigo, resultado.aprobado)
-        return plantillas.TemplateResponse(
+        _, c = find(course, module, chapter)
+        result = await run_in_threadpool(c.language.run, code, c.support_files())
+        progress.record_tests(c.id, code, result.passed)
+        return templates.TemplateResponse(
             request,
-            "_tests_resultado.html",
-            {"cap": c, "resultado": resultado, "estado": progreso.estado(c.id)},
+            "_tests_result.html",
+            {"chapter": c, "result": result, "status": progress.status(c.id)},
         )
 
-    @app.get("/c/{curso}/{modulo}/{cap}/solucion", response_class=HTMLResponse)
-    def ver_solucion(curso: str, modulo: str, cap: str) -> HTMLResponse:
-        _, c = buscar(curso, modulo, cap)
-        if not progreso.estado(c.id).tests_ok:
+    @app.get("/c/{course}/{module}/{chapter}/solution", response_class=HTMLResponse)
+    def show_solution(course: str, module: str, chapter: str) -> HTMLResponse:
+        _, c = find(course, module, chapter)
+        if not progress.status(c.id).tests_ok:
             return HTMLResponse(
-                '<p class="aviso">La solución se habilita cuando pasan todos los tests.</p>'
+                '<p class="notice">The solution unlocks once all the tests pass.</p>'
             )
-        return HTMLResponse(str(render.codigo_html(c.solucion(), c.lenguaje.lexer)))
+        return HTMLResponse(str(render.code_html(c.solution(), c.language.lexer)))
 
-    @app.get("/c/{curso}/{modulo}/{cap}/inicial", response_class=PlainTextResponse)
-    def codigo_inicial(curso: str, modulo: str, cap: str) -> str:
-        return buscar(curso, modulo, cap)[1].codigo_inicial()
+    @app.get("/c/{course}/{module}/{chapter}/starter", response_class=PlainTextResponse)
+    def starter_code(course: str, module: str, chapter: str) -> str:
+        return find(course, module, chapter)[1].starter_code()
 
     return app
 
 
-app = crear_app()
+app = create_app()

@@ -1,0 +1,34 @@
+[[questions]]
+text = "¿Qué `dtype` tiene `np.array([1, 2, 3.5])`?"
+options = ["`int64`", "`float64`", "`object`", "Mezclado: dos int y un float"]
+correct = 1
+explanation = "Un array tiene un solo tipo. Al mezclar enteros y floats, NumPy elige el más general: `float64`."
+
+[[questions]]
+text = "Con `v = np.arange(5); s = v[1:3]; s[0] = 99`, ¿cuánto vale `v`?"
+options = ["`[0 1 2 3 4]`", "`[0 99 2 3 4]`", "`[99 1 2 3 4]`", "Error"]
+correct = 1
+explanation = "Los slices de NumPy son vistas sobre los mismos datos. Para un slice independiente, `.copy()`."
+
+[[questions]]
+text = "¿Qué `shape` tiene `np.zeros((2, 3)).T`?"
+options = ["`(2, 3)`", "`(3, 2)`", "`(6,)`", "`(3,)`"]
+correct = 1
+explanation = "`.T` transpone: las filas pasan a ser columnas."
+
+[[questions]]
+text = "¿Qué hace `-1` en `a.reshape(-1, 4)`?"
+options = [
+  "Invierte el array",
+  "Le pide a NumPy que calcule esa dimensión para que entren todos los elementos",
+  "Elimina la última fila",
+  "Es un error",
+]
+correct = 1
+explanation = "Con 12 elementos, `reshape(-1, 4)` da `(3, 4)`. Solo una dimensión puede ser -1."
+
+[[questions]]
+text = "¿Cuál es la forma correcta de acceder a la fila 1, columna 2 de una matriz NumPy?"
+options = ["`m[1][2]` (la única forma)", "`m[1, 2]`", "`m(1, 2)`", "`m.get(1, 2)`"]
+correct = 1
+explanation = "`m[1][2]` también funciona, pero crea una vista intermedia. `m[1, 2]` es la forma idiomática y más eficiente, y además permite `m[:, 2]`."

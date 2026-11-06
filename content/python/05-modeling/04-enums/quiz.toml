@@ -1,0 +1,39 @@
+[[questions]]
+text = "Con `class E(Enum): A = \"a\"`, ¿qué devuelve `E.A == \"a\"`?"
+options = ["`True`", "`False`", "Levanta `TypeError`", "`\"a\"`"]
+correct = 1
+explanation = "Un `Enum` común no es igual a su valor. Hay que comparar `E.A.value == \"a\"`, o usar `StrEnum`, cuyos miembros son strings."
+
+[[questions]]
+text = "¿Cómo obtenés el miembro a partir de su **valor** `\"enviado\"`?"
+options = ["`Estado[\"enviado\"]`", "`Estado(\"enviado\")`", "`Estado.enviado`", "`Estado.get(\"enviado\")`"]
+correct = 1
+explanation = "Llamar a la clase busca por valor. Los corchetes buscan por **nombre** (`Estado[\"ENVIADO\"]`)."
+
+[[questions]]
+text = "¿Qué ventaja concreta tiene `StrEnum` al serializar a JSON?"
+options = [
+  "Ninguna",
+  "Los miembros son `str`, así que `json.dumps` los serializa directamente",
+  "Comprime los valores",
+  "Valida el esquema del JSON",
+]
+correct = 1
+explanation = "Como cada miembro es también un `str`, `json.dumps` lo trata como un string común, sin conversión manual."
+
+[[questions]]
+text = "En un `match`, ¿qué hace `case PENDIENTE:` (sin el nombre de la clase)?"
+options = [
+  "Compara con `Estado.PENDIENTE`",
+  "Captura cualquier valor en una variable llamada `PENDIENTE`",
+  "Levanta `NameError`",
+  "Compara con el string `\"PENDIENTE\"`",
+]
+correct = 1
+explanation = "Un nombre suelto en un patrón es una captura, y siempre matchea. Para comparar hay que usar un nombre con punto: `case Estado.PENDIENTE:`."
+
+[[questions]]
+text = "Para representar permisos combinables (leer + escribir), ¿qué conviene?"
+options = ["`StrEnum`", "`IntEnum`", "`Flag`", "Una lista de strings"]
+correct = 2
+explanation = "`Flag` permite combinar miembros con `|`, consultar con `in` y operar con `&`."

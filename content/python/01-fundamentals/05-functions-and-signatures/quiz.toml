@@ -1,0 +1,34 @@
+[[questions]]
+text = "Con `def f(x, acc=[]): acc.append(x); return acc`, ¿qué devuelve la segunda llamada `f(2)` después de `f(1)`?"
+options = ["`[2]`", "`[1, 2]`", "`[]`", "Levanta `TypeError`"]
+correct = 1
+explanation = "El default se evalúa una sola vez, al definir la función: todas las llamadas comparten la misma lista."
+
+[[questions]]
+text = "Con `def exportar(datos, *, comprimir=False)`, ¿qué pasa con `exportar(filas, True)`?"
+options = [
+  "Funciona: `comprimir` vale `True`",
+  "Levanta `TypeError`",
+  "`True` se ignora",
+  "`datos` pasa a valer `True`",
+]
+correct = 1
+explanation = "Todo lo que va después de `*` es solo keyword: hay que escribir `comprimir=True`."
+
+[[questions]]
+text = "Dentro de `def f(*args, **kwargs)`, ¿de qué tipo son `args` y `kwargs`?"
+options = ["lista y dict", "tupla y dict", "tupla y lista", "lista y lista"]
+correct = 1
+explanation = "`*args` junta los posicionales sobrantes en una tupla y `**kwargs` los keyword sobrantes en un dict."
+
+[[questions]]
+text = "Con `def distancia(a, b, /)`, ¿cuál llamada es válida?"
+options = ["`distancia(a=1, b=2)`", "`distancia(1, b=2)`", "`distancia(1, 2)`", "Ninguna"]
+correct = 2
+explanation = "Los parámetros antes de `/` son solo posicionales: no se pueden pasar por nombre."
+
+[[questions]]
+text = "¿Qué devuelve una función que termina sin `return`?"
+options = ["`0`", "`None`", "`False`", "El valor de la última expresión"]
+correct = 1
+explanation = "Toda función devuelve algo; si no hay `return` (o hay un `return` sin valor), devuelve `None`."

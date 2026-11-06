@@ -1,0 +1,39 @@
+[[questions]]
+text = "Una clase tiene un método `area()` pero no hereda de `TieneArea(Protocol)`. ¿Cumple el protocolo para mypy?"
+options = [
+  "No: tiene que heredar",
+  "Sí: los Protocol son estructurales",
+  "Solo si está registrada con `register()`",
+  "Solo si tiene `@runtime_checkable`",
+]
+correct = 1
+explanation = "Un Protocol se cumple por la forma: alcanza con tener los métodos con firmas compatibles, sin heredar."
+
+[[questions]]
+text = "Una subclase de una ABC no implementa un `@abstractmethod`. ¿Cuándo falla?"
+options = [
+  "Al definir la clase",
+  "Al crear una instancia",
+  "Al llamar al método faltante",
+  "Nunca",
+]
+correct = 1
+explanation = "La definición es válida, pero instanciar una clase con métodos abstractos pendientes levanta `TypeError`."
+
+[[questions]]
+text = "¿Qué pasa con `isinstance(x, MiProtocolo)` si el Protocol **no** tiene `@runtime_checkable`?"
+options = ["Devuelve `True` si tiene los métodos", "Levanta `TypeError`", "Devuelve siempre `False`", "Chequea las firmas"]
+correct = 1
+explanation = "Los Protocol son para el type checker. Para usarlos con `isinstance` hay que marcarlos con `@runtime_checkable`, y aun así solo se verifica que los métodos existan."
+
+[[questions]]
+text = "Querés que todas las implementaciones compartan un método `enviar_a_todos` que llama a `enviar`. ¿Qué conviene?"
+options = ["Protocol", "ABC", "Un dict de funciones", "Un enum"]
+correct = 1
+explanation = "Una ABC puede tener métodos concretos que usan los abstractos (template method). Los Protocol describen una forma, no comparten implementación por herencia."
+
+[[questions]]
+text = "¿Qué anotación es más flexible para un parámetro que solo se recorre una vez?"
+options = ["`list[str]`", "`Iterable[str]`", "`tuple[str, ...]`", "`set[str]`"]
+correct = 1
+explanation = "`Iterable` acepta listas, tuplas, sets, generadores y más. Aceptá lo más abstracto que necesites."

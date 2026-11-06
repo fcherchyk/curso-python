@@ -1,0 +1,44 @@
+[[questions]]
+text = "¿Cuál es la principal ventaja de una app factory (`create_app`)?"
+options = [
+  "Que la app arranca más rápido",
+  "Poder crear apps independientes con configuraciones distintas (por ejemplo, una por test)",
+  "Que no hace falta `secret_key`",
+  "Que reemplaza a los blueprints",
+]
+correct = 1
+explanation = "Sin una app global, cada test o entorno crea la suya con su configuración y no hay estado compartido."
+
+[[questions]]
+text = "Con `app.register_blueprint(bp, url_prefix=\"/api\")` y `@bp.get(\"/estado\")`, ¿cuál es la URL?"
+options = ["`/estado`", "`/api/estado`", "`/bp/estado`", "`/api/bp/estado`"]
+correct = 1
+explanation = "El `url_prefix` se antepone a todas las rutas del blueprint."
+
+[[questions]]
+text = "Una vista de un blueprint llamado `\"api\"` se llama `productos`. ¿Qué se le pasa a `url_for`?"
+options = ["`\"productos\"`", "`\"api.productos\"`", "`\"/api/productos\"`", "`\"bp.productos\"`"]
+correct = 1
+explanation = "Los endpoints de un blueprint llevan su nombre como prefijo. Dentro del mismo blueprint también vale `\".productos\"`."
+
+[[questions]]
+text = "¿Para qué sirve `current_app`?"
+options = [
+  "Para crear una app nueva",
+  "Para acceder a la app que atiende el request actual (por ejemplo, a su config) sin importarla",
+  "Para reiniciar la app",
+  "Para obtener el blueprint actual",
+]
+correct = 1
+explanation = "Con factories no hay una variable `app` global que importar. `current_app` apunta a la app del contexto actual."
+
+[[questions]]
+text = "¿Por qué las extensiones usan `ext = Extension()` y después `ext.init_app(app)`?"
+options = [
+  "Por compatibilidad con Python 2",
+  "Para poder crear la extensión a nivel de módulo (importable) y conectarla a una o varias apps creadas por la factory",
+  "Porque es más rápido",
+  "Para que la extensión no tenga configuración",
+]
+correct = 1
+explanation = "La extensión no depende de una app global. El estado por app se guarda en `app.extensions`."

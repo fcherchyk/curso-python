@@ -1,0 +1,49 @@
+[[questions]]
+text = "¿Qué hace `serializer.is_valid(raise_exception=True)` si los datos son inválidos?"
+options = [
+  "Devuelve False",
+  "Levanta una excepción que DRF convierte en un 400 con los errores por campo",
+  "Corrige los datos",
+  "Responde 422",
+]
+correct = 1
+explanation = "DRF atrapa la `ValidationError` y responde 400 con un JSON del tipo `{\"campo\": [\"mensaje\"]}`."
+
+[[questions]]
+text = "Un campo está en `read_only_fields`. ¿Qué pasa si el cliente lo envía en un POST?"
+options = [
+  "Error 400",
+  "Se ignora en la entrada, pero aparece en la respuesta",
+  "Se guarda igual",
+  "Error 500",
+]
+correct = 1
+explanation = "Los campos de solo lectura se serializan en la salida pero no se aceptan en la entrada, como el `id` o una fecha de creación."
+
+[[questions]]
+text = "¿Qué genera `router.register(\"tareas\", TareaViewSet)` con un `ModelViewSet`?"
+options = [
+  "Solo `GET /tareas/`",
+  "Las URLs de listado, alta, detalle, modificación y borrado del recurso",
+  "Un modelo nuevo",
+  "El admin",
+]
+correct = 1
+explanation = "El router mapea los métodos HTTP a las acciones del viewset (list, create, retrieve, update, partial_update, destroy) y suma las `@action`."
+
+[[questions]]
+text = "¿Para qué sirve `@action(detail=True, methods=[\"post\"])` en un viewset?"
+options = [
+  "Para hacer el viewset asincrónico",
+  "Para agregar un endpoint extra sobre un objeto, como `POST /tareas/{pk}/completar/`",
+  "Para validar el serializer",
+  "Para cambiar el nombre del recurso",
+]
+correct = 1
+explanation = "Con `detail=True` la ruta incluye el pk; con `detail=False` es sobre la colección (`/tareas/pendientes/`)."
+
+[[questions]]
+text = "En DRF, ¿dónde viene el body ya parseado (JSON o formulario)?"
+options = ["`request.body`", "`request.data`", "`request.POST`", "`request.json`"]
+correct = 1
+explanation = "`request.data` unifica los formatos. `request.POST` de Django solo entiende formularios."

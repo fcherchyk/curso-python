@@ -1,0 +1,44 @@
+[[questions]]
+text = "Con `@app.get(\"/productos/{id}\")` y `def detalle(id: int)`, ¿qué responde `/productos/abc`?"
+options = ["404", "422 con el detalle del error de validación", "500", "200 con `id = \"abc\"`"]
+correct = 1
+explanation = "El type hint valida y convierte. Un valor inválido da 422 (Unprocessable Entity) sin llegar a tu función."
+
+[[questions]]
+text = "En `def listar(q: str | None = None, pagina: int = 1)`, ¿de dónde salen `q` y `pagina`?"
+options = [
+  "Del body JSON",
+  "Del query string (`?q=...&pagina=...`)",
+  "De los headers",
+  "De la ruta",
+]
+correct = 1
+explanation = "Los parámetros de tipo simple que no aparecen en la ruta son query params. Con default son opcionales."
+
+[[questions]]
+text = "¿Cómo se responde un 404 en FastAPI?"
+options = [
+  "`return {\"detail\": \"...\"}, 404`",
+  "`raise HTTPException(status_code=404, detail=\"...\")`",
+  "`abort(404)`",
+  "`return HTTPException(404)`",
+]
+correct = 1
+explanation = "`HTTPException` se levanta. FastAPI la convierte en una respuesta JSON `{\"detail\": ...}` con el código indicado."
+
+[[questions]]
+text = "¿Qué se obtiene en `/docs` sin escribir nada extra?"
+options = [
+  "Nada: hay que instalar un plugin",
+  "Documentación interactiva (Swagger UI) generada desde los tipos y las rutas",
+  "Los logs del servidor",
+  "El código fuente",
+]
+correct = 1
+explanation = "FastAPI genera el esquema OpenAPI a partir de las firmas y los modelos, y lo muestra en `/docs` y `/redoc`."
+
+[[questions]]
+text = "Un parámetro `datos: ProductoNuevo` (un `BaseModel` de Pydantic) en un endpoint POST se toma de…"
+options = ["El query string", "El body JSON", "Los headers", "Las cookies"]
+correct = 1
+explanation = "Los parámetros que son modelos Pydantic se leen del body y se validan campo por campo."

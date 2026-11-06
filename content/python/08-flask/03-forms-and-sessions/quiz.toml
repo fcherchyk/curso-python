@@ -1,0 +1,54 @@
+[[questions]]
+text = "¿Por qué conviene redirigir después de un POST exitoso (patrón PRG)?"
+options = [
+  "Porque Flask no puede devolver HTML en un POST",
+  "Para que recargar la página no reenvíe el formulario y duplique la operación",
+  "Para que la respuesta sea más rápida",
+  "Porque los navegadores lo exigen",
+]
+correct = 1
+explanation = "Después del redirect, la página es un GET y recargarla no repite el POST."
+
+[[questions]]
+text = "¿Qué garantiza la sesión por defecto de Flask (cookie firmada)?"
+options = [
+  "Que el usuario no puede leer su contenido",
+  "Que el usuario no puede modificar su contenido sin que se detecte",
+  "Que se guarda en la base de datos",
+  "Que dura para siempre",
+]
+correct = 1
+explanation = "Está firmada, no cifrada: el contenido se puede leer, pero no alterar. No guardes secretos ahí."
+
+[[questions]]
+text = "¿Cuántas veces se muestra un mensaje creado con `flash()`?"
+options = [
+  "En todas las páginas hasta el logout",
+  "Una sola vez: se consume en el próximo request que lo lee",
+  "Solo en la misma respuesta del POST",
+  "Hasta que el usuario lo cierra",
+]
+correct = 1
+explanation = "`get_flashed_messages()` lo lee y lo saca de la sesión, por eso funciona justo después de un redirect."
+
+[[questions]]
+text = "Un formulario tiene `required` en el HTML. ¿Hace falta validar en el servidor?"
+options = [
+  "No, el navegador ya lo valida",
+  "Sí: cualquiera puede mandar el POST sin pasar por el navegador",
+  "Solo si el campo es numérico",
+  "Solo en producción",
+]
+correct = 1
+explanation = "La validación del cliente mejora la experiencia de uso, pero la seguridad y la integridad dependen de validar en el servidor."
+
+[[questions]]
+text = "En el `test_client` de Flask, ¿cómo se envía un formulario (no JSON)?"
+options = [
+  "`cliente.post(url, json={...})`",
+  "`cliente.post(url, data={...})`",
+  "`cliente.post(url, form={...})`",
+  "`cliente.submit(url, {...})`",
+]
+correct = 1
+explanation = "`data=` codifica los campos como un formulario; `json=` manda un body JSON."

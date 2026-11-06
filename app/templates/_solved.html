@@ -1,0 +1,6 @@
+{% from "_macros.html" import tab_mark, solved_button %}
+{{ solved_button(chapter, step, ok) }}
+{{ tab_mark('mark-' ~ step, ok, oob=true) }}
+{% if step == 'tests' %}
+<div id="tests-result" hx-swap-oob="true">{% include "_tests_status.html" %}</div>
+{% endif %}

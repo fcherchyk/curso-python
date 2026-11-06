@@ -34,27 +34,27 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["semana1", "tests"]
-# contenido/ tiene tests de ejercicios que solo se corren a través de la app (tests/test_contenido.py).
-norecursedirs = ["contenido", ".*", "__pycache__"]
+# content/ holds exercise tests that only run through the app (tests/test_content.py).
+norecursedirs = ["content", ".*", "__pycache__"]
 addopts = "-q"
 filterwarnings = ["ignore:.*install `httpx2`"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-# Código inicial con errores de lint a propósito (el ejercicio es corregirlos).
-extend-exclude = ["contenido/python/07-herramientas/02-ruff-y-mypy/ejercicio.py"]
+# Starter code with deliberate lint errors (the exercise is to fix them).
+extend-exclude = ["content/python/07-tooling/02-ruff-and-mypy/exercise.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.ruff.lint.per-file-ignores]
-# Las consignas de los ejercicios a veces necesitan líneas largas.
-"contenido/**" = ["E501"]
-# En los tests de Django, los imports van después de configurar settings.
-"contenido/python/10-django/**/test_ejercicio.py" = ["E402"]
-# matplotlib.use("Agg") tiene que ir antes de importar pyplot.
-"contenido/python/1[34]-*/**/test_ejercicio.py" = ["E402"]
+# Exercise instructions sometimes need long lines.
+"content/**" = ["E501"]
+# In the Django tests, imports come after configuring settings.
+"content/python/10-django/**/test_exercise.py" = ["E402"]
+# matplotlib.use("Agg") has to run before importing pyplot.
+"content/python/1[34]-*/**/test_exercise.py" = ["E402"]
 
 [tool.mypy]
 python_version = "3.12"

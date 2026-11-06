@@ -1,0 +1,2 @@
+title = "Modelado de datos"
+description = "Clases y el modelo de datos, property y classmethod, dataclasses, enums, Protocol vs ABC y tipado moderno con genéricos."

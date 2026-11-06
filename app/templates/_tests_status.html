@@ -1,0 +1,8 @@
+{% if status.tests_ok %}
+<p class="note note-ok">Exercise solved. You can run the tests again or
+  <button class="link-button" hx-get="/c/{{ chapter.id }}/solution" hx-target="#solution">see the reference solution</button>.</p>
+<div id="solution"></div>
+{% else %}
+<p class="note">Complete the functions in <code>{{ chapter.language.exercise_file }}</code> (the instructions
+  are in {{ chapter.language.where_instructions_are }}) and run the tests.</p>
+{% endif %}

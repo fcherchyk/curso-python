@@ -1,0 +1,39 @@
+[[questions]]
+text = "¿Qué hace `pd.to_numeric(s, errors=\"coerce\")` con el valor `\"sin dato\"`?"
+options = ["Levanta `ValueError`", "Lo convierte en `NaN`", "Lo deja como texto", "Lo convierte en 0"]
+correct = 1
+explanation = "`coerce` convierte en nulo lo que no se puede parsear, y así un valor sucio no corta todo el proceso."
+
+[[questions]]
+text = "Una columna de enteros tiene un valor faltante. ¿Qué dtype permite mantener los enteros con el nulo?"
+options = ["`int64`", "`Int64` (con mayúscula)", "`float64`", "`object`"]
+correct = 1
+explanation = "`int64` no admite `NaN`, por eso pandas pasaría la columna a `float64`. `Int64` es el entero que admite nulos (`pd.NA`)."
+
+[[questions]]
+text = "¿Por qué hay que normalizar el email antes de `drop_duplicates(subset=[\"email\"])`?"
+options = [
+  "Porque `drop_duplicates` no acepta strings",
+  "Porque \"ANA@mail.com\" y \"ana@mail.com \" son la misma persona, pero strings distintos",
+  "Por rendimiento",
+  "No hace falta",
+]
+correct = 1
+explanation = "La deduplicación compara valores exactos. Primero hay que llevar los textos a una forma canónica (minúsculas y sin espacios)."
+
+[[questions]]
+text = "¿Dónde están las operaciones de texto vectorizadas de pandas?"
+options = ["En el módulo `re`", "En el accessor `.str` de una Series", "En `df.text`", "En `pd.strings`"]
+correct = 1
+explanation = "`s.str.strip()`, `s.str.lower()`, `s.str.replace(...)` y demás se aplican a toda la columna y respetan los nulos."
+
+[[questions]]
+text = "¿Qué ventaja tiene encadenar métodos (`df.assign(...).dropna(...).pipe(...)`)?"
+options = [
+  "Es más rápido en todos los casos",
+  "El pipeline se lee de arriba hacia abajo, sin variables intermedias, y cada paso devuelve un DataFrame nuevo",
+  "Modifica el original en el lugar",
+  "Es la única forma de usar `assign`",
+]
+correct = 1
+explanation = "El method chaining hace el proceso legible y reproducible. `pipe` permite insertar funciones propias en la cadena."

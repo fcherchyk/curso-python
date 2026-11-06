@@ -4,10 +4,11 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 *.pyc
+progress.db
 progreso.db
 .idea/
 
-# Local: scripts ajenos, config del entorno y reportes
+# Local: unrelated scripts, environment config and reports
 data.py
 .claude/
 .coverage

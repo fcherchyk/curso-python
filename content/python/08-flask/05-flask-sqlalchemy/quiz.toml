@@ -1,0 +1,54 @@
+[[questions]]
+text = "En un modelo de SQLAlchemy 2.0, ¿qué indica `anio: Mapped[int | None]`?"
+options = [
+  "Que la columna es de tipo texto",
+  "Una columna entera que admite NULL",
+  "Una relación con otra tabla",
+  "Que la columna no se guarda",
+]
+correct = 1
+explanation = "El tipo de `Mapped` define el tipo de la columna, y el `| None` la hace nullable."
+
+[[questions]]
+text = "¿Cuándo se ejecutan los INSERT de los objetos agregados con `db.session.add(...)`?"
+options = [
+  "Inmediatamente al llamar a `add`",
+  "Al hacer flush, como mucho en el `commit` (en una transacción)",
+  "Al terminar el programa",
+  "Nunca: hay que llamar a `insert()`",
+]
+correct = 1
+explanation = "La sesión acumula los cambios (unit of work) y los envía al hacer flush. El `commit` confirma la transacción."
+
+[[questions]]
+text = "¿Qué es el problema N+1?"
+options = [
+  "Un error de clave duplicada",
+  "Hacer una consulta para la lista y otra por cada elemento al acceder a una relación perezosa",
+  "Paginar de a N+1 elementos",
+  "Una tabla con N+1 columnas",
+]
+correct = 1
+explanation = "Acceder a `libro.autor` dentro de un bucle dispara un SELECT por libro. Se resuelve con `joinedload` o `selectinload`."
+
+[[questions]]
+text = "¿Qué hace `db.get_or_404(Libro, 7)`?"
+options = [
+  "Devuelve el libro 7 o None",
+  "Devuelve el libro 7 o aborta el request con un 404",
+  "Crea el libro 7 si no existe",
+  "Devuelve todos los libros",
+]
+correct = 1
+explanation = "Es un atajo de Flask-SQLAlchemy para el caso típico de los endpoints de detalle."
+
+[[questions]]
+text = "Agregaste una columna a un modelo y la tabla ya existe. ¿`db.create_all()` la agrega?"
+options = [
+  "Sí, sincroniza todo el esquema",
+  "No: solo crea tablas que no existen; los cambios de esquema se manejan con migraciones (Alembic)",
+  "Sí, pero borra los datos",
+  "Solo en SQLite",
+]
+correct = 1
+explanation = "`create_all` no altera tablas existentes. Para evolucionar el esquema se usan migraciones versionadas."

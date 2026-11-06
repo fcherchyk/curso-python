@@ -1,6 +1,0 @@
-{% from "_macros.html" import marca_tab, boton_resuelto %}
-{{ boton_resuelto(cap, paso, ok) }}
-{{ marca_tab('marca-' ~ paso, ok, oob=true) }}
-{% if paso == 'tests' %}
-<div id="tests-resultado" hx-swap-oob="true">{% include "_tests_estado.html" %}</div>
-{% endif %}
