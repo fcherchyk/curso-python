@@ -1,49 +1,49 @@
 [[questions]]
-text = "¿Qué hace `pytest.raises(ValueError, match=\"mes\")`?"
+text = "What does `pytest.raises(ValueError, match=\"month\")` do?"
 options = [
-  "Levanta un `ValueError` con el mensaje \"mes\"",
-  "Verifica que el bloque levante `ValueError` y que el mensaje contenga (regex) \"mes\"",
-  "Ignora los `ValueError` del bloque",
-  "Verifica que NO se levante `ValueError`",
+  "Raises a `ValueError` with the message \"month\"",
+  "Checks that the block raises `ValueError` and that the message contains (regex) \"month\"",
+  "Ignores `ValueError`s in the block",
+  "Checks that `ValueError` is NOT raised",
 ]
 correct = 1
-explanation = "El test falla si no se levanta la excepción, si es de otro tipo o si el mensaje no matchea la regex."
+explanation = "The test fails if the exception isn't raised, if it's a different type, or if the message doesn't match the regex."
 
 [[questions]]
-text = "¿Por qué pytest usa `assert` plano en lugar de métodos como `assertEqual`?"
+text = "Why does pytest use plain `assert` instead of methods like `assertEqual`?"
 options = [
-  "Porque es más rápido",
-  "Porque reescribe los `assert` para mostrar los valores y las diferencias cuando fallan",
-  "Porque `assertEqual` no existe en Python 3",
-  "Por compatibilidad con unittest",
+  "Because it's faster",
+  "Because it rewrites `assert` statements to show the values and the differences when they fail",
+  "Because `assertEqual` doesn't exist in Python 3",
+  "For compatibility with unittest",
 ]
 correct = 1
-explanation = "pytest reescribe los asserts de los módulos de test para mostrar los valores intermedios y las diferencias. No hace falta aprender una API de asserts."
+explanation = "pytest rewrites the asserts in test modules to show intermediate values and differences. There's no assert API to learn."
 
 [[questions]]
-text = "Tenés 100 % de cobertura en `es_bisiesto` con los casos 2024 y 2023. ¿Qué te dice eso?"
+text = "You have 100% coverage on `is_leap_year` with the cases 2024 and 2023. What does that tell you?"
 options = [
-  "Que la función está completamente testeada",
-  "Solo que las líneas se ejecutaron: las reglas del 100 y del 400 pueden estar mal y los tests seguir en verde",
-  "Que no hacen falta más tests",
-  "Que hay un bug",
+  "That the function is fully tested",
+  "Only that the lines ran: the 100 and 400 rules could be wrong and the tests would stay green",
+  "That no more tests are needed",
+  "That there's a bug",
 ]
 correct = 1
-explanation = "La cobertura mide ejecución, no verificación. Hacen falta casos como 1900 y 2000 para matar a los mutantes de esas reglas."
+explanation = "Coverage measures execution, not verification. You need cases like 1900 and 2000 to kill the mutants of those rules."
 
 [[questions]]
-text = "¿Qué genera `@pytest.mark.parametrize(\"x\", [1, 2, 3])` sobre un test?"
+text = "What does `@pytest.mark.parametrize(\"x\", [1, 2, 3])` produce on a test?"
 options = [
-  "Un test que recibe la lista `[1, 2, 3]`",
-  "Tres tests independientes, uno por valor",
-  "Un test que corre tres veces y solo reporta el último",
-  "Un error: falta `ids`",
+  "One test that receives the list `[1, 2, 3]`",
+  "Three independent tests, one per value",
+  "One test that runs three times and only reports the last one",
+  "An error: `ids` is missing",
 ]
 correct = 1
-explanation = "Cada valor crea un caso de test separado, con su propio resultado en el reporte (`test_x[1]`, `test_x[2]`…)."
+explanation = "Each value creates a separate test case, with its own result in the report (`test_x[1]`, `test_x[2]`…)."
 
 [[questions]]
-text = "¿Qué opción de pytest corre solo los tests que fallaron la última vez?"
+text = "Which pytest option runs only the tests that failed last time?"
 options = ["`-x`", "`--lf`", "`-k`", "`-q`"]
 correct = 1
-explanation = "`--lf` (*last failed*) reusa el caché de la corrida anterior. `-x` frena en el primer fallo y `-k` filtra por nombre."
+explanation = "`--lf` (*last failed*) reuses the cache from the previous run. `-x` stops at the first failure and `-k` filters by name."

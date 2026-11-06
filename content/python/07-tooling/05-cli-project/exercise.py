@@ -1,6 +1,6 @@
-"""Proyecto integrador: analizador de logs de acceso con CLI.
+"""Capstone project: access log analyzer with a CLI.
 
-Implementá las piezas en orden (mirá la lección). Formato de cada línea:
+Implement the pieces in order (see the lesson). Format of each line:
 
     2026-09-20T10:15:32 GET /api/users 200 123ms
 """
@@ -17,7 +17,7 @@ from enum import StrEnum
 from pathlib import Path  # noqa: F401
 
 
-class Metodo(StrEnum):
+class Method(StrEnum):
     GET = "GET"
     POST = "POST"
     PUT = "PUT"
@@ -25,109 +25,109 @@ class Metodo(StrEnum):
     DELETE = "DELETE"
 
 
-class LineaInvalida(ValueError):
-    """La línea no respeta el formato esperado."""
+class InvalidLine(ValueError):
+    """The line doesn't match the expected format."""
 
 
 @dataclass(frozen=True, slots=True)
-class Registro:
-    momento: datetime
-    metodo: Metodo
-    ruta: str
+class Record:
+    timestamp: datetime
+    method: Method
+    path: str
     status: int
-    duracion_ms: int
+    duration_ms: int
 
     @property
-    def es_error(self) -> bool:
-        """True si el status es 5xx."""
+    def is_error(self) -> bool:
+        """True if the status is 5xx."""
         raise NotImplementedError("TODO")
 
 
-PATRON = re.compile(
-    r"^(?P<momento>\S+) (?P<metodo>[A-Z]+) (?P<ruta>/\S*) (?P<status>\d{3}) (?P<ms>\d+)ms$"
+PATTERN = re.compile(
+    r"^(?P<timestamp>\S+) (?P<method>[A-Z]+) (?P<path>/\S*) (?P<status>\d{3}) (?P<ms>\d+)ms$"
 )
 
 
-def parsear_linea(linea: str) -> Registro:
-    """Convertí una línea en un Registro.
+def parse_line(line: str) -> Record:
+    """Turn a line into a Record.
 
-    Cualquier problema (regex que no matchea, fecha inválida, método
-    desconocido) tiene que levantar `LineaInvalida` con la línea en el
-    mensaje. Usá `raise ... from e` para encadenar la causa original.
+    Any problem (regex doesn't match, invalid date, unknown method) must
+    raise `InvalidLine` with the line in the message. Use `raise ... from e`
+    to chain the original cause.
 
-    Pista: `PATRON.match(linea.strip())`, `datetime.fromisoformat`, `Metodo(...)`.
+    Hint: `PATTERN.match(line.strip())`, `datetime.fromisoformat`, `Method(...)`.
     """
     raise NotImplementedError("TODO")
 
 
-def parsear(lineas: Iterable[str], invalidas: list[str] | None = None) -> Iterator[Registro]:
-    """Generador de Registros. Saltea líneas vacías.
+def parse(lines: Iterable[str], invalid: list[str] | None = None) -> Iterator[Record]:
+    """Generator of Records. Skips empty lines.
 
-    Las líneas inválidas no cortan el procesamiento: se descartan y, si se
-    pasó la lista `invalidas`, se agregan ahí (sin el salto de línea).
+    Invalid lines don't stop processing: they're discarded and, if the
+    `invalid` list was passed, appended to it (without the newline).
     """
     raise NotImplementedError("TODO")
 
 
 @dataclass(frozen=True)
-class Resumen:
+class Summary:
     total: int
-    errores: int
-    por_status: dict[int, int]
+    errors: int
+    by_status: dict[int, int]
     p50_ms: float
     p95_ms: float
-    ruta_mas_lenta: str
+    slowest_path: str
 
     @property
-    def tasa_error(self) -> float:
-        """errores / total (0.0 si total es 0)."""
+    def error_rate(self) -> float:
+        """errors / total (0.0 if total is 0)."""
         raise NotImplementedError("TODO")
 
 
-def resumir(registros: Iterable[Registro]) -> Resumen:
-    """Calculá el resumen en UNA pasada sobre `registros` (puede ser un generador:
-    materializalo en una lista una sola vez).
+def summarize(records: Iterable[Record]) -> Summary:
+    """Compute the summary in ONE pass over `records` (it may be a generator:
+    materialize it into a list just once).
 
-    - por_status: dict status -> cantidad, ordenado por status ascendente.
-    - p50_ms / p95_ms: `statistics.quantiles(duraciones, n=100, method="inclusive")`,
-      índices 49 y 94. Con menos de 2 registros, ambos valen la única duración (o 0.0).
-    - ruta_mas_lenta: la ruta con MAYOR duración PROMEDIO ("" si no hay registros).
-      Ante empate, la que apareció primero.
+    - by_status: dict status -> count, sorted by status ascending.
+    - p50_ms / p95_ms: `statistics.quantiles(durations, n=100, method="inclusive")`,
+      indexes 49 and 94. With fewer than 2 records, both are the single duration (or 0.0).
+    - slowest_path: the path with the HIGHEST AVERAGE duration ("" if there are no records).
+      On a tie, the one that appeared first.
     """
     raise NotImplementedError("TODO")
 
 
-def top_rutas(registros: Iterable[Registro], n: int = 5) -> list[tuple[str, int]]:
-    """Las `n` rutas más pedidas con su cantidad (empates: orden de aparición)."""
+def top_paths(records: Iterable[Record], n: int = 5) -> list[tuple[str, int]]:
+    """The `n` most requested paths with their count (ties: order of appearance)."""
     raise NotImplementedError("TODO")
 
 
-def formatear(resumen: Resumen, top: list[tuple[str, int]], invalidas: int) -> str:
-    """Texto del reporte. Formato exacto (ver test):
+def format_report(summary: Summary, top: list[tuple[str, int]], invalid: int) -> str:
+    """Report text. Exact format (see the test):
 
-        Requests: 10 (inválidas: 1)
-        Errores 5xx: 2 (20.0%)
-        Latencia p50: 120.0 ms | p95: 900.0 ms
-        Ruta más lenta: /api/report
+        Requests: 10 (invalid: 1)
+        5xx errors: 2 (20.0%)
+        Latency p50: 120.0 ms | p95: 900.0 ms
+        Slowest path: /api/report
         Status:
           200: 7
           500: 2
-        Top rutas:
+        Top paths:
           /api/users      4
           /api/orders     3
-    (ruta alineada a la izquierda en 15 caracteres, cantidad a la derecha en 4)
+    (path left-aligned in 15 characters, count right-aligned in 4)
     """
     raise NotImplementedError("TODO")
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """CLI: `archivo` (posicional) y `--top N` (default 5).
+    """CLI: `file` (positional) and `--top N` (default 5).
 
-    Imprime el reporte en stdout y devuelve 0. Si el archivo no existe,
-    imprime "No existe: <archivo>" en stderr y devuelve 1.
+    Prints the report to stdout and returns 0. If the file doesn't exist,
+    prints "Not found: <file>" to stderr and returns 1.
 
-    Pista: `argparse.ArgumentParser`, `type=Path`, `type=int`. Leé el archivo
-    UNA vez a una lista de registros (vas a usarla dos veces).
+    Hint: `argparse.ArgumentParser`, `type=Path`, `type=int`. Read the file
+    ONCE into a list of records (you'll use it twice).
     """
     raise NotImplementedError("TODO")
 

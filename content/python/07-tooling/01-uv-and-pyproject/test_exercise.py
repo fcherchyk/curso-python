@@ -1,5 +1,5 @@
 import pytest
-from exercise import dependencias, grupos, nombre_de_paquete, python_minimo
+from exercise import dependencies, groups, min_python, package_name
 
 PYPROJECT = """
 [project]
@@ -22,7 +22,7 @@ line-length = 100
 
 
 @pytest.mark.parametrize(
-    ("spec", "nombre"),
+    ("spec", "name"),
     [
         ("fastapi>=0.115", "fastapi"),
         ("httpx[http2]>=0.27", "httpx"),
@@ -32,20 +32,20 @@ line-length = 100
         ("zope.interface", "zope.interface"),
     ],
 )
-def test_nombre_de_paquete(spec, nombre):
-    assert nombre_de_paquete(spec) == nombre
+def test_package_name(spec, name):
+    assert package_name(spec) == name
 
 
-def test_dependencias():
-    assert dependencias(PYPROJECT) == ["fastapi", "httpx", "pydantic", "uvicorn"]
-    assert dependencias('[project]\nname = "x"') == []
+def test_dependencies():
+    assert dependencies(PYPROJECT) == ["fastapi", "httpx", "pydantic", "uvicorn"]
+    assert dependencies('[project]\nname = "x"') == []
 
 
-def test_grupos():
-    assert grupos(PYPROJECT) == {"dev": ["pytest", "ruff"], "docs": ["mkdocs-material"]}
-    assert grupos("") == {}
+def test_groups():
+    assert groups(PYPROJECT) == {"dev": ["pytest", "ruff"], "docs": ["mkdocs-material"]}
+    assert groups("") == {}
 
 
-def test_python_minimo():
-    assert python_minimo(PYPROJECT) == (3, 12)
-    assert python_minimo('[project]\nname = "x"') is None
+def test_min_python():
+    assert min_python(PYPROJECT) == (3, 12)
+    assert min_python('[project]\nname = "x"') is None

@@ -1,164 +1,163 @@
-# pytest: tests, asserts y parametrize
+# pytest: tests, asserts and parametrize
 
-Venís usando pytest en cada ejercicio del curso. En este capítulo cambiamos de rol: **vos
-escribís los tests**. pytest es el framework de testing estándar de facto: tests como
-funciones comunes, `assert` plano con mensajes detallados y un sistema de fixtures y plugins
-muy potente.
+You've been using pytest in every exercise of the course. In this chapter we switch roles:
+**you write the tests**. pytest is the de facto standard testing framework: tests as plain
+functions, plain `assert` with detailed messages, and a very powerful system of fixtures and
+plugins.
 
-## Lo mínimo
+## The bare minimum
 
 ```python
-# tests/test_calendario.py
-from calendario import es_bisiesto
+# tests/test_business_calendar.py
+from business_calendar import is_leap_year
 
-def test_2024_es_bisiesto():
-    assert es_bisiesto(2024)
+def test_2024_is_leap_year():
+    assert is_leap_year(2024)
 
-def test_2023_no_es_bisiesto():
-    assert not es_bisiesto(2023)
+def test_2023_is_not_leap_year():
+    assert not is_leap_year(2023)
 ```
 
 ```bash
 uv run pytest
 ```
 
-Convenciones de descubrimiento:
+Discovery conventions:
 
-- Archivos `test_*.py` o `*_test.py`.
-- Funciones `test_*` (o métodos `test_*` dentro de clases `Test*` sin `__init__`).
-- `testpaths` en `[tool.pytest.ini_options]` define dónde buscar.
+- Files named `test_*.py` or `*_test.py`.
+- `test_*` functions (or `test_*` methods inside `Test*` classes without `__init__`).
+- `testpaths` in `[tool.pytest.ini_options]` sets where to look.
 
-## `assert` con introspección
+## `assert` with introspection
 
-No hay `assertEqual`, `assertTrue` ni similares: se usa `assert` común, y pytest **reescribe**
-la expresión para mostrarte qué falló:
+There's no `assertEqual`, `assertTrue` or the like: you use a regular `assert`, and pytest
+**rewrites** the expression to show you what failed:
 
 ```
->       assert dias_del_mes(2023, 2) == 29
+>       assert days_in_month(2023, 2) == 29
 E       assert 28 == 29
-E        +  where 28 = dias_del_mes(2023, 2)
+E        +  where 28 = days_in_month(2023, 2)
 ```
 
-Con listas, dicts y strings muestra la **diferencia** exacta. Podés agregar un mensaje:
-`assert x == y, "explicación"`.
+With lists, dicts and strings it shows the exact **diff**. You can add a message:
+`assert x == y, "explanation"`.
 
-Para floats, `pytest.approx`:
+For floats, `pytest.approx`:
 
 ```python
 assert 0.1 + 0.2 == pytest.approx(0.3)
-assert resultado == pytest.approx([1.0, 2.5], rel=1e-3)
+assert result == pytest.approx([1.0, 2.5], rel=1e-3)
 ```
 
-## Verificar excepciones: `pytest.raises`
+## Checking exceptions: `pytest.raises`
 
 ```python
 import pytest
 
-def test_mes_invalido():
-    with pytest.raises(ValueError, match="mes inválido"):
-        dias_del_mes(2024, 13)
+def test_invalid_month():
+    with pytest.raises(ValueError, match="invalid month"):
+        days_in_month(2024, 13)
 
-def test_detalle_de_la_excepcion():
+def test_exception_details():
     with pytest.raises(ValueError) as info:
-        dias_del_mes(2024, 0)
+        days_in_month(2024, 0)
     assert "0" in str(info.value)
 ```
 
-`match` es una **regex** que se busca en el mensaje. El test falla si no se levanta la
-excepción, o si se levanta otra.
+`match` is a **regex** searched for in the message. The test fails if the exception isn't
+raised, or if a different one is raised.
 
-## `parametrize`: un test, muchos casos
+## `parametrize`: one test, many cases
 
 ```python
 @pytest.mark.parametrize(
-    ("anio", "esperado"),
+    ("year", "expected"),
     [
-        (2024, True),     # divisible por 4
+        (2024, True),     # divisible by 4
         (2023, False),
-        (1900, False),    # divisible por 100 pero no por 400
-        (2000, True),     # divisible por 400
+        (1900, False),    # divisible by 100 but not by 400
+        (2000, True),     # divisible by 400
     ],
 )
-def test_es_bisiesto(anio, esperado):
-    assert es_bisiesto(anio) is esperado
+def test_is_leap_year(year, expected):
+    assert is_leap_year(year) is expected
 ```
 
-Cada tupla genera un test independiente, con su propio resultado en el reporte
-(`test_es_bisiesto[1900-False]`). Es la mejor forma de cubrir **casos borde** sin copiar y
-pegar. Con `ids=[...]` o `pytest.param(..., id="siglo")` les das nombres legibles.
+Each tuple generates an independent test, with its own result in the report
+(`test_is_leap_year[1900-False]`). It's the best way to cover **edge cases** without copy and
+paste. With `ids=[...]` or `pytest.param(..., id="century")` you give them readable names.
 
-## Qué testear
+## What to test
 
-Un buen conjunto de tests cubre:
+A good test suite covers:
 
-1. **El caso feliz**: la entrada típica.
-2. **Los bordes**: 0, vacío, un elemento, el máximo, el primero y el último.
-3. **Las reglas de negocio**, cada una por separado: en `es_bisiesto` hay **tres** reglas
-   (cada 4, excepto cada 100, excepto cada 400). Si no testeás 1900 y 2000, dos de ellas
-   pueden estar mal y los tests siguen en verde.
-4. **Los errores**: entradas inválidas que tienen que levantar excepciones.
+1. **The happy path**: the typical input.
+2. **The edges**: 0, empty, one element, the maximum, the first and the last.
+3. **The business rules**, each one separately: `is_leap_year` has **three** rules (every 4,
+   except every 100, except every 400). If you don't test 1900 and 2000, two of them could be
+   wrong and the tests would still be green.
+4. **The errors**: invalid inputs that must raise exceptions.
 
-Estructura de cada test: **Arrange, Act, Assert** (preparar, ejecutar, verificar). Un test
-debería verificar **un comportamiento** y tener un nombre que diga cuál:
-`test_febrero_de_bisiesto_tiene_29`.
+Structure of each test: **Arrange, Act, Assert**. A test should check **one behavior** and
+have a name that says which: `test_february_in_leap_year_has_29`.
 
-### ¿Cómo sé si mis tests son buenos? Mutation testing
+### How do I know my tests are good? Mutation testing
 
-La **cobertura** (`pytest --cov`) mide qué líneas se ejecutaron, pero no si verificaste algo.
-El *mutation testing* es más exigente: introduce bugs a propósito (los **mutantes**, como
-cambiar un `<=` por `<` o borrar una condición) y comprueba que **algún test falle**. Si un
-mutante "sobrevive", a tus tests les falta un caso. Herramientas: `mutmut` y `cosmic-ray`.
+**Coverage** (`pytest --cov`) measures which lines ran, but not whether you checked anything.
+*Mutation testing* is stricter: it injects bugs on purpose (the **mutants**, like changing a
+`<=` to `<` or deleting a condition) and checks that **some test fails**. If a mutant
+"survives", your tests are missing a case. Tools: `mutmut` and `cosmic-ray`.
 
-El ejercicio de este capítulo funciona exactamente así.
+This chapter's exercise works exactly like that.
 
-## Correr pytest como un profesional
+## Running pytest like a pro
 
 ```bash
-uv run pytest -x                 # frena en el primer fallo
-uv run pytest -k bisiesto        # solo tests cuyo nombre contenga "bisiesto"
-uv run pytest --lf               # solo los que fallaron la última vez
-uv run pytest -v                 # un renglón por test
-uv run pytest -q                 # silencioso
-uv run pytest tests/test_x.py::test_y   # un test puntual
-uv run pytest --pdb              # abre el debugger en el fallo
+uv run pytest -x                 # stop at the first failure
+uv run pytest -k leap            # only tests whose name contains "leap"
+uv run pytest --lf               # only the ones that failed last time
+uv run pytest -v                 # one line per test
+uv run pytest -q                 # quiet
+uv run pytest tests/test_x.py::test_y   # a single test
+uv run pytest --pdb              # open the debugger on failure
 ```
 
-### Marcas útiles
+### Useful marks
 
 ```python
-@pytest.mark.skip(reason="depende de la red")
-@pytest.mark.skipif(sys.platform == "win32", reason="solo unix")
-@pytest.mark.xfail(reason="bug conocido #123")    # se espera que falle
+@pytest.mark.skip(reason="depends on the network")
+@pytest.mark.skipif(sys.platform == "win32", reason="unix only")
+@pytest.mark.xfail(reason="known bug #123")    # expected to fail
 ```
 
-## Resumen
+## Summary
 
-- Funciones `test_*` en archivos `test_*.py` con `assert` plano.
-- `pytest.raises(Tipo, match=...)` para excepciones; `pytest.approx` para floats.
-- `@pytest.mark.parametrize` para cubrir muchos casos, en especial los bordes.
-- Testeá cada regla por separado: la cobertura no alcanza, pensá en qué mutantes matarías.
-- `-x`, `-k`, `--lf` y `-v` para el día a día.
+- `test_*` functions in `test_*.py` files with plain `assert`.
+- `pytest.raises(Type, match=...)` for exceptions; `pytest.approx` for floats.
+- `@pytest.mark.parametrize` to cover many cases, especially the edges.
+- Test each rule separately: coverage isn't enough, think about which mutants you'd kill.
+- `-x`, `-k`, `--lf` and `-v` for day-to-day work.
 
-## Ejercicio
+## Exercise
 
-En la pestaña Código **escribís los tests** para `calendario.py` (`es_bisiesto` y
-`dias_del_mes`). Requisitos: al menos 4 tests, usar `parametrize` y `pytest.raises`. Tus tests
-se corren contra el código correcto (tienen que pasar) y contra **5 mutantes** (cada uno
-tiene que hacer fallar al menos uno de tus tests).
+In the Code tab, **you write the tests** for `business_calendar.py` (`is_leap_year` and
+`days_in_month`). Requirements: at least 4 tests, using `parametrize` and `pytest.raises`.
+Your tests are run against the correct code (they must pass) and against **5 mutants** (each
+one must make at least one of your tests fail).
 
 ```python
-# calendario.py (lo que tenés que testear)
-def es_bisiesto(anio: int) -> bool:
-    return anio % 4 == 0 and (anio % 100 != 0 or anio % 400 == 0)
+# business_calendar.py (what you have to test)
+def is_leap_year(year: int) -> bool:
+    return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
 
-def dias_del_mes(anio: int, mes: int) -> int:
-    if not 1 <= mes <= 12:
-        raise ValueError(f"mes inválido: {mes}")
-    if mes == 2:
-        return 29 if es_bisiesto(anio) else 28
-    return 30 if mes in (4, 6, 9, 11) else 31
+def days_in_month(year: int, month: int) -> int:
+    if not 1 <= month <= 12:
+        raise ValueError(f"invalid month: {month}")
+    if month == 2:
+        return 29 if is_leap_year(year) else 28
+    return 30 if month in (4, 6, 9, 11) else 31
 ```
 
-**Para profundizar:** [documentación de pytest](https://docs.pytest.org/en/stable/),
+**Further reading:** [pytest documentation](https://docs.pytest.org/en/stable/),
 [parametrize](https://docs.pytest.org/en/stable/how-to/parametrize.html),
 [mutmut](https://mutmut.readthedocs.io/).

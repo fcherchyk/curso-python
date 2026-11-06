@@ -1,49 +1,49 @@
 [[questions]]
-text = "¿Cómo recibe un test una fixture llamada `usuarios`?"
+text = "How does a test receive a fixture named `users`?"
 options = [
-  "Importándola desde el módulo",
-  "Declarando un parámetro llamado `usuarios`",
-  "Llamando a `usuarios()` dentro del test",
-  "Con el decorador `@usa(usuarios)`",
+  "By importing it from the module",
+  "By declaring a parameter named `users`",
+  "By calling `users()` inside the test",
+  "With the `@uses(users)` decorator",
 ]
 correct = 1
-explanation = "pytest inyecta las fixtures por nombre de parámetro. Las de `conftest.py` ni siquiera hace falta importarlas."
+explanation = "pytest injects fixtures by parameter name. Fixtures from `conftest.py` don't even need to be imported."
 
 [[questions]]
-text = "En una fixture con `yield`, ¿cuándo corre el código después del `yield`?"
+text = "In a fixture with `yield`, when does the code after the `yield` run?"
 options = [
-  "Solo si el test pasa",
-  "Después del test, aunque falle (es el teardown)",
-  "Antes del test",
-  "Nunca",
+  "Only if the test passes",
+  "After the test, even if it fails (it's the teardown)",
+  "Before the test",
+  "Never",
 ]
 correct = 1
-explanation = "Lo que va antes del `yield` es el setup y lo que va después es la limpieza, que se ejecuta pase lo que pase con el test."
+explanation = "What comes before the `yield` is the setup and what comes after is the cleanup, which runs no matter what happens to the test."
 
 [[questions]]
-text = "¿Qué hace `m.get_json.side_effect = KeyError(\"x\")` en un `Mock`?"
+text = "What does `m.get_json.side_effect = KeyError(\"x\")` do on a `Mock`?"
 options = [
-  "Hace que `m.get_json(...)` devuelva un `KeyError`",
-  "Hace que `m.get_json(...)` levante `KeyError`",
-  "Verifica que se haya levantado un `KeyError`",
-  "Nada: `side_effect` solo acepta funciones",
+  "Makes `m.get_json(...)` return a `KeyError`",
+  "Makes `m.get_json(...)` raise `KeyError`",
+  "Checks that a `KeyError` was raised",
+  "Nothing: `side_effect` only accepts functions",
 ]
 correct = 1
-explanation = "Si `side_effect` es una excepción (o una clase de excepción), el mock la levanta al ser llamado."
+explanation = "If `side_effect` is an exception (or an exception class), the mock raises it when called."
 
 [[questions]]
-text = "¿Qué hace que una función sea fácil de testear sin tocar la red?"
+text = "What makes a function easy to test without touching the network?"
 options = [
-  "Que use `httpx` en lugar de `requests`",
-  "Que reciba el cliente HTTP como parámetro (inyección de dependencias)",
-  "Que sea async",
-  "Que tenga docstring",
+  "Using `httpx` instead of `requests`",
+  "Receiving the HTTP client as a parameter (dependency injection)",
+  "Being async",
+  "Having a docstring",
 ]
 correct = 1
-explanation = "Si la dependencia se recibe, el test le pasa un fake o un mock. Si está escondida adentro, hay que parchearla."
+explanation = "If the dependency is passed in, the test hands it a fake or a mock. If it's hidden inside, you have to patch it."
 
 [[questions]]
-text = "¿Qué fixture incluida usás para escribir y leer archivos en un test?"
+text = "Which built-in fixture do you use to write and read files in a test?"
 options = ["`capsys`", "`tmp_path`", "`monkeypatch`", "`caplog`"]
 correct = 1
-explanation = "`tmp_path` da un `Path` a un directorio temporal único para cada test, que pytest limpia después."
+explanation = "`tmp_path` gives each test a `Path` to a unique temporary directory, which pytest cleans up afterwards."

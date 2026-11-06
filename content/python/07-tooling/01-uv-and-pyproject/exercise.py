@@ -1,42 +1,42 @@
-"""uv y pyproject.toml: leer la configuración de un proyecto."""
+"""uv and pyproject.toml: reading a project's configuration."""
 
 import re  # noqa: F401
 import tomllib  # noqa: F401
 
 
-def nombre_de_paquete(especificador: str) -> str:
-    """Nombre del paquete de un especificador de dependencia, sin extras ni versiones,
-    en minúscula.
+def package_name(specifier: str) -> str:
+    """Package name from a dependency specifier, without extras or versions,
+    in lowercase.
 
-    >>> nombre_de_paquete("httpx[http2]>=0.27")
+    >>> package_name("httpx[http2]>=0.27")
     'httpx'
-    >>> nombre_de_paquete("Pydantic >=2,<3")
+    >>> package_name("Pydantic >=2,<3")
     'pydantic'
 
-    Pista: el nombre son letras, números, `-`, `_` y `.` desde el principio.
+    Hint: the name is letters, digits, `-`, `_` and `.` from the start.
     """
     raise NotImplementedError("TODO")
 
 
-def dependencias(texto_pyproject: str) -> list[str]:
-    """Nombres de las dependencias de ejecución (`[project] dependencies`), ordenados.
-    Sin la sección, lista vacía.
+def dependencies(pyproject_text: str) -> list[str]:
+    """Names of the runtime dependencies (`[project] dependencies`), sorted.
+    Without the section, an empty list.
     """
     raise NotImplementedError("TODO")
 
 
-def grupos(texto_pyproject: str) -> dict[str, list[str]]:
-    """Cada grupo de `[dependency-groups]` con los nombres de sus paquetes (en el orden
-    en que aparecen).
+def groups(pyproject_text: str) -> dict[str, list[str]]:
+    """Each group in `[dependency-groups]` with the names of its packages (in the order
+    they appear).
     """
     raise NotImplementedError("TODO")
 
 
-def python_minimo(texto_pyproject: str) -> tuple[int, int] | None:
-    """Versión mínima de Python de `requires-python` (solo se usa la forma ">=X.Y"),
-    como tupla. None si no está declarada.
+def min_python(pyproject_text: str) -> tuple[int, int] | None:
+    """Minimum Python version from `requires-python` (only the ">=X.Y" form is used),
+    as a tuple. None if it isn't declared.
 
-    >>> python_minimo('[project]\\nrequires-python = ">=3.12"')
+    >>> min_python('[project]\\nrequires-python = ">=3.12"')
     (3, 12)
     """
     raise NotImplementedError("TODO")

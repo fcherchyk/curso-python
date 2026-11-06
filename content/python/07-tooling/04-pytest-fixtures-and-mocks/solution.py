@@ -1,41 +1,41 @@
-"""Tests de referencia para clima.py."""
+"""Reference tests for weather.py."""
 
 from unittest.mock import Mock
 
 import pytest
-from clima import BASE, guardar_reporte, resumen, temperatura
+from weather import BASE, save_report, summary, temperature
 
 
 @pytest.fixture
-def cliente():
-    """Cliente falso: responde según la ciudad de la URL; "Atlantis" no existe."""
-    datos = {"Rosario": 21.456, "Salta": 18.04}
+def client():
+    """Fake client: answers based on the city in the URL; "Atlantis" doesn't exist."""
+    data = {"Boston": 21.456, "Denver": 18.04}
 
-    def responder(url: str):
-        ciudad = url.rsplit("=", 1)[-1]
-        if ciudad not in datos:
-            raise KeyError(ciudad)
-        return {"temp_c": datos[ciudad]}
+    def respond(url: str):
+        city = url.rsplit("=", 1)[-1]
+        if city not in data:
+            raise KeyError(city)
+        return {"temp_c": data[city]}
 
-    return Mock(get_json=Mock(side_effect=responder))
-
-
-def test_temperatura_redondea(cliente):
-    assert temperatura("Rosario", cliente) == 21.5
+    return Mock(get_json=Mock(side_effect=respond))
 
 
-def test_temperatura_pide_la_url_de_la_ciudad():
+def test_temperature_rounds(client):
+    assert temperature("Boston", client) == 21.5
+
+
+def test_temperature_requests_the_city_url():
     c = Mock()
     c.get_json.return_value = {"temp_c": 10}
-    temperatura("Salta", c)
-    c.get_json.assert_called_once_with(f"{BASE}/actual?ciudad=Salta")
+    temperature("Denver", c)
+    c.get_json.assert_called_once_with(f"{BASE}/current?city=Denver")
 
 
-def test_resumen_omite_las_que_fallan(cliente):
-    assert resumen(["Rosario", "Atlantis", "Salta"], cliente) == {"Rosario": 21.5, "Salta": 18.0}
+def test_summary_skips_failures(client):
+    assert summary(["Boston", "Atlantis", "Denver"], client) == {"Boston": 21.5, "Denver": 18.0}
 
 
-def test_guardar_reporte_ordenado(tmp_path):
-    ruta = tmp_path / "reporte.txt"
-    guardar_reporte(ruta, {"Salta": 18.0, "Rosario": 21.5})
-    assert ruta.read_text(encoding="utf-8") == "Rosario: 21.5\nSalta: 18.0\n"
+def test_save_report_sorted(tmp_path):
+    path = tmp_path / "report.txt"
+    save_report(path, {"Denver": 18.0, "Boston": 21.5})
+    assert path.read_text(encoding="utf-8") == "Boston: 21.5\nDenver: 18.0\n"

@@ -86,7 +86,7 @@
 2026-09-20T09:27:46 GET /api/orders 200 172ms
 2026-09-20T09:28:10 GET /api/users 500 62ms
 2026-09-20T09:28:32 POST /api/orders 201 249ms
-### reinicio del servidor ###
+### server restart ###
 2026-09-20T09:28:37 GET /api/users 200 106ms
 2026-09-20T09:28:43 GET /api/users 500 80ms
 2026-09-20T09:28:55 GET /api/users 200 109ms

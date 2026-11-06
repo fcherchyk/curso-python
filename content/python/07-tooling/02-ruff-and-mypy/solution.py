@@ -1,21 +1,21 @@
-"""ruff y mypy: versión limpia."""
+"""ruff and mypy: clean version."""
 
 from collections.abc import Iterable
 
 
-def promedio_ponderado(valores: list[float], pesos: list[float]) -> float:
-    if len(valores) != len(pesos):
-        raise ValueError("valores y pesos tienen que tener el mismo largo")
-    total_pesos = sum(pesos)
-    if total_pesos == 0:
-        raise ValueError("los pesos suman 0")
-    return sum(v * p for v, p in zip(valores, pesos, strict=True)) / total_pesos
+def weighted_average(values: list[float], weights: list[float]) -> float:
+    if len(values) != len(weights):
+        raise ValueError("values and weights must have the same length")
+    total_weight = sum(weights)
+    if total_weight == 0:
+        raise ValueError("the weights sum to 0")
+    return sum(v * w for v, w in zip(values, weights, strict=True)) / total_weight
 
 
-def normalizar_tags(tags: Iterable[str]) -> list[str]:
+def normalize_tags(tags: Iterable[str]) -> list[str]:
     return sorted({t.strip().lower() for t in tags if t.strip()})
 
 
-def buscar_usuario(usuarios: dict[int, str], id: int) -> str | None:
-    nombre = usuarios.get(id)
-    return nombre.upper() if nombre is not None else None
+def find_user(users: dict[int, str], id: int) -> str | None:
+    name = users.get(id)
+    return name.upper() if name is not None else None

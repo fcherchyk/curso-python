@@ -1,49 +1,49 @@
 [[questions]]
-text = "¿Por qué `main` recibe `argv` como parámetro en lugar de leer `sys.argv` directamente?"
+text = "Why does `main` take `argv` as a parameter instead of reading `sys.argv` directly?"
 options = [
-  "Porque `sys.argv` está deprecado",
-  "Para que los tests puedan llamar a `main([...])` sin lanzar un subproceso",
-  "Porque argparse lo exige",
-  "Para que sea más rápido",
+  "Because `sys.argv` is deprecated",
+  "So tests can call `main([...])` without launching a subprocess",
+  "Because argparse requires it",
+  "To make it faster",
 ]
 correct = 1
-explanation = "Con `argv=None`, argparse usa `sys.argv[1:]` en producción, y en los tests se pasa una lista. La CLI queda testeable como una función común."
+explanation = "With `argv=None`, argparse uses `sys.argv[1:]` in production, and tests pass a list. The CLI becomes as testable as a regular function."
 
 [[questions]]
-text = "¿A dónde conviene mandar los mensajes de error de una CLI?"
-options = ["A stdout", "A stderr", "A un archivo de log siempre", "A ningún lado: solo el código de salida"]
+text = "Where should a CLI send its error messages?"
+options = ["To stdout", "To stderr", "Always to a log file", "Nowhere: only the exit code"]
 correct = 1
-explanation = "Así, redirigir la salida (`> reporte.txt`) no mezcla los errores con el resultado. Además, conviene devolver un código de salida distinto de 0."
+explanation = "That way, redirecting the output (`> report.txt`) doesn't mix errors with the result. You should also return a nonzero exit code."
 
 [[questions]]
-text = "¿Qué aporta `(?P<status>\\d{3})` en una regex?"
+text = "What does `(?P<status>\\d{3})` add to a regex?"
 options = [
-  "Hace la búsqueda más rápida",
-  "Crea un grupo con nombre: se accede con `m[\"status\"]`",
-  "Valida que el status sea un int",
-  "Es obligatorio para usar `re.compile`",
+  "It makes the search faster",
+  "It creates a named group: you access it with `m[\"status\"]`",
+  "It validates that the status is an int",
+  "It's required to use `re.compile`",
 ]
 correct = 1
-explanation = "Los grupos con nombre hacen legible el código que usa el match y no dependen de la posición del grupo."
+explanation = "Named groups make the code that uses the match readable and don't depend on the group's position."
 
 [[questions]]
-text = "¿Por qué `LineaInvalida` hereda de `ValueError`?"
+text = "Why does `InvalidLine` inherit from `ValueError`?"
 options = [
-  "Porque las excepciones propias tienen que heredar de `ValueError`",
-  "Para que el código que ya atrapa `ValueError` la siga atrapando, con un tipo más específico disponible",
-  "Para que no aparezca en el traceback",
-  "No tiene ningún efecto",
+  "Because custom exceptions must inherit from `ValueError`",
+  "So code that already catches `ValueError` keeps catching it, with a more specific type available",
+  "So it doesn't show up in the traceback",
+  "It has no effect",
 ]
 correct = 1
-explanation = "Heredar de la excepción estándar más cercana mantiene la compatibilidad y a la vez permite atrapar solo `LineaInvalida` cuando haga falta."
+explanation = "Inheriting from the closest standard exception keeps compatibility while letting you catch just `InvalidLine` when needed."
 
 [[questions]]
-text = "Para reportar latencias, ¿por qué se prefiere el p95 al promedio?"
+text = "When reporting latencies, why is p95 preferred over the average?"
 options = [
-  "Porque es más fácil de calcular",
-  "Porque unos pocos valores extremos distorsionan el promedio; el p95 dice cuánto tarda el 95 % de los requests",
-  "Porque el promedio no existe para enteros",
-  "Porque el p95 siempre es menor",
+  "Because it's easier to compute",
+  "Because a few extreme values distort the average; p95 tells you how long 95% of requests take",
+  "Because the average doesn't exist for integers",
+  "Because p95 is always lower",
 ]
 correct = 1
-explanation = "Las latencias tienen colas largas. Los percentiles describen la experiencia real de los usuarios mejor que un promedio sesgado por los outliers."
+explanation = "Latencies have long tails. Percentiles describe the real user experience better than an average skewed by outliers."

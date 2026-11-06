@@ -1,15 +1,15 @@
-"""Escribí TESTS para calendario.py (el código está en la lección).
+"""Write TESTS for business_calendar.py (the code is in the lesson).
 
-Requisitos:
-- al menos 4 funciones de test (`def test_...`)
-- usar `@pytest.mark.parametrize` y `pytest.raises`
-- tienen que pasar con el código correcto y detectar los 5 mutantes
-  (cada regla de negocio, los bordes y los errores)
+Requirements:
+- at least 4 test functions (`def test_...`)
+- use `@pytest.mark.parametrize` and `pytest.raises`
+- they must pass with the correct code and catch all 5 mutants
+  (each business rule, the edge cases and the errors)
 """
 
 import pytest  # noqa: F401
-from calendario import dias_del_mes, es_bisiesto  # noqa: F401
+from business_calendar import days_in_month, is_leap_year  # noqa: F401
 
 
-def test_es_bisiesto():
-    raise NotImplementedError("TODO: escribí los asserts")
+def test_is_leap_year():
+    raise NotImplementedError("TODO: write the asserts")

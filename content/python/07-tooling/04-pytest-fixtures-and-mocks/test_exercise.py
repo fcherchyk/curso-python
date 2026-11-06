@@ -1,4 +1,4 @@
-"""Verifica TUS tests con mutation testing (ver el capítulo anterior)."""
+"""Checks YOUR tests with mutation testing (see the previous chapter)."""
 
 import ast
 import subprocess
@@ -9,27 +9,27 @@ from pathlib import Path
 
 import pytest
 
-AQUI = Path(__file__).parent
-TUS_TESTS = (AQUI / "exercise.py").read_text(encoding="utf-8")
-ORIGINAL = (AQUI / "clima.py").read_text(encoding="utf-8")
+HERE = Path(__file__).parent
+YOUR_TESTS = (HERE / "exercise.py").read_text(encoding="utf-8")
+ORIGINAL = (HERE / "weather.py").read_text(encoding="utf-8")
 
-MUTANTES = {
-    "ignora_la_ciudad_en_la_url": ("/actual?ciudad={ciudad}", "/actual"),
-    "no_redondea": ('return round(datos["temp_c"], 1)', 'return datos["temp_c"]'),
-    "no_omite_las_que_fallan": (
+MUTANTS = {
+    "ignores_city_in_url": ("/current?city={city}", "/current"),
+    "does_not_round": ('return round(data["temp_c"], 1)', 'return data["temp_c"]'),
+    "does_not_skip_failures": (
         "except LookupError:\n            continue",
         "finally:\n            pass",
     ),
-    "reporte_sin_ordenar": ("sorted(temperaturas.items())", "temperaturas.items()"),
+    "unsorted_report": ("sorted(temperatures.items())", "temperatures.items()"),
 }
 
 
 @cache
-def correr(clima: str) -> subprocess.CompletedProcess[str]:
+def run(weather_code: str) -> subprocess.CompletedProcess[str]:
     with tempfile.TemporaryDirectory() as tmp:
         d = Path(tmp)
-        (d / "clima.py").write_text(clima, encoding="utf-8")
-        (d / "test_tuyos.py").write_text(TUS_TESTS, encoding="utf-8")
+        (d / "weather.py").write_text(weather_code, encoding="utf-8")
+        (d / "test_yours.py").write_text(YOUR_TESTS, encoding="utf-8")
         (d / "pytest.ini").write_text("[pytest]\n", encoding="utf-8")
         return subprocess.run(
             [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "--tb=line"],
@@ -40,24 +40,24 @@ def correr(clima: str) -> subprocess.CompletedProcess[str]:
         )
 
 
-def test_estructura_de_tus_tests():
-    arbol = ast.parse(TUS_TESTS)
-    tests = [n for n in arbol.body if isinstance(n, ast.FunctionDef) and n.name.startswith("test_")]
-    assert len(tests) >= 4, "escribí al menos 4 tests"
-    assert "@pytest.fixture" in TUS_TESTS, "definí al menos una fixture propia"
-    assert "Mock(" in TUS_TESTS, "usá unittest.mock.Mock"
-    assert "tmp_path" in TUS_TESTS, "usá la fixture tmp_path"
+def test_structure_of_your_tests():
+    tree = ast.parse(YOUR_TESTS)
+    tests = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name.startswith("test_")]
+    assert len(tests) >= 4, "write at least 4 tests"
+    assert "@pytest.fixture" in YOUR_TESTS, "define at least one fixture of your own"
+    assert "Mock(" in YOUR_TESTS, "use unittest.mock.Mock"
+    assert "tmp_path" in YOUR_TESTS, "use the tmp_path fixture"
 
 
-def test_tus_tests_pasan_con_el_codigo_correcto():
-    r = correr(ORIGINAL)
-    assert r.returncode == 0, "tus tests fallan con el código correcto:\n" + r.stdout[-1500:]
+def test_your_tests_pass_with_correct_code():
+    r = run(ORIGINAL)
+    assert r.returncode == 0, "your tests fail with the correct code:\n" + r.stdout[-1500:]
 
 
-@pytest.mark.parametrize("mutante", MUTANTES)
-def test_detecta_mutante(mutante):
-    assert correr(ORIGINAL).returncode == 0, "primero tus tests tienen que pasar con el original"
-    buscar, reemplazo = MUTANTES[mutante]
-    assert buscar in ORIGINAL
-    r = correr(ORIGINAL.replace(buscar, reemplazo))
-    assert r.returncode != 0, f"el mutante '{mutante}' sobrevivió: ningún test lo detectó"
+@pytest.mark.parametrize("mutant", MUTANTS)
+def test_catches_mutant(mutant):
+    assert run(ORIGINAL).returncode == 0, "first, your tests must pass with the original"
+    search, replacement = MUTANTS[mutant]
+    assert search in ORIGINAL
+    r = run(ORIGINAL.replace(search, replacement))
+    assert r.returncode != 0, f"mutant '{mutant}' survived: no test caught it"

@@ -1,44 +1,44 @@
 [[questions]]
-text = "¿Qué diferencia hay entre `pyproject.toml` y `uv.lock`?"
+text = "What's the difference between `pyproject.toml` and `uv.lock`?"
 options = [
-  "Son lo mismo en distinto formato",
-  "`pyproject.toml` declara rangos aceptables; `uv.lock` registra las versiones exactas instaladas (incluidas las transitivas)",
-  "`uv.lock` es para desarrollo y `pyproject.toml` para producción",
-  "`uv.lock` se edita a mano",
+  "They're the same thing in different formats",
+  "`pyproject.toml` declares acceptable ranges; `uv.lock` records the exact installed versions (including transitive ones)",
+  "`uv.lock` is for development and `pyproject.toml` is for production",
+  "`uv.lock` is edited by hand",
 ]
 correct = 1
-explanation = "El lock hace que el entorno sea reproducible: `uv sync` instala exactamente lo mismo en cualquier máquina."
+explanation = "The lock makes the environment reproducible: `uv sync` installs exactly the same thing on any machine."
 
 [[questions]]
-text = "¿El archivo `uv.lock` se sube al control de versiones?"
-options = ["Sí, siempre", "No, nunca", "Solo en librerías", "Solo si hay dependencias de desarrollo"]
+text = "Does `uv.lock` go into version control?"
+options = ["Yes, always", "No, never", "Only for libraries", "Only if there are development dependencies"]
 correct = 0
-explanation = "El lock tiene que estar en git para que todo el equipo y el CI usen las mismas versiones."
+explanation = "The lock has to be in git so the whole team and CI use the same versions."
 
 [[questions]]
-text = "¿Qué hace `uv run pytest`?"
+text = "What does `uv run pytest` do?"
 options = [
-  "Instala pytest globalmente",
-  "Sincroniza el entorno del proyecto si hace falta y ejecuta pytest dentro de él",
-  "Corre pytest con el Python del sistema",
-  "Crea un proyecto nuevo",
+  "Installs pytest globally",
+  "Syncs the project environment if needed and runs pytest inside it",
+  "Runs pytest with the system Python",
+  "Creates a new project",
 ]
 correct = 1
-explanation = "`uv run` garantiza que el `.venv` esté al día con el lock y ejecuta el comando con ese entorno, sin activarlo a mano."
+explanation = "`uv run` makes sure `.venv` is up to date with the lock and runs the command in that environment, without activating it by hand."
 
 [[questions]]
-text = "¿Qué rango acepta `~=2.4`?"
-options = ["Solo 2.4", "`>=2.4, <3.0`", "`>=2.4, <2.5`", "Cualquier versión"]
+text = "What range does `~=2.4` accept?"
+options = ["Only 2.4", "`>=2.4, <3.0`", "`>=2.4, <2.5`", "Any version"]
 correct = 1
-explanation = "El operador de compatibilidad `~=` fija todo menos el último componente indicado: `~=2.4` es `>=2.4, <3.0`."
+explanation = "The compatible-release operator `~=` pins everything except the last component given: `~=2.4` is `>=2.4, <3.0`."
 
 [[questions]]
-text = "¿Dónde van pytest, ruff y mypy en un proyecto moderno?"
+text = "Where do pytest, ruff and mypy go in a modern project?"
 options = [
-  "En `[project] dependencies`",
-  "En `[dependency-groups] dev`",
-  "En `requirements.txt`",
-  "En `[tool.pytest]`",
+  "In `[project] dependencies`",
+  "In `[dependency-groups] dev`",
+  "In `requirements.txt`",
+  "In `[tool.pytest]`",
 ]
 correct = 1
-explanation = "Son dependencias de desarrollo: no hacen falta para ejecutar la aplicación. `uv add --dev` las agrega al grupo `dev`."
+explanation = "They're development dependencies: you don't need them to run the application. `uv add --dev` adds them to the `dev` group."

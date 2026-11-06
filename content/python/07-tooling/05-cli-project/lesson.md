@@ -1,106 +1,104 @@
-# Proyecto: un analizador de logs con CLI
+# Project: a log analyzer with a CLI
 
-Llegó el momento de juntar todo en un programa real: una herramienta de línea de comandos
-que lee un log de accesos, lo parsea de forma tolerante a errores, calcula métricas y
-muestra un reporte. Es chica, pero tiene la forma de cualquier herramienta profesional:
-modelos inmutables, parseo con validación, un pipeline perezoso, agregaciones, formato de
-salida y una CLI testeable.
+Time to put it all together in a real program: a command-line tool that reads an access log,
+parses it in an error-tolerant way, computes metrics and prints a report. It's small, but it
+has the shape of any professional tool: immutable models, parsing with validation, a lazy
+pipeline, aggregations, output formatting and a testable CLI.
 
 ```
-$ python ejercicio.py access.log --top 3
-Requests: 120 (inválidas: 2)
-Errores 5xx: 6 (5.0%)
-Latencia p50: 113.5 ms | p95: 365.4 ms
-Ruta más lenta: /api/report
+$ python exercise.py access.log --top 3
+Requests: 120 (invalid: 2)
+5xx errors: 6 (5.0%)
+Latency p50: 113.5 ms | p95: 365.4 ms
+Slowest path: /api/report
 Status:
   200: 95
   201: 15
   404: 4
   500: 6
-Top rutas:
+Top paths:
   /api/orders      40
   /api/users       37
   /api/products    20
 ```
 
-## El diseño por piezas
+## The design, piece by piece
 
-| Pieza                     | Qué practica                                              |
+| Piece                     | What it practices                                         |
 |---------------------------|-----------------------------------------------------------|
-| `Metodo(StrEnum)`         | enums (módulo 05)                                         |
-| `Registro` frozen + `es_error` | dataclasses y `@property`                            |
-| `LineaInvalida(ValueError)` | excepciones propias encadenadas con `from`              |
-| `parsear_linea`           | regex con grupos nombrados, walrus y validación           |
-| `parsear`                 | generador tolerante a errores (módulo 03)                 |
-| `resumir`                 | `Counter`, `statistics`, agrupar y `max(key=...)`          |
-| `formatear`               | f-strings con format spec y unpacking en listas           |
-| `main`                    | `argparse`, `pathlib`, `with`, stderr y códigos de salida |
+| `Method(StrEnum)`         | enums (module 05)                                         |
+| frozen `Record` + `is_error` | dataclasses and `@property`                            |
+| `InvalidLine(ValueError)` | custom exceptions chained with `from`                     |
+| `parse_line`              | regex with named groups, walrus and validation            |
+| `parse`                   | error-tolerant generator (module 03)                      |
+| `summarize`               | `Counter`, `statistics`, grouping and `max(key=...)`      |
+| `format_report`           | f-strings with format specs and unpacking in lists        |
+| `main`                    | `argparse`, `pathlib`, `with`, stderr and exit codes      |
 
-La regla de oro del diseño: **la lógica no sabe nada de la consola**. `parsear`, `resumir` y
-`formatear` reciben y devuelven datos. Solo `main` lee argumentos, abre archivos e imprime.
-Por eso todo se puede testear sin archivos ni subprocesos.
+The golden rule of the design: **the logic knows nothing about the console**. `parse`,
+`summarize` and `format_report` take and return data. Only `main` reads arguments, opens files
+and prints. That's why everything can be tested without files or subprocesses.
 
-## Regex con grupos nombrados
+## Regex with named groups
 
 ```python
 import re
 
-PATRON = re.compile(
-    r"^(?P<momento>\S+) (?P<metodo>[A-Z]+) (?P<ruta>/\S*) (?P<status>\d{3}) (?P<ms>\d+)ms$"
+PATTERN = re.compile(
+    r"^(?P<timestamp>\S+) (?P<method>[A-Z]+) (?P<path>/\S*) (?P<status>\d{3}) (?P<ms>\d+)ms$"
 )
 
-if m := PATRON.match(linea.strip()):
-    m["status"], m["ms"]          # o m.group("status")
+if m := PATTERN.match(line.strip()):
+    m["status"], m["ms"]          # or m.group("status")
 ```
 
-- Compilá la regex **una vez**, a nivel de módulo.
-- `(?P<nombre>...)` hace legible el código que usa el match.
-- `^` y `$` anclan el patrón: sin ellos, una línea con basura al final podría pasar.
-- Usá strings crudos (`r"..."`) para que `\d` y `\S` lleguen intactos a la regex.
+- Compile the regex **once**, at module level.
+- `(?P<name>...)` makes the code that uses the match readable.
+- `^` and `$` anchor the pattern: without them, a line with trailing garbage could slip through.
+- Use raw strings (`r"..."`) so `\d` and `\S` reach the regex intact.
 
-## Traducir errores: excepciones propias encadenadas
+## Translating errors: chained custom exceptions
 
 ```python
-class LineaInvalida(ValueError):      # heredá de la excepción estándar más cercana
-    """La línea no respeta el formato esperado."""
+class InvalidLine(ValueError):        # inherit from the closest standard exception
+    """The line doesn't match the expected format."""
 
 try:
-    momento = datetime.fromisoformat(m["momento"])
-    metodo = Metodo(m["metodo"])
+    timestamp = datetime.fromisoformat(m["timestamp"])
+    method = Method(m["method"])
 except ValueError as e:
-    raise LineaInvalida(linea) from e
+    raise InvalidLine(line) from e
 ```
 
-Quien llama maneja **un solo tipo** de error (`LineaInvalida`) sin perder la causa original
-(`__cause__`). Como hereda de `ValueError`, el código que ya atrapaba `ValueError` sigue
-funcionando.
+The caller handles **a single error type** (`InvalidLine`) without losing the original cause
+(`__cause__`). Since it inherits from `ValueError`, code that already caught `ValueError`
+keeps working.
 
-## Estadística sin numpy: `statistics`
+## Statistics without numpy: `statistics`
 
 ```python
 import statistics
 
-statistics.fmean([100, 120, 900])                          # promedio (float, rápido)
-statistics.median(duraciones)
-q = statistics.quantiles(duraciones, n=100, method="inclusive")
+statistics.fmean([100, 120, 900])                          # average (float, fast)
+statistics.median(durations)
+q = statistics.quantiles(durations, n=100, method="inclusive")
 p50, p95 = q[49], q[94]                                    # percentiles
 ```
 
-Los **percentiles** son mejores que el promedio para latencias: un solo request de 10
-segundos arruina el promedio, pero el p95 te dice "el 95 % de los requests tardó menos de
-X".
+**Percentiles** are better than the average for latencies: a single 10-second request ruins
+the average, but p95 tells you "95% of requests took less than X".
 
-## CLI con `argparse`
+## CLI with `argparse`
 
 ```python
 import argparse
 from pathlib import Path
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Analiza logs de acceso")
-    parser.add_argument("archivo", type=Path)                   # posicional
-    parser.add_argument("--top", type=int, default=5, help="cantidad de rutas")
-    args = parser.parse_args(argv)          # argv=None → usa sys.argv[1:]
+    parser = argparse.ArgumentParser(description="Analyze access logs")
+    parser.add_argument("file", type=Path)                      # positional
+    parser.add_argument("--top", type=int, default=5, help="number of paths")
+    args = parser.parse_args(argv)          # argv=None → uses sys.argv[1:]
     ...
     return 0
 
@@ -108,54 +106,54 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-Claves de una CLI bien hecha:
+Keys to a well-built CLI:
 
-- **`main(argv)` recibe los argumentos**, así los tests llaman a `main(["x.log", "--top", "2"])`
-  sin subprocesos.
-- **Devuelve un código de salida**: 0 si salió bien, distinto de 0 si hubo error. Así se puede
-  encadenar en scripts de shell (`&&`).
-- **Los errores van a stderr** (`print(..., file=sys.stderr)`) y la salida útil a stdout: así
-  `analizar log > reporte.txt` no mezcla los errores con el reporte.
-- `argparse` genera `--help` y valida tipos gratis.
+- **`main(argv)` takes the arguments**, so tests call `main(["x.log", "--top", "2"])` without
+  subprocesses.
+- **It returns an exit code**: 0 on success, nonzero on error. That way it can be chained in
+  shell scripts (`&&`).
+- **Errors go to stderr** (`print(..., file=sys.stderr)`) and useful output to stdout: that
+  way `analyze log > report.txt` doesn't mix errors with the report.
+- `argparse` gives you `--help` and type validation for free.
 
-Para CLIs más grandes, **Typer** (del autor de FastAPI, basado en type hints) o **Click**.
+For bigger CLIs, **Typer** (from the author of FastAPI, based on type hints) or **Click**.
 
-## Instalarla como comando
+## Installing it as a command
 
-Con un `pyproject.toml` y la sección `[project.scripts]`, uv crea un ejecutable:
+With a `pyproject.toml` and a `[project.scripts]` section, uv creates an executable:
 
 ```toml
 [project.scripts]
-analizar-logs = "logs.cli:main"
+analyze-logs = "logs.cli:main"
 ```
 
 ```bash
-uv tool install .            # queda disponible como `analizar-logs` en tu PATH
+uv tool install .            # available as `analyze-logs` on your PATH
 ```
 
-## Pasos sugeridos
+## Suggested steps
 
-1. `Registro.es_error` y `parsear_linea` (tests `test_parsear_linea*`).
-2. `parsear` (generador que junta las inválidas).
-3. `Resumen.tasa_error`, `resumir` y `top_rutas`.
-4. `formatear` (formato exacto: mirá el test).
-5. `main`, y probala de verdad: el test final la ejecuta sobre `access.log`.
+1. `Record.is_error` and `parse_line` (tests `test_parse_line*`).
+2. `parse` (a generator that collects the invalid lines).
+3. `Summary.error_rate`, `summarize` and `top_paths`.
+4. `format_report` (exact format: check the test).
+5. `main`, and try it for real: the final test runs it on `access.log`.
 
-## Resumen
+## Summary
 
-- Separá la lógica pura (parsear, resumir, formatear) de la entrada y salida (`main`).
-- Regex compiladas, ancladas y con grupos nombrados.
-- Traducí errores a una excepción propia encadenada con `from`.
-- Percentiles con `statistics.quantiles` para las latencias.
-- `main(argv) -> int`, errores a stderr, `raise SystemExit(main())`.
+- Separate pure logic (parse, summarize, format) from input and output (`main`).
+- Compiled, anchored regexes with named groups.
+- Translate errors into a custom exception chained with `from`.
+- Percentiles with `statistics.quantiles` for latencies.
+- `main(argv) -> int`, errors to stderr, `raise SystemExit(main())`.
 
-## Ejercicio
+## Exercise
 
-Implementá el analizador completo: modelos, parseo, métricas, reporte y CLI.
+Implement the full analyzer: models, parsing, metrics, report and CLI.
 
-**Retos extra** (no tienen test): `--desde`/`--hasta` para filtrar por fecha, `--json` para
-emitir el resumen con `asdict` + `json.dumps`, y aceptar `-` como archivo para leer de stdin.
+**Extra challenges** (no tests): `--since`/`--until` to filter by date, `--json` to emit the
+summary with `asdict` + `json.dumps`, and accepting `-` as the file to read from stdin.
 
-**Para profundizar:** [argparse tutorial](https://docs.python.org/3/howto/argparse.html),
+**Further reading:** [argparse tutorial](https://docs.python.org/3/howto/argparse.html),
 [re](https://docs.python.org/3/library/re.html),
 [statistics](https://docs.python.org/3/library/statistics.html), [Typer](https://typer.tiangolo.com/).

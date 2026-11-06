@@ -1,48 +1,48 @@
-# pytest: fixtures, mocks y código testeable
+# pytest: fixtures, mocks and testable code
 
-Los tests de funciones puras son fáciles. El desafío aparece cuando el código **habla con el
-mundo**: una API, una base de datos, el disco o el reloj. Este capítulo cubre las tres
-herramientas para resolverlo: **fixtures** (preparar y limpiar), **dobles de prueba** (mocks
-y fakes) y, la más importante, **diseñar el código para que sea testeable**.
+Testing pure functions is easy. The challenge shows up when the code **talks to the outside
+world**: an API, a database, the disk or the clock. This chapter covers the three tools for
+handling it: **fixtures** (setup and cleanup), **test doubles** (mocks and fakes) and, most
+importantly, **designing code to be testable**.
 
-## Fixtures: preparación reutilizable
+## Fixtures: reusable setup
 
-Una fixture es una función que prepara algo para los tests. Los tests la piden **por nombre**,
-como parámetro, y pytest la inyecta:
+A fixture is a function that prepares something for the tests. Tests request it **by name**,
+as a parameter, and pytest injects it:
 
 ```python
 import pytest
 
 @pytest.fixture
-def usuarios():
-    return [{"id": 1, "nombre": "ana"}, {"id": 2, "nombre": "beto"}]
+def users():
+    return [{"id": 1, "name": "alice"}, {"id": 2, "name": "bob"}]
 
-def test_cantidad(usuarios):          # pytest ve el parámetro y llama a la fixture
-    assert len(usuarios) == 2
+def test_count(users):                # pytest sees the parameter and calls the fixture
+    assert len(users) == 2
 ```
 
-Cada test recibe una instancia **nueva** (con el scope por defecto, `function`), así que los
-tests no se contaminan entre sí.
+Each test gets a **fresh** instance (with the default `function` scope), so tests don't
+contaminate each other.
 
-### Setup y teardown con `yield`
+### Setup and teardown with `yield`
 
 ```python
 @pytest.fixture
-def conexion():
-    con = sqlite3.connect(":memory:")
-    con.execute("CREATE TABLE t (x)")
-    yield con                 # lo que recibe el test
-    con.close()               # limpieza: corre aunque el test falle
+def connection():
+    conn = sqlite3.connect(":memory:")
+    conn.execute("CREATE TABLE t (x)")
+    yield conn                # what the test receives
+    conn.close()              # cleanup: runs even if the test fails
 ```
 
-### Scope y composición
+### Scope and composition
 
 ```python
-@pytest.fixture(scope="session")    # una vez para toda la corrida (caro de crear)
-def motor_db(): ...
+@pytest.fixture(scope="session")    # once for the whole run (expensive to create)
+def db_engine(): ...
 
 @pytest.fixture
-def sesion(motor_db):               # las fixtures pueden pedir otras fixtures
+def session(db_engine):             # fixtures can request other fixtures
     ...
 ```
 
@@ -50,158 +50,158 @@ Scopes: `function` (default), `class`, `module`, `package`, `session`.
 
 ### `conftest.py`
 
-Las fixtures definidas en un `conftest.py` están disponibles para todos los tests de esa
-carpeta y de sus subcarpetas, **sin importarlas**. Es el lugar para las fixtures compartidas.
+Fixtures defined in a `conftest.py` are available to every test in that folder and its
+subfolders, **without importing them**. It's the place for shared fixtures.
 
-### Fixtures incluidas que vas a usar siempre
+### Built-in fixtures you'll use all the time
 
-| Fixture       | Para qué                                                        |
+| Fixture       | What for                                                        |
 |---------------|-----------------------------------------------------------------|
-| `tmp_path`    | un directorio temporal único (`Path`) para leer y escribir archivos |
-| `capsys`      | capturar stdout/stderr: `capsys.readouterr().out`               |
-| `monkeypatch` | reemplazar atributos, variables de entorno o dicts durante el test (y restaurarlos) |
-| `caplog`      | capturar lo que se loguea                                       |
+| `tmp_path`    | a unique temporary directory (`Path`) to read and write files   |
+| `capsys`      | capture stdout/stderr: `capsys.readouterr().out`                |
+| `monkeypatch` | replace attributes, environment variables or dicts during the test (and restore them) |
+| `caplog`      | capture what gets logged                                        |
 
 ```python
-def test_guarda_archivo(tmp_path):
-    ruta = tmp_path / "reporte.txt"
-    guardar(ruta, datos)
-    assert ruta.read_text() == "..."
+def test_saves_file(tmp_path):
+    path = tmp_path / "report.txt"
+    save(path, data)
+    assert path.read_text() == "..."
 
-def test_lee_variable_de_entorno(monkeypatch):
+def test_reads_environment_variable(monkeypatch):
     monkeypatch.setenv("API_KEY", "test")
-    assert leer_config().api_key == "test"
+    assert read_config().api_key == "test"
 ```
 
-## Diseñar para testear: inyección de dependencias
+## Designing for testability: dependency injection
 
-El código difícil de testear suele verse así:
+Hard-to-test code usually looks like this:
 
 ```python
-def temperatura(ciudad):
-    r = httpx.get(f"https://api.clima.com/actual?ciudad={ciudad}")   # dependencia escondida
+def temperature(city):
+    r = httpx.get(f"https://api.weather.com/current?city={city}")   # hidden dependency
     return round(r.json()["temp_c"], 1)
 ```
 
-Para testearlo hay que interceptar la red. En cambio, si la dependencia **se recibe**:
+To test it you have to intercept the network. Instead, if the dependency is **passed in**:
 
 ```python
-class ClienteHTTP(Protocol):
+class HttpClient(Protocol):
     def get_json(self, url: str) -> dict: ...
 
-def temperatura(ciudad: str, cliente: ClienteHTTP) -> float:
-    datos = cliente.get_json(f"{BASE}/actual?ciudad={ciudad}")
-    return round(datos["temp_c"], 1)
+def temperature(city: str, client: HttpClient) -> float:
+    data = client.get_json(f"{BASE}/current?city={city}")
+    return round(data["temp_c"], 1)
 ```
 
-el test le pasa un **doble** y listo. Lo mismo vale para el reloj (`ahora: Callable[[], datetime]`),
-el generador de ids o el repositorio de datos. Es la base de cómo FastAPI maneja las
-dependencias (`Depends`), que vas a ver más adelante.
+the test hands it a **double** and that's it. The same goes for the clock
+(`now: Callable[[], datetime]`), the id generator or the data repository. It's the basis of
+how FastAPI handles dependencies (`Depends`), which you'll see later.
 
-## Dobles de prueba: fakes y mocks
+## Test doubles: fakes and mocks
 
-**Fake**: una implementación simple y real, en memoria.
+**Fake**: a simple, real implementation, in memory.
 
 ```python
-class ClienteFalso:
-    def __init__(self, respuestas):
-        self.respuestas = respuestas
+class FakeClient:
+    def __init__(self, responses):
+        self.responses = responses
         self.urls = []
     def get_json(self, url):
         self.urls.append(url)
-        return self.respuestas[url]
+        return self.responses[url]
 ```
 
-**Mock**: un objeto que acepta cualquier llamada y **registra** cómo lo usaron. Viene en la
+**Mock**: an object that accepts any call and **records** how it was used. It ships with the
 stdlib:
 
 ```python
 from unittest.mock import Mock
 
-cliente = Mock()
-cliente.get_json.return_value = {"temp_c": 21.456}
+client = Mock()
+client.get_json.return_value = {"temp_c": 21.456}
 
-assert temperatura("Rosario", cliente) == 21.5
-cliente.get_json.assert_called_once_with(f"{BASE}/actual?ciudad=Rosario")
+assert temperature("Boston", client) == 21.5
+client.get_json.assert_called_once_with(f"{BASE}/current?city=Boston")
 ```
 
-Lo esencial de `Mock`:
+The essentials of `Mock`:
 
 ```python
-m.metodo.return_value = 42                      # qué devuelve
-m.metodo.side_effect = KeyError("x")            # que levante una excepción
-m.metodo.side_effect = [1, 2, KeyError()]       # una respuesta distinta en cada llamada
-m.metodo.side_effect = lambda url: {...}        # calcular la respuesta
-m.metodo.assert_called_once_with(...)           # verificar la llamada
-m.metodo.call_count, m.metodo.call_args_list
-Mock(spec=ClienteHTTP)                          # solo acepta métodos que existen en el spec
+m.method.return_value = 42                      # what it returns
+m.method.side_effect = KeyError("x")            # make it raise an exception
+m.method.side_effect = [1, 2, KeyError()]       # a different response on each call
+m.method.side_effect = lambda url: {...}        # compute the response
+m.method.assert_called_once_with(...)           # verify the call
+m.method.call_count, m.method.call_args_list
+Mock(spec=HttpClient)                           # only accepts methods that exist in the spec
 ```
 
-### `patch`: cuando no podés inyectar
+### `patch`: when you can't inject
 
-Si la dependencia está "cableada" adentro del código, `unittest.mock.patch` (o
-`monkeypatch.setattr`) la reemplaza **temporalmente** en el módulo donde se **usa**:
+If the dependency is "hardwired" inside the code, `unittest.mock.patch` (or
+`monkeypatch.setattr`) replaces it **temporarily** in the module where it's **used**:
 
 ```python
 from unittest.mock import patch
 
-with patch("app.servicio.httpx.get") as get:
+with patch("app.service.httpx.get") as get:
     get.return_value.json.return_value = {"temp_c": 20}
     ...
 ```
 
-La regla es parchear donde se busca el nombre, no donde se define. Usalo como último
-recurso: si necesitás muchos `patch`, suele ser una señal de que conviene inyectar la
-dependencia.
+The rule is to patch where the name is looked up, not where it's defined. Use it as a last
+resort: if you need lots of `patch` calls, that's usually a sign you should inject the
+dependency.
 
-## No abuses de los mocks
+## Don't overuse mocks
 
-- Mockeá **en los bordes** del sistema (red, disco, reloj, servicios externos), no tus
-  propias clases internas.
-- Si un test solo verifica que "se llamó a X con Y" y no ningún resultado, probablemente esté
-  atado a la implementación y se rompa con cada refactor.
-- Para una base de datos, muchas veces es mejor una **real** en memoria (SQLite) o en un
-  contenedor que un mock.
+- Mock **at the edges** of the system (network, disk, clock, external services), not your
+  own internal classes.
+- If a test only checks that "X was called with Y" and no actual result, it's probably tied
+  to the implementation and will break with every refactor.
+- For a database, a **real** one in memory (SQLite) or in a container is often better than a
+  mock.
 
-## Resumen
+## Summary
 
-- Fixtures: preparación por parámetro, `yield` para limpiar, `scope` para reutilizar y
-  `conftest.py` para compartir.
-- `tmp_path`, `capsys` y `monkeypatch` resuelven archivos, salida por consola y entorno.
-- Inyectá las dependencias (con un Protocol como tipo) para poder pasar dobles.
-- `Mock` con `return_value`/`side_effect` y `assert_called_once_with`; `patch` como último
-  recurso.
-- Mockeá los bordes, no tu propio código.
+- Fixtures: setup via parameters, `yield` for cleanup, `scope` for reuse and `conftest.py`
+  for sharing.
+- `tmp_path`, `capsys` and `monkeypatch` handle files, console output and environment.
+- Inject dependencies (typed with a Protocol) so you can pass doubles.
+- `Mock` with `return_value`/`side_effect` and `assert_called_once_with`; `patch` as a last
+  resort.
+- Mock the edges, not your own code.
 
-## Ejercicio
+## Exercise
 
-Escribís los tests para `clima.py` (el código está abajo). Requisitos: una **fixture** propia,
-usar **`Mock`** y **`tmp_path`**. Como en el capítulo anterior, tus tests se corren contra el
-original y contra **4 mutantes**.
+You write the tests for `weather.py` (the code is below). Requirements: a **fixture** of your
+own, and using **`Mock`** and **`tmp_path`**. As in the previous chapter, your tests are run
+against the original and against **4 mutants**.
 
 ```python
-BASE = "https://api.clima.test/v1"
+BASE = "https://api.weather.test/v1"
 
-def temperatura(ciudad: str, cliente: ClienteHTTP) -> float:
-    datos = cliente.get_json(f"{BASE}/actual?ciudad={ciudad}")
-    return round(datos["temp_c"], 1)
+def temperature(city: str, client: HttpClient) -> float:
+    data = client.get_json(f"{BASE}/current?city={city}")
+    return round(data["temp_c"], 1)
 
-def resumen(ciudades: Iterable[str], cliente: ClienteHTTP) -> dict[str, float]:
-    """Temperatura de cada ciudad. Las que fallan con LookupError se omiten."""
-    resultado = {}
-    for ciudad in ciudades:
+def summary(cities: Iterable[str], client: HttpClient) -> dict[str, float]:
+    """Temperature of each city. Those that fail with LookupError are skipped."""
+    result = {}
+    for city in cities:
         try:
-            resultado[ciudad] = temperatura(ciudad, cliente)
+            result[city] = temperature(city, client)
         except LookupError:
             continue
-    return resultado
+    return result
 
-def guardar_reporte(ruta: Path, temperaturas: dict[str, float]) -> None:
-    """Escribe "ciudad: temp" por línea, ordenado por ciudad."""
-    lineas = [f"{c}: {t}" for c, t in sorted(temperaturas.items())]
-    ruta.write_text("\n".join(lineas) + "\n", encoding="utf-8")
+def save_report(path: Path, temperatures: dict[str, float]) -> None:
+    """Writes "city: temp" per line, sorted by city."""
+    lines = [f"{c}: {t}" for c, t in sorted(temperatures.items())]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 ```
 
-**Para profundizar:** [fixtures](https://docs.pytest.org/en/stable/how-to/fixtures.html),
+**Further reading:** [fixtures](https://docs.pytest.org/en/stable/how-to/fixtures.html),
 [unittest.mock](https://docs.python.org/3/library/unittest.mock.html),
 [monkeypatch](https://docs.pytest.org/en/stable/how-to/monkeypatch.html).

@@ -1,17 +1,17 @@
-"""Escribí TESTS para clima.py (el código está en la lección).
+"""Write TESTS for weather.py (the code is in the lesson).
 
-Requisitos:
-- al menos 4 funciones de test
-- al menos una fixture propia (`@pytest.fixture`)
-- usar `Mock` (de unittest.mock) y la fixture `tmp_path`
-- tienen que pasar con el código correcto y detectar los 4 mutantes
+Requirements:
+- at least 4 test functions
+- at least one fixture of your own (`@pytest.fixture`)
+- use `Mock` (from unittest.mock) and the `tmp_path` fixture
+- they must pass with the correct code and catch all 4 mutants
 """
 
 from unittest.mock import Mock  # noqa: F401
 
 import pytest  # noqa: F401
-from clima import BASE, guardar_reporte, resumen, temperatura  # noqa: F401
+from weather import BASE, save_report, summary, temperature  # noqa: F401
 
 
-def test_temperatura():
-    raise NotImplementedError("TODO: escribí el test")
+def test_temperature():
+    raise NotImplementedError("TODO: write the test")

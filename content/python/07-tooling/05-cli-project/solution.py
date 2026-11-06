@@ -1,4 +1,4 @@
-"""Analizador de logs de acceso: solución de referencia."""
+"""Access log analyzer: reference solution."""
 
 import argparse
 import re
@@ -12,7 +12,7 @@ from enum import StrEnum
 from pathlib import Path
 
 
-class Metodo(StrEnum):
+class Method(StrEnum):
     GET = "GET"
     POST = "POST"
     PUT = "PUT"
@@ -20,172 +20,172 @@ class Metodo(StrEnum):
     DELETE = "DELETE"
 
 
-class LineaInvalida(ValueError):
-    """La línea no respeta el formato esperado."""
+class InvalidLine(ValueError):
+    """The line doesn't match the expected format."""
 
 
 @dataclass(frozen=True, slots=True)
-class Registro:
-    momento: datetime
-    metodo: Metodo
-    ruta: str
+class Record:
+    timestamp: datetime
+    method: Method
+    path: str
     status: int
-    duracion_ms: int
+    duration_ms: int
 
     @property
-    def es_error(self) -> bool:
-        """True si el status es 5xx."""
+    def is_error(self) -> bool:
+        """True if the status is 5xx."""
         return 500 <= self.status < 600
 
 
-PATRON = re.compile(
-    r"^(?P<momento>\S+) (?P<metodo>[A-Z]+) (?P<ruta>/\S*) (?P<status>\d{3}) (?P<ms>\d+)ms$"
+PATTERN = re.compile(
+    r"^(?P<timestamp>\S+) (?P<method>[A-Z]+) (?P<path>/\S*) (?P<status>\d{3}) (?P<ms>\d+)ms$"
 )
 
 
-def parsear_linea(linea: str) -> Registro:
-    """Convertí una línea en un Registro.
+def parse_line(line: str) -> Record:
+    """Turn a line into a Record.
 
-    Cualquier problema (regex que no matchea, fecha inválida, método
-    desconocido) tiene que levantar `LineaInvalida` con la línea en el
-    mensaje. Usá `raise ... from e` para encadenar la causa original.
+    Any problem (regex doesn't match, invalid date, unknown method) must
+    raise `InvalidLine` with the line in the message. Use `raise ... from e`
+    to chain the original cause.
 
-    Pista: `PATRON.match(linea.strip())`, `datetime.fromisoformat`, `Metodo(...)`.
+    Hint: `PATTERN.match(line.strip())`, `datetime.fromisoformat`, `Method(...)`.
     """
-    linea = linea.strip()
-    if not (m := PATRON.match(linea)):
-        raise LineaInvalida(linea)
+    line = line.strip()
+    if not (m := PATTERN.match(line)):
+        raise InvalidLine(line)
     try:
-        return Registro(
-            momento=datetime.fromisoformat(m["momento"]),
-            metodo=Metodo(m["metodo"]),
-            ruta=m["ruta"],
+        return Record(
+            timestamp=datetime.fromisoformat(m["timestamp"]),
+            method=Method(m["method"]),
+            path=m["path"],
             status=int(m["status"]),
-            duracion_ms=int(m["ms"]),
+            duration_ms=int(m["ms"]),
         )
     except ValueError as e:
-        raise LineaInvalida(linea) from e
+        raise InvalidLine(line) from e
 
 
-def parsear(lineas: Iterable[str], invalidas: list[str] | None = None) -> Iterator[Registro]:
-    """Generador de Registros. Saltea líneas vacías.
+def parse(lines: Iterable[str], invalid: list[str] | None = None) -> Iterator[Record]:
+    """Generator of Records. Skips empty lines.
 
-    Las líneas inválidas no cortan el procesamiento: se descartan y, si se
-    pasó la lista `invalidas`, se agregan ahí (sin el salto de línea).
+    Invalid lines don't stop processing: they're discarded and, if the
+    `invalid` list was passed, appended to it (without the newline).
     """
-    for linea in lineas:
-        if not linea.strip():
+    for line in lines:
+        if not line.strip():
             continue
         try:
-            yield parsear_linea(linea)
-        except LineaInvalida:
-            if invalidas is not None:
-                invalidas.append(linea.rstrip("\n"))
+            yield parse_line(line)
+        except InvalidLine:
+            if invalid is not None:
+                invalid.append(line.rstrip("\n"))
 
 
 @dataclass(frozen=True)
-class Resumen:
+class Summary:
     total: int
-    errores: int
-    por_status: dict[int, int]
+    errors: int
+    by_status: dict[int, int]
     p50_ms: float
     p95_ms: float
-    ruta_mas_lenta: str
+    slowest_path: str
 
     @property
-    def tasa_error(self) -> float:
-        """errores / total (0.0 si total es 0)."""
-        return self.errores / self.total if self.total else 0.0
+    def error_rate(self) -> float:
+        """errors / total (0.0 if total is 0)."""
+        return self.errors / self.total if self.total else 0.0
 
 
-def resumir(registros: Iterable[Registro]) -> Resumen:
-    """Calculá el resumen en UNA pasada sobre `registros` (puede ser un generador:
-    materializalo en una lista una sola vez).
+def summarize(records: Iterable[Record]) -> Summary:
+    """Compute the summary in ONE pass over `records` (it may be a generator:
+    materialize it into a list just once).
 
-    - por_status: dict status -> cantidad, ordenado por status ascendente.
-    - p50_ms / p95_ms: `statistics.quantiles(duraciones, n=100, method="inclusive")`,
-      índices 49 y 94. Con menos de 2 registros, ambos valen la única duración (o 0.0).
-    - ruta_mas_lenta: la ruta con MAYOR duración PROMEDIO ("" si no hay registros).
-      Ante empate, la que apareció primero.
+    - by_status: dict status -> count, sorted by status ascending.
+    - p50_ms / p95_ms: `statistics.quantiles(durations, n=100, method="inclusive")`,
+      indexes 49 and 94. With fewer than 2 records, both are the single duration (or 0.0).
+    - slowest_path: the path with the HIGHEST AVERAGE duration ("" if there are no records).
+      On a tie, the one that appeared first.
     """
-    regs = list(registros)
-    if not regs:
-        return Resumen(0, 0, {}, 0.0, 0.0, "")
-    duraciones = [r.duracion_ms for r in regs]
-    if len(duraciones) >= 2:
-        q = statistics.quantiles(duraciones, n=100, method="inclusive")
+    recs = list(records)
+    if not recs:
+        return Summary(0, 0, {}, 0.0, 0.0, "")
+    durations = [r.duration_ms for r in recs]
+    if len(durations) >= 2:
+        q = statistics.quantiles(durations, n=100, method="inclusive")
         p50, p95 = q[49], q[94]
     else:
-        p50 = p95 = float(duraciones[0])
-    por_ruta: dict[str, list[int]] = {}
-    for r in regs:
-        por_ruta.setdefault(r.ruta, []).append(r.duracion_ms)
-    ruta_mas_lenta = max(por_ruta, key=lambda ruta: statistics.fmean(por_ruta[ruta]))
-    return Resumen(
-        total=len(regs),
-        errores=sum(r.es_error for r in regs),
-        por_status=dict(sorted(Counter(r.status for r in regs).items())),
+        p50 = p95 = float(durations[0])
+    by_path: dict[str, list[int]] = {}
+    for r in recs:
+        by_path.setdefault(r.path, []).append(r.duration_ms)
+    slowest_path = max(by_path, key=lambda path: statistics.fmean(by_path[path]))
+    return Summary(
+        total=len(recs),
+        errors=sum(r.is_error for r in recs),
+        by_status=dict(sorted(Counter(r.status for r in recs).items())),
         p50_ms=p50,
         p95_ms=p95,
-        ruta_mas_lenta=ruta_mas_lenta,
+        slowest_path=slowest_path,
     )
 
 
-def top_rutas(registros: Iterable[Registro], n: int = 5) -> list[tuple[str, int]]:
-    """Las `n` rutas más pedidas con su cantidad (empates: orden de aparición)."""
-    return Counter(r.ruta for r in registros).most_common(n)
+def top_paths(records: Iterable[Record], n: int = 5) -> list[tuple[str, int]]:
+    """The `n` most requested paths with their count (ties: order of appearance)."""
+    return Counter(r.path for r in records).most_common(n)
 
 
-def formatear(resumen: Resumen, top: list[tuple[str, int]], invalidas: int) -> str:
-    """Texto del reporte. Formato exacto (ver test):
+def format_report(summary: Summary, top: list[tuple[str, int]], invalid: int) -> str:
+    """Report text. Exact format (see the test):
 
-        Requests: 10 (inválidas: 1)
-        Errores 5xx: 2 (20.0%)
-        Latencia p50: 120.0 ms | p95: 900.0 ms
-        Ruta más lenta: /api/report
+        Requests: 10 (invalid: 1)
+        5xx errors: 2 (20.0%)
+        Latency p50: 120.0 ms | p95: 900.0 ms
+        Slowest path: /api/report
         Status:
           200: 7
           500: 2
-        Top rutas:
+        Top paths:
           /api/users      4
           /api/orders     3
-    (ruta alineada a la izquierda en 15 caracteres, cantidad a la derecha en 4)
+    (path left-aligned in 15 characters, count right-aligned in 4)
     """
-    lineas = [
-        f"Requests: {resumen.total} (inválidas: {invalidas})",
-        f"Errores 5xx: {resumen.errores} ({resumen.tasa_error:.1%})",
-        f"Latencia p50: {resumen.p50_ms:.1f} ms | p95: {resumen.p95_ms:.1f} ms",
-        f"Ruta más lenta: {resumen.ruta_mas_lenta}",
+    lines = [
+        f"Requests: {summary.total} (invalid: {invalid})",
+        f"5xx errors: {summary.errors} ({summary.error_rate:.1%})",
+        f"Latency p50: {summary.p50_ms:.1f} ms | p95: {summary.p95_ms:.1f} ms",
+        f"Slowest path: {summary.slowest_path}",
         "Status:",
-        *(f"  {status}: {cant}" for status, cant in resumen.por_status.items()),
-        "Top rutas:",
-        *(f"  {ruta:<15}{cant:>4}" for ruta, cant in top),
+        *(f"  {status}: {count}" for status, count in summary.by_status.items()),
+        "Top paths:",
+        *(f"  {path:<15}{count:>4}" for path, count in top),
     ]
-    return "\n".join(lineas)
+    return "\n".join(lines)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """CLI: `archivo` (posicional) y `--top N` (default 5).
+    """CLI: `file` (positional) and `--top N` (default 5).
 
-    Imprime el reporte en stdout y devuelve 0. Si el archivo no existe,
-    imprime "No existe: <archivo>" en stderr y devuelve 1.
+    Prints the report to stdout and returns 0. If the file doesn't exist,
+    prints "Not found: <file>" to stderr and returns 1.
 
-    Pista: `argparse.ArgumentParser`, `type=Path`, `type=int`. Leé el archivo
-    UNA vez a una lista de registros (vas a usarla dos veces).
+    Hint: `argparse.ArgumentParser`, `type=Path`, `type=int`. Read the file
+    ONCE into a list of records (you'll use it twice).
     """
-    parser = argparse.ArgumentParser(description="Analiza logs de acceso")
-    parser.add_argument("archivo", type=Path)
+    parser = argparse.ArgumentParser(description="Analyze access logs")
+    parser.add_argument("file", type=Path)
     parser.add_argument("--top", type=int, default=5)
     args = parser.parse_args(argv)
 
-    if not args.archivo.exists():
-        print(f"No existe: {args.archivo}", file=sys.stderr)
+    if not args.file.exists():
+        print(f"Not found: {args.file}", file=sys.stderr)
         return 1
 
-    invalidas: list[str] = []
-    with args.archivo.open(encoding="utf-8") as f:
-        registros = list(parsear(f, invalidas))
-    print(formatear(resumir(registros), top_rutas(registros, args.top), len(invalidas)))
+    invalid: list[str] = []
+    with args.file.open(encoding="utf-8") as f:
+        records = list(parse(f, invalid))
+    print(format_report(summarize(records), top_paths(records, args.top), len(invalid)))
     return 0
 
 
