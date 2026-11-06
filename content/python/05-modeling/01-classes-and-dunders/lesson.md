@@ -1,109 +1,109 @@
-# Clases y el modelo de datos
+# Classes and the data model
 
-Las clases de Python son simples: no hay `private`, ni sobrecarga de métodos, ni interfaces
-obligatorias. Lo que las vuelve poderosas es el **modelo de datos**: un conjunto de métodos
-especiales (los *dunder methods*, por *double underscore*) que permiten que tus objetos se
-integren con la sintaxis del lenguaje: `len()`, `for`, `in`, `+`, `==`, `print`, `with`…
+Python classes are simple: no `private`, no method overloading, no mandatory interfaces.
+What makes them powerful is the **data model**: a set of special methods (the *dunder
+methods*, for *double underscore*) that let your objects plug into the language's syntax:
+`len()`, `for`, `in`, `+`, `==`, `print`, `with`…
 
-## Lo básico, rápido
+## The basics, quickly
 
 ```python
-class Cuenta:
-    comision = 0.01                      # atributo de CLASE (compartido)
+class Account:
+    fee = 0.01                           # CLASS attribute (shared)
 
-    def __init__(self, titular: str, saldo: float = 0) -> None:
-        self.titular = titular           # atributos de INSTANCIA
-        self.saldo = saldo
+    def __init__(self, owner: str, balance: float = 0) -> None:
+        self.owner = owner               # INSTANCE attributes
+        self.balance = balance
 
-    def depositar(self, monto: float) -> None:
-        self.saldo += monto
+    def deposit(self, amount: float) -> None:
+        self.balance += amount
 
-c = Cuenta("Ana")
-c.depositar(100)          # equivale a Cuenta.depositar(c, 100)
+a = Account("Alice")
+a.deposit(100)            # same as Account.deposit(a, 100)
 ```
 
-- `self` es explícito: es la instancia sobre la que se llama el método.
-- `__init__` **inicializa**; no construye (eso lo hace `__new__`, que casi nunca se toca).
-- Los atributos de clase se comparten entre instancias. Cuidado con los **mutables** ahí: una
-  lista definida en la clase la comparten **todas** las instancias.
+- `self` is explicit: it's the instance the method is called on.
+- `__init__` **initializes**; it doesn't construct (that's `__new__`, which you almost never touch).
+- Class attributes are shared across instances. Watch out for **mutables** there: a list
+  defined on the class is shared by **all** instances.
 
-### Privacidad por convención
+### Privacy by convention
 
 ```python
-self.saldo        # público
-self._interno     # "privado" por convención: no lo toques desde afuera
-self.__secreto    # name mangling: se renombra a _Cuenta__secreto (evita choques en herencia)
+self.balance      # public
+self._internal    # "private" by convention: don't touch it from outside
+self.__secret     # name mangling: renamed to _Account__secret (avoids clashes in inheritance)
 ```
 
-No hay privacidad real, y está bien: *"we are all consenting adults"*. Usá `_nombre` para
-señalar lo interno.
+There's no real privacy, and that's fine: *"we are all consenting adults"*. Use `_name` to
+signal internals.
 
-## `__repr__` y `__str__`
+## `__repr__` and `__str__`
 
 ```python
-class Punto:
+class Point:
     def __init__(self, x, y):
         self.x, self.y = x, y
 
     def __repr__(self):
-        return f"Punto({self.x!r}, {self.y!r})"     # para devs: sin ambigüedad
+        return f"Point({self.x!r}, {self.y!r})"     # for devs: unambiguous
 
     def __str__(self):
-        return f"({self.x}, {self.y})"               # para humanos
+        return f"({self.x}, {self.y})"               # for humans
 ```
 
-- `repr(obj)` se usa en el REPL, en el debugger, en los logs y dentro de contenedores (`print([p])`
-  muestra el `repr` de cada elemento). Idealmente es una expresión que recrea el objeto.
-- `str(obj)` se usa en `print` y en f-strings. Si no lo definís, usa `__repr__`.
+- `repr(obj)` is used in the REPL, the debugger, logs and inside containers (`print([p])`
+  shows the `repr` of each element). Ideally it's an expression that recreates the object.
+- `str(obj)` is used by `print` and f-strings. If you don't define it, it falls back to `__repr__`.
 
-**Implementá siempre `__repr__`.** El default, `<Punto object at 0x10a3…>`, no ayuda a
-depurar.
+**Always implement `__repr__`.** The default, `<Point object at 0x10a3…>`, doesn't help
+when debugging.
 
-## Igualdad y hash
+## Equality and hashing
 
-Por defecto, `==` compara **identidad**: dos objetos distintos nunca son iguales. Para
-comparar por valor:
+By default, `==` compares **identity**: two distinct objects are never equal. To compare
+by value:
 
 ```python
-def __eq__(self, otro):
-    if not isinstance(otro, Punto):
-        return NotImplemented            # ¡no False! deja que Python pruebe del otro lado
-    return (self.x, self.y) == (otro.x, otro.y)
+def __eq__(self, other):
+    if not isinstance(other, Point):
+        return NotImplemented            # not False! lets Python try the other side
+    return (self.x, self.y) == (other.x, other.y)
 
 def __hash__(self):
     return hash((self.x, self.y))
 ```
 
-Dos reglas:
+Two rules:
 
-1. Si dos objetos son `==`, tienen que tener el mismo `hash`. Por eso, **al definir
-   `__eq__`, Python pone `__hash__ = None`** y los objetos dejan de poder usarse en sets o
-   como claves. Si querés que sean hashables, definí `__hash__` a partir de los mismos campos.
-2. Solo hasheá objetos cuyo valor **no cambie**. Si mutás un objeto que está adentro de un
-   set, el set se rompe.
+1. If two objects are `==`, they must have the same `hash`. That's why, **when you define
+   `__eq__`, Python sets `__hash__ = None`** and the objects can no longer go in sets or be
+   used as keys. If you want them hashable, define `__hash__` from the same fields.
+2. Only hash objects whose value **doesn't change**. If you mutate an object that's inside a
+   set, the set breaks.
 
-Devolver `NotImplemented` (una constante especial, no la excepción) le dice a Python "no sé
-comparar con eso". Python prueba entonces con el método del otro operando y, si ninguno
-puede, usa la identidad (para `==`) o levanta `TypeError` (para `<` y demás).
+Returning `NotImplemented` (a special constant, not the exception) tells Python "I don't know
+how to compare with that". Python then tries the other operand's method and, if neither can,
+falls back to identity (for `==`) or raises `TypeError` (for `<` and friends).
 
-## Operadores
+## Operators
 
 ```python
 class Vector:
     def __init__(self, x, y):
         self.x, self.y = x, y
 
-    def __add__(self, otro):               # v + w
-        if not isinstance(otro, Vector):
+    def __add__(self, other):              # v + w
+        if not isinstance(other, Vector):
             return NotImplemented
-        return Vector(self.x + otro.x, self.y + otro.y)
+        return Vector(self.x + other.x, self.y + other.y)
 
     def __mul__(self, k):                  # v * 3
         if not isinstance(k, (int, float)):
             return NotImplemented
         return Vector(self.x * k, self.y * k)
 
-    __rmul__ = __mul__                     # 3 * v  (el "r" es el operando derecho)
+    __rmul__ = __mul__                     # 3 * v  (the "r" is the right operand)
 
     def __abs__(self):                     # abs(v)
         return math.hypot(self.x, self.y)
@@ -112,70 +112,69 @@ class Vector:
         return bool(abs(self))
 ```
 
-Para `3 * v`, Python primero prueba `int.__mul__(3, v)`, que devuelve `NotImplemented`, y
-después `v.__rmul__(3)`. Por eso importa devolver `NotImplemented` y no levantar una
-excepción.
+For `3 * v`, Python first tries `int.__mul__(3, v)`, which returns `NotImplemented`, and
+then `v.__rmul__(3)`. That's why it matters to return `NotImplemented` instead of raising
+an exception.
 
-Los operadores deben devolver un objeto **nuevo**. Los *in-place* (`__iadd__` para `+=`)
-pueden mutar, pero solo en tipos mutables.
+Operators should return a **new** object. The *in-place* ones (`__iadd__` for `+=`) may
+mutate, but only on mutable types.
 
-## Comportarse como una colección
+## Behaving like a collection
 
-| Querés…                   | Implementá                          |
+| You want…                 | Implement                           |
 |---------------------------|-------------------------------------|
 | `len(x)`                  | `__len__`                           |
-| `if x:` (vacío = falso)   | `__len__` o `__bool__`              |
+| `if x:` (empty = false)   | `__len__` or `__bool__`             |
 | `for i in x`              | `__iter__`                          |
-| `item in x`               | `__contains__` (si no, usa `__iter__`) |
+| `item in x`               | `__contains__` (otherwise uses `__iter__`) |
 | `x[i]`, `x[a:b]`          | `__getitem__`                       |
 | `x[i] = v`, `del x[i]`    | `__setitem__`, `__delitem__`        |
-| `reversed(x)`             | `__reversed__` (o `__len__` + `__getitem__`) |
+| `reversed(x)`             | `__reversed__` (or `__len__` + `__getitem__`) |
 
-Casi siempre alcanza con **delegar** en una colección interna:
+Delegating to an internal collection is almost always enough:
 
 ```python
-class Mazo:
-    def __init__(self, cartas):
-        self._cartas = list(cartas)
+class Deck:
+    def __init__(self, cards):
+        self._cards = list(cards)
 
     def __len__(self):
-        return len(self._cartas)
+        return len(self._cards)
 
-    def __getitem__(self, i):              # habilita x[0], slicing, e incluso for e in
-        return self._cartas[i]
+    def __getitem__(self, i):              # enables x[0], slicing, and even for e in
+        return self._cards[i]
 ```
 
-Con esos dos métodos, `random.choice(mazo)`, `mazo[:3]`, `for c in mazo`, `c in mazo` y
-`reversed(mazo)` funcionan solos.
+With those two methods, `random.choice(deck)`, `deck[:3]`, `for c in deck`, `c in deck` and
+`reversed(deck)` just work.
 
-## Herencia: lo justo
+## Inheritance: just enough
 
 ```python
-class CuentaPremium(Cuenta):
-    comision = 0.0
+class PremiumAccount(Account):
+    fee = 0.0
 
-    def __init__(self, titular, saldo=0, limite=1000):
-        super().__init__(titular, saldo)   # siempre super(), no Cuenta.__init__(self, ...)
-        self.limite = limite
+    def __init__(self, owner, balance=0, limit=1000):
+        super().__init__(owner, balance)   # always super(), not Account.__init__(self, ...)
+        self.limit = limit
 ```
 
-Preferí **composición** (un objeto que *tiene* otro) antes que herencia (un objeto que *es*
-otro), salvo que realmente haya una relación "es un". Las jerarquías profundas son difíciles
-de seguir.
+Prefer **composition** (an object that *has* another) over inheritance (an object that *is*
+another), unless there's a real "is a" relationship. Deep hierarchies are hard to follow.
 
-## Resumen
+## Summary
 
-- `self` explícito, `__init__` inicializa, `_nombre` es privado por convención.
-- Siempre `__repr__`; `__str__` si hace falta una versión para humanos.
-- `__eq__` desactiva el hash: si necesitás hash, definilo con los mismos campos.
-- Los operadores devuelven `NotImplemented` ante tipos que no manejan; `__rmul__` y
-  compañía cubren el operando derecho.
-- `__len__` + `__getitem__` (o `__iter__`) hacen que tu clase se comporte como colección.
-- En el próximo capítulo de dataclasses vas a ver cómo **generar** casi todo esto.
+- `self` is explicit, `__init__` initializes, `_name` is private by convention.
+- Always `__repr__`; `__str__` if you need a human-friendly version.
+- `__eq__` disables hashing: if you need a hash, define it from the same fields.
+- Operators return `NotImplemented` for types they don't handle; `__rmul__` and
+  friends cover the right operand.
+- `__len__` + `__getitem__` (or `__iter__`) make your class behave like a collection.
+- In the upcoming dataclasses chapter you'll see how to **generate** most of this.
 
-## Ejercicio
+## Exercise
 
-Un `Vector` con operadores, igualdad y hash, y un `Carrito` que se comporta como colección.
+A `Vector` with operators, equality and hashing, and a `Cart` that behaves like a collection.
 
-**Para profundizar:** [Data model](https://docs.python.org/3/reference/datamodel.html),
-*Fluent Python* (2.ª ed.), cap. 1 y 16.
+**Further reading:** [Data model](https://docs.python.org/3/reference/datamodel.html),
+*Fluent Python* (2nd ed.), ch. 1 and 16.

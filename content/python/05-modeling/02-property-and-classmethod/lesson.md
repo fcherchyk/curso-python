@@ -1,147 +1,147 @@
-# property, classmethod y staticmethod
+# property, classmethod and staticmethod
 
-Tres decoradores que cambian cómo se accede a un método. `@property` permite empezar con
-atributos públicos simples y agregar lógica después **sin romper a nadie**. `@classmethod`
-es la forma idiomática de escribir constructores alternativos. `@staticmethod` es para
-funciones que viven en la clase por organización.
+Three decorators that change how a method is accessed. `@property` lets you start with plain
+public attributes and add logic later **without breaking anyone**. `@classmethod` is the
+idiomatic way to write alternative constructors. `@staticmethod` is for functions that live
+in the class for organization.
 
-## El problema: getters y setters
+## The problem: getters and setters
 
-En Java es habitual escribir `getSaldo()` y `setSaldo()` "por las dudas". En Python no:
+In Java it's common to write `getBalance()` and `setBalance()` "just in case". Not in Python:
 
 ```python
-class Producto:
-    def __init__(self, precio):
-        self.precio = precio           # atributo público, simple
+class Product:
+    def __init__(self, price):
+        self.price = price             # plain public attribute
 
-p = Producto(100)
-p.precio = 120
+p = Product(100)
+p.price = 120
 ```
 
-Si mañana necesitás validar que el precio no sea negativo, no hace falta cambiar la API a
-`set_precio()`: convertís el atributo en una **property** y todo el código que hace
-`p.precio = x` sigue funcionando.
+If tomorrow you need to check that the price isn't negative, you don't have to change the
+API to `set_price()`: you turn the attribute into a **property** and all the code doing
+`p.price = x` keeps working.
 
-## `@property`: atributos calculados o controlados
+## `@property`: computed or controlled attributes
 
 ```python
-class Producto:
-    def __init__(self, precio: float) -> None:
-        self.precio = precio           # ¡pasa por el setter también!
+class Product:
+    def __init__(self, price: float) -> None:
+        self.price = price             # goes through the setter too!
 
     @property
-    def precio(self) -> float:         # getter: se accede como p.precio
-        return self._precio
+    def price(self) -> float:          # getter: accessed as p.price
+        return self._price
 
-    @precio.setter
-    def precio(self, valor: float) -> None:
-        if valor < 0:
-            raise ValueError(f"precio negativo: {valor}")
-        self._precio = valor
+    @price.setter
+    def price(self, value: float) -> None:
+        if value < 0:
+            raise ValueError(f"negative price: {value}")
+        self._price = value
 
     @property
-    def precio_con_iva(self) -> float:   # solo getter: de solo lectura
-        return round(self._precio * 1.21, 2)
+    def price_with_tax(self) -> float:   # getter only: read-only
+        return round(self._price * 1.21, 2)
 ```
 
 ```python
-p = Producto(100)
-p.precio_con_iva          # 121.0  (sin paréntesis)
-p.precio = -5             # ValueError
-p.precio_con_iva = 1      # AttributeError: property has no setter
+p = Product(100)
+p.price_with_tax          # 121.0  (no parentheses)
+p.price = -5              # ValueError
+p.price_with_tax = 1      # AttributeError: property has no setter
 ```
 
-Detalles importantes:
+Important details:
 
-- El valor real se guarda en otro atributo (`_precio`). Si el getter hiciera
-  `return self.precio`, se llamaría a sí mismo en una recursión infinita.
-- Asignar en `__init__` con `self.precio = …` hace que la **validación también corra al
-  construir**.
-- Una property sin setter es de **solo lectura**.
-- Existe también `@precio.deleter`, pero casi nunca se usa.
+- The real value is stored in another attribute (`_price`). If the getter did
+  `return self.price`, it would call itself in infinite recursion.
+- Assigning in `__init__` with `self.price = …` makes the **validation run at construction
+  time too**.
+- A property without a setter is **read-only**.
+- There's also `@price.deleter`, but it's rarely used.
 
-### Cuándo usar una property
+### When to use a property
 
-- **Valores derivados** baratos de calcular: `nombre_completo`, `total`, `es_mayor`.
-- **Validación o normalización** al asignar.
-- **Compatibilidad**: convertir un atributo en calculado sin cambiar la API.
+- **Derived values** that are cheap to compute: `full_name`, `total`, `is_adult`.
+- **Validation or normalization** on assignment.
+- **Compatibility**: turning an attribute into a computed one without changing the API.
 
-Cuándo **no**:
+When **not** to:
 
-- Si el cálculo es caro o tiene efectos secundarios (I/O, red): quien lee `obj.x` espera que
-  sea instantáneo. Usá un método con nombre de verbo (`calcular_x()`) o
-  `functools.cached_property`, que calcula la primera vez y guarda el resultado.
+- If the computation is expensive or has side effects (I/O, network): whoever reads `obj.x`
+  expects it to be instant. Use a method with a verb name (`compute_x()`) or
+  `functools.cached_property`, which computes it the first time and stores the result.
 
-## `@classmethod`: constructores alternativos
+## `@classmethod`: alternative constructors
 
-Un classmethod recibe **la clase** (`cls`) en lugar de la instancia. Su uso principal es
-ofrecer otras formas de crear objetos:
+A classmethod receives **the class** (`cls`) instead of the instance. Its main use is
+offering other ways to create objects:
 
 ```python
 from datetime import date
 
-class Persona:
-    def __init__(self, nombre: str, nacimiento: date) -> None:
-        self.nombre = nombre
-        self.nacimiento = nacimiento
+class Person:
+    def __init__(self, name: str, birth_date: date) -> None:
+        self.name = name
+        self.birth_date = birth_date
 
     @classmethod
-    def desde_dict(cls, datos: dict) -> "Persona":
-        return cls(datos["nombre"], date.fromisoformat(datos["nacimiento"]))
+    def from_dict(cls, data: dict) -> "Person":
+        return cls(data["name"], date.fromisoformat(data["birth_date"]))
 
     @classmethod
-    def desde_csv(cls, linea: str) -> "Persona":
-        nombre, fecha = linea.split(",")
-        return cls(nombre.strip(), date.fromisoformat(fecha.strip()))
+    def from_csv(cls, line: str) -> "Person":
+        name, iso_date = line.split(",")
+        return cls(name.strip(), date.fromisoformat(iso_date.strip()))
 ```
 
-¿Por qué `cls(...)` y no `Persona(...)`? Porque si alguien hereda (`class Empleado(Persona)`),
-`Empleado.desde_dict(...)` va a crear un `Empleado`. La stdlib usa este patrón en todos
-lados: `dict.fromkeys`, `datetime.fromisoformat`, `int.from_bytes`, `Path.cwd()`.
+Why `cls(...)` and not `Person(...)`? Because if someone subclasses it (`class Employee(Person)`),
+`Employee.from_dict(...)` will create an `Employee`. The stdlib uses this pattern
+everywhere: `dict.fromkeys`, `datetime.fromisoformat`, `int.from_bytes`, `Path.cwd()`.
 
-La convención de nombres es `desde_…` / `from_…`.
+The naming convention is `from_…`.
 
-## `@staticmethod`: una función en el namespace de la clase
+## `@staticmethod`: a function in the class namespace
 
 ```python
 class Email:
     @staticmethod
-    def normalizar(texto: str) -> str:
-        return texto.strip().lower()
+    def normalize(text: str) -> str:
+        return text.strip().lower()
 ```
 
-No recibe ni `self` ni `cls`: es una función común que vive dentro de la clase porque está
-relacionada con ella. Muchas veces una función a nivel de módulo es igual de buena, o mejor.
-Si el método necesita la clase, es un `classmethod`; si necesita la instancia, es un método
-normal.
+It receives neither `self` nor `cls`: it's a plain function that lives inside the class
+because it's related to it. Often a module-level function is just as good, or better.
+If the method needs the class, it's a `classmethod`; if it needs the instance, it's a
+regular method.
 
-| Decorador       | Primer parámetro | Uso típico                            |
+| Decorator       | First parameter  | Typical use                           |
 |-----------------|------------------|---------------------------------------|
-| (ninguno)       | `self`           | comportamiento de la instancia        |
-| `@classmethod`  | `cls`            | constructores alternativos, fábricas  |
-| `@staticmethod` | —                | utilidades relacionadas con la clase  |
-| `@property`     | `self`           | atributo calculado o validado         |
+| (none)          | `self`           | instance behavior                     |
+| `@classmethod`  | `cls`            | alternative constructors, factories   |
+| `@staticmethod` | —                | utilities related to the class        |
+| `@property`     | `self`           | computed or validated attribute       |
 
-## Cómo funciona por dentro (una pincelada)
+## How it works under the hood (a glimpse)
 
-`property`, `classmethod` y `staticmethod` son **descriptores**: objetos con `__get__` (y
-`__set__`) que Python consulta cuando accedés a un atributo de la clase. Con descriptores
-están implementados los métodos (el `self` automático), las properties y los campos de
-Django y SQLAlchemy. No hace falta escribirlos seguido, pero conviene saber que existen.
+`property`, `classmethod` and `staticmethod` are **descriptors**: objects with `__get__` (and
+`__set__`) that Python consults when you access an attribute on the class. Descriptors are
+how methods (the automatic `self`), properties and Django and SQLAlchemy fields are
+implemented. You won't write them often, but it's worth knowing they exist.
 
-## Resumen
+## Summary
 
-- Empezá con atributos públicos; convertilos en `@property` cuando necesites lógica.
-- Guardá el valor real en `_atributo` y asigná por la property en `__init__` para validar
-  siempre.
-- Sin setter, la property es de solo lectura.
-- `@classmethod` + `cls(...)` para constructores alternativos (`desde_…`).
-- `@staticmethod` para utilidades sin estado; una función de módulo suele alcanzar.
+- Start with public attributes; turn them into `@property` when you need logic.
+- Store the real value in `_attribute` and assign through the property in `__init__` so it's
+  always validated.
+- Without a setter, the property is read-only.
+- `@classmethod` + `cls(...)` for alternative constructors (`from_…`).
+- `@staticmethod` for stateless utilities; a module-level function is usually enough.
 
-## Ejercicio
+## Exercise
 
-Una `Temperatura` con properties validadas y convertibles, y un `Usuario` con email
-normalizado, id de solo lectura y un constructor alternativo.
+A `Temperature` with validated, convertible properties, and a `User` with a normalized
+email, a read-only id and an alternative constructor.
 
-**Para profundizar:** [property](https://docs.python.org/3/library/functions.html#property),
-[Descriptor HowTo Guide](https://docs.python.org/3/howto/descriptor.html), *Fluent Python*, cap. 22.
+**Further reading:** [property](https://docs.python.org/3/library/functions.html#property),
+[Descriptor HowTo Guide](https://docs.python.org/3/howto/descriptor.html), *Fluent Python*, ch. 22.

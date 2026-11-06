@@ -4,43 +4,43 @@ from typing import Any
 
 
 @dataclass(frozen=True, slots=True)
-class Punto:
+class Point:
     x: float
     y: float
 
-    def distancia(self, otro: "Punto") -> float:
-        return math.hypot(self.x - otro.x, self.y - otro.y)
+    def distance(self, other: "Point") -> float:
+        return math.hypot(self.x - other.x, self.y - other.y)
 
-    def __add__(self, otro: "Punto") -> "Punto":
-        return Punto(self.x + otro.x, self.y + otro.y)
+    def __add__(self, other: "Point") -> "Point":
+        return Point(self.x + other.x, self.y + other.y)
 
 
 @dataclass(frozen=True, order=True)
 class Version:
-    mayor: int
-    menor: int = 0
-    parche: int = 0
+    major: int
+    minor: int = 0
+    patch: int = 0
 
     @classmethod
-    def desde_str(cls, texto: str) -> "Version":
-        return cls(*(int(p) for p in texto.split(".")))  # int() ya levanta ValueError
+    def from_str(cls, text: str) -> "Version":
+        return cls(*(int(p) for p in text.split(".")))  # int() already raises ValueError
 
     def __str__(self) -> str:
-        return f"{self.mayor}.{self.menor}.{self.parche}"
+        return f"{self.major}.{self.minor}.{self.patch}"
 
 
 @dataclass
-class Pedido:
-    cliente: str
+class Order:
+    customer: str
     items: list[str] = field(default_factory=list)
-    estado: str = "nuevo"
+    status: str = "new"
 
     def __post_init__(self) -> None:
-        if not self.cliente.strip():
-            raise ValueError("el pedido necesita un cliente")
+        if not self.customer.strip():
+            raise ValueError("the order needs a customer")
 
-    def con_estado(self, nuevo: str) -> "Pedido":
-        return replace(self, estado=nuevo)
+    def with_status(self, new: str) -> "Order":
+        return replace(self, status=new)
 
-    def a_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)

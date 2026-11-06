@@ -1,40 +1,40 @@
 from enum import Flag, IntEnum, StrEnum, auto
 
 
-class Estado(StrEnum):
-    PENDIENTE = "pendiente"
-    EN_CURSO = "en_curso"
-    TERMINADO = "terminado"
+class Status(StrEnum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    DONE = "done"
 
-    def siguiente(self) -> "Estado":
-        miembros = list(Estado)
-        i = miembros.index(self)
-        if i == len(miembros) - 1:
-            raise ValueError("la tarea ya está terminada")
-        return miembros[i + 1]
+    def next(self) -> "Status":
+        members = list(Status)
+        i = members.index(self)
+        if i == len(members) - 1:
+            raise ValueError("the task is already done")
+        return members[i + 1]
 
     @property
-    def es_final(self) -> bool:
-        return self is Estado.TERMINADO
+    def is_final(self) -> bool:
+        return self is Status.DONE
 
 
-class Prioridad(IntEnum):
-    BAJA = 1
-    MEDIA = 2
-    ALTA = 3
+class Priority(IntEnum):
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
 
 
-def mas_urgentes(tareas: list[tuple[str, Prioridad]]) -> list[str]:
-    # sorted es estable: con reverse=True, los empates conservan el orden original.
-    return [nombre for nombre, _ in sorted(tareas, key=lambda t: t[1], reverse=True)]
+def most_urgent(tasks: list[tuple[str, Priority]]) -> list[str]:
+    # sorted is stable: with reverse=True, ties keep their original order.
+    return [name for name, _ in sorted(tasks, key=lambda t: t[1], reverse=True)]
 
 
-class Permiso(Flag):
-    LEER = auto()
-    ESCRIBIR = auto()
-    BORRAR = auto()
-    TODOS = LEER | ESCRIBIR | BORRAR
+class Permission(Flag):
+    READ = auto()
+    WRITE = auto()
+    DELETE = auto()
+    ALL = READ | WRITE | DELETE
 
 
-def puede(permisos: Permiso, requerido: Permiso) -> bool:
-    return requerido in permisos
+def can(permissions: Permission, required: Permission) -> bool:
+    return required in permissions

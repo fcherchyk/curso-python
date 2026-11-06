@@ -3,47 +3,47 @@
 from enum import Enum, Flag, IntEnum, StrEnum, auto  # noqa: F401
 
 
-class Estado(Enum):  # ← cambiá la base a StrEnum
-    """Estados de una tarea. Los miembros tienen que ser strings:
-    `Estado.PENDIENTE == "pendiente"`.
+class Status(Enum):  # ← change the base to StrEnum
+    """Statuses of a task. The members have to be strings:
+    `Status.PENDING == "pending"`.
 
-    - `siguiente()`: PENDIENTE → EN_CURSO → TERMINADO; desde TERMINADO, ValueError.
-    - `es_final` (property): True solo para TERMINADO.
+    - `next()`: PENDING → IN_PROGRESS → DONE; from DONE, ValueError.
+    - `is_final` (property): True only for DONE.
     """
 
-    PENDIENTE = "pendiente"
-    EN_CURSO = "en_curso"
-    TERMINADO = "terminado"
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    DONE = "done"
 
-    def siguiente(self) -> "Estado":
+    def next(self) -> "Status":
         raise NotImplementedError("TODO")
 
 
-class Prioridad(Enum):  # ← cambiá la base para que se ordenen como enteros
-    BAJA = 1
-    MEDIA = 2
-    ALTA = 3
+class Priority(Enum):  # ← change the base so they sort as integers
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
 
 
-def mas_urgentes(tareas: list[tuple[str, Prioridad]]) -> list[str]:
-    """Nombres de las tareas ordenadas de mayor a menor prioridad (estable ante empates).
+def most_urgent(tasks: list[tuple[str, Priority]]) -> list[str]:
+    """Task names sorted from highest to lowest priority (stable on ties).
 
-    >>> mas_urgentes([("a", Prioridad.BAJA), ("b", Prioridad.ALTA)])
+    >>> most_urgent([("a", Priority.LOW), ("b", Priority.HIGH)])
     ['b', 'a']
     """
     raise NotImplementedError("TODO")
 
 
-class Permiso(Enum):  # ← cambiá la base a Flag
-    """Permisos combinables: LEER, ESCRIBIR, BORRAR (con auto()) y TODOS (los tres)."""
+class Permission(Enum):  # ← change the base to Flag
+    """Combinable permissions: READ, WRITE, DELETE (with auto()) and ALL (all three)."""
 
-    LEER = 1
+    READ = 1
 
 
-def puede(permisos: Permiso, requerido: Permiso) -> bool:
-    """¿`permisos` incluye TODO lo de `requerido`?
+def can(permissions: Permission, required: Permission) -> bool:
+    """Do `permissions` include EVERYTHING in `required`?
 
-    >>> puede(Permiso.LEER | Permiso.ESCRIBIR, Permiso.LEER)
+    >>> can(Permission.READ | Permission.WRITE, Permission.READ)
     True
     """
     raise NotImplementedError("TODO")

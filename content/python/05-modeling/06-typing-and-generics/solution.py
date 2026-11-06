@@ -2,44 +2,44 @@ from collections.abc import Callable, Iterable
 from typing import TypedDict
 
 
-class Pila[T]:
+class Stack[T]:
     def __init__(self, items: Iterable[T] = ()) -> None:
         self._items: list[T] = list(items)
 
-    def apilar(self, item: T) -> None:
+    def push(self, item: T) -> None:
         self._items.append(item)
 
-    def desapilar(self) -> T:
+    def pop(self) -> T:
         if not self._items:
-            raise IndexError("pila vacía")
+            raise IndexError("empty stack")
         return self._items.pop()
 
-    def tope(self) -> T | None:
+    def peek(self) -> T | None:
         return self._items[-1] if self._items else None
 
     def __len__(self) -> int:
         return len(self._items)
 
     def __repr__(self) -> str:
-        return f"Pila({self._items!r})"
+        return f"Stack({self._items!r})"
 
 
-def primero[T](xs: Iterable[T], default: T | None = None) -> T | None:
+def first[T](xs: Iterable[T], default: T | None = None) -> T | None:
     return next(iter(xs), default)
 
 
-def agrupar_por[T, K](xs: Iterable[T], clave: Callable[[T], K]) -> dict[K, list[T]]:
-    grupos: dict[K, list[T]] = {}
+def group_by[T, K](xs: Iterable[T], key: Callable[[T], K]) -> dict[K, list[T]]:
+    groups: dict[K, list[T]] = {}
     for x in xs:
-        grupos.setdefault(clave(x), []).append(x)
-    return grupos
+        groups.setdefault(key(x), []).append(x)
+    return groups
 
 
-class UsuarioJSON(TypedDict):
+class UserJSON(TypedDict):
     id: int
-    nombre: str
-    activo: bool
+    name: str
+    active: bool
 
 
-def activos(usuarios: list[UsuarioJSON]) -> list[str]:
-    return [u["nombre"] for u in sorted(usuarios, key=lambda u: u["id"]) if u["activo"]]
+def active_names(users: list[UserJSON]) -> list[str]:
+    return [u["name"] for u in sorted(users, key=lambda u: u["id"]) if u["active"]]

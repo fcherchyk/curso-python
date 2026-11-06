@@ -1,44 +1,44 @@
 [[questions]]
-text = "¿Cuál es la forma moderna (3.10+) de escribir `Optional[str]`?"
+text = "What's the modern (3.10+) way to write `Optional[str]`?"
 options = ["`str?`", "`str | None`", "`Maybe[str]`", "`str or None`"]
 correct = 1
-explanation = "Desde 3.10, las uniones se escriben con `|`. `Optional[str]` es equivalente, pero ya no hace falta importarlo."
+explanation = "Since 3.10, unions are written with `|`. `Optional[str]` is equivalent, but you no longer need to import it."
 
 [[questions]]
-text = "`def doble(x: int) -> int: return x * 2`. ¿Qué pasa con `doble(\"ab\")` al ejecutar?"
+text = "`def double(x: int) -> int: return x * 2`. What happens with `double(\"ab\")` at runtime?"
 options = [
-  "Levanta `TypeError`",
-  "Devuelve `'abab'`: los tipos no se verifican en runtime",
-  "Convierte `\"ab\"` a int",
-  "No compila",
+  "It raises `TypeError`",
+  "It returns `'abab'`: types aren't checked at runtime",
+  "It converts `\"ab\"` to int",
+  "It doesn't compile",
 ]
 correct = 1
-explanation = "Las anotaciones no cambian la ejecución. mypy o pyright marcarían el error antes de ejecutar."
+explanation = "Annotations don't change execution. mypy or pyright would flag the error before running."
 
 [[questions]]
-text = "En `def primero[T](xs: Iterable[T]) -> T | None`, ¿qué garantiza `T`?"
+text = "In `def first[T](xs: Iterable[T]) -> T | None`, what does `T` guarantee?"
 options = [
-  "Que `xs` sea una lista",
-  "Que el tipo de los elementos y el del resultado sean el mismo",
-  "Que `T` sea un número",
-  "Nada: es solo documentación sin efecto para el type checker",
+  "That `xs` is a list",
+  "That the element type and the result type are the same",
+  "That `T` is a number",
+  "Nothing: it's just documentation with no effect on the type checker",
 ]
 correct = 1
-explanation = "La variable de tipo liga la entrada con la salida: si le pasás `Iterable[str]`, el type checker sabe que devuelve `str | None`."
+explanation = "The type variable ties input to output: if you pass an `Iterable[str]`, the type checker knows it returns `str | None`."
 
 [[questions]]
-text = "¿Para qué sirve un `TypedDict`?"
+text = "What is a `TypedDict` for?"
 options = [
-  "Para crear dicts que validan tipos al ejecutar",
-  "Para describir al type checker las claves y los tipos de un dict con forma fija",
-  "Para crear dicts inmutables",
-  "Para ordenar las claves",
+  "To create dicts that validate types at runtime",
+  "To describe to the type checker the keys and types of a fixed-shape dict",
+  "To create immutable dicts",
+  "To sort the keys",
 ]
 correct = 1
-explanation = "En runtime es un `dict` común. Sirve para que mypy sepa qué claves existen y de qué tipo son sus valores, como en el JSON de una API."
+explanation = "At runtime it's a plain `dict`. It lets mypy know which keys exist and what type their values are, as with an API's JSON."
 
 [[questions]]
-text = "¿Qué conviene más para un parámetro que puede ser cualquier cosa y que no vas a usar más que para imprimir?"
-options = ["`Any`", "`object`", "`T` sin cota", "No anotarlo"]
+text = "What's the better choice for a parameter that can be anything and that you'll only print?"
+options = ["`Any`", "`object`", "An unbounded `T`", "Leave it unannotated"]
 correct = 1
-explanation = "`object` acepta cualquier cosa pero solo te deja usar lo que todo objeto tiene. `Any` apaga el chequeo por completo."
+explanation = "`object` accepts anything but only lets you use what every object has. `Any` switches checking off entirely."

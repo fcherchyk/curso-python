@@ -1,43 +1,43 @@
-"""property, classmethod y staticmethod."""
+"""property, classmethod and staticmethod."""
 
 from typing import Any
 
-CERO_ABSOLUTO = -273.15
+ABSOLUTE_ZERO = -273.15
 
 
-class Temperatura:
-    """Temperatura con dos vistas: celsius y fahrenheit.
+class Temperature:
+    """Temperature with two views: celsius and fahrenheit.
 
-    - `celsius`: property con setter; debajo del cero absoluto → ValueError
-      (también al construir).
-    - `fahrenheit`: property calculada CON setter (asignarla actualiza celsius).
-    - `Temperatura.desde_fahrenheit(f)`: constructor alternativo.
+    - `celsius`: property with a setter; below absolute zero → ValueError
+      (also when constructing).
+    - `fahrenheit`: computed property WITH a setter (assigning it updates celsius).
+    - `Temperature.from_fahrenheit(f)`: alternative constructor.
     """
 
     def __init__(self, celsius: float) -> None:
         raise NotImplementedError("TODO")
 
-    # Completá: property celsius (+ setter), property fahrenheit (+ setter)
-    # y el classmethod desde_fahrenheit.
+    # Implement: property celsius (+ setter), property fahrenheit (+ setter)
+    # and the classmethod from_fahrenheit.
 
 
-class Usuario:
-    """Usuario con:
+class User:
+    """User with:
 
-    - `id`: de solo lectura (property sin setter).
-    - `email`: property; al asignar se normaliza (strip + minúsculas) y, si no tiene
-      "@", ValueError.
-    - `Usuario.normalizar_email(texto)`: staticmethod que hace la normalización.
-    - `Usuario.desde_dict({"id": 1, "email": "..."})`: classmethod.
+    - `id`: read-only (property without a setter).
+    - `email`: property; on assignment it's normalized (strip + lowercase) and, if it has
+      no "@", ValueError.
+    - `User.normalize_email(text)`: staticmethod that does the normalization.
+    - `User.from_dict({"id": 1, "email": "..."})`: classmethod.
     """
 
     def __init__(self, id: int, email: str) -> None:
         raise NotImplementedError("TODO")
 
     @staticmethod
-    def normalizar_email(texto: str) -> str:
+    def normalize_email(text: str) -> str:
         raise NotImplementedError("TODO")
 
     @classmethod
-    def desde_dict(cls, datos: dict[str, Any]) -> "Usuario":
+    def from_dict(cls, data: dict[str, Any]) -> "User":
         raise NotImplementedError("TODO")

@@ -1,66 +1,66 @@
 import pytest
-from exercise import Temperatura, Usuario
+from exercise import Temperature, User
 
 
-def test_temperatura_celsius_y_fahrenheit():
-    t = Temperatura(100)
+def test_temperature_celsius_and_fahrenheit():
+    t = Temperature(100)
     assert t.celsius == 100
     assert t.fahrenheit == 212
 
 
-def test_temperatura_setter_fahrenheit_actualiza_celsius():
-    t = Temperatura(0)
+def test_temperature_fahrenheit_setter_updates_celsius():
+    t = Temperature(0)
     t.fahrenheit = 50
     assert t.celsius == pytest.approx(10)
 
 
-def test_temperatura_valida_al_construir_y_asignar():
+def test_temperature_validates_on_construction_and_assignment():
     with pytest.raises(ValueError):
-        Temperatura(-300)
-    t = Temperatura(20)
+        Temperature(-300)
+    t = Temperature(20)
     with pytest.raises(ValueError):
         t.celsius = -274
 
 
-def test_temperatura_desde_fahrenheit():
-    t = Temperatura.desde_fahrenheit(32)
-    assert isinstance(t, Temperatura)
+def test_temperature_from_fahrenheit():
+    t = Temperature.from_fahrenheit(32)
+    assert isinstance(t, Temperature)
     assert t.celsius == pytest.approx(0)
 
 
-def test_desde_fahrenheit_respeta_subclases():
-    class TemperaturaAmbiente(Temperatura):
+def test_from_fahrenheit_respects_subclasses():
+    class RoomTemperature(Temperature):
         pass
 
-    assert type(TemperaturaAmbiente.desde_fahrenheit(68)) is TemperaturaAmbiente
+    assert type(RoomTemperature.from_fahrenheit(68)) is RoomTemperature
 
 
-def test_usuario_email_normalizado():
-    u = Usuario(1, "  Ana@Mail.COM ")
-    assert u.email == "ana@mail.com"
-    u.email = "BETO@x.org"
-    assert u.email == "beto@x.org"
+def test_user_email_normalized():
+    u = User(1, "  Alice@Mail.COM ")
+    assert u.email == "alice@mail.com"
+    u.email = "BOB@x.org"
+    assert u.email == "bob@x.org"
 
 
-def test_usuario_email_invalido():
+def test_user_invalid_email():
     with pytest.raises(ValueError):
-        Usuario(1, "sin-arroba")
-    u = Usuario(1, "a@b.c")
+        User(1, "no-at-sign")
+    u = User(1, "a@b.c")
     with pytest.raises(ValueError):
-        u.email = "nop"
+        u.email = "nope"
 
 
-def test_usuario_id_solo_lectura():
-    u = Usuario(7, "a@b.c")
+def test_user_id_read_only():
+    u = User(7, "a@b.c")
     assert u.id == 7
     with pytest.raises(AttributeError):
         u.id = 8
 
 
-def test_usuario_normalizar_email_es_estatico():
-    assert Usuario.normalizar_email(" X@Y.Z ") == "x@y.z"
+def test_user_normalize_email_is_static():
+    assert User.normalize_email(" X@Y.Z ") == "x@y.z"
 
 
-def test_usuario_desde_dict():
-    u = Usuario.desde_dict({"id": 3, "email": "C@D.E"})
+def test_user_from_dict():
+    u = User.from_dict({"id": 3, "email": "C@D.E"})
     assert (u.id, u.email) == (3, "c@d.e")

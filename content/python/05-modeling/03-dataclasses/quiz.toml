@@ -1,54 +1,54 @@
 [[questions]]
-text = "¿Qué pasa con `items: list[str] = []` dentro de un `@dataclass`?"
+text = "What happens with `items: list[str] = []` inside a `@dataclass`?"
 options = [
-  "Funciona, pero todas las instancias comparten la lista",
-  "Levanta `ValueError` al definir la clase: hay que usar `field(default_factory=list)`",
-  "Se ignora el default",
-  "Se convierte automáticamente en `default_factory`",
+  "It works, but every instance shares the list",
+  "It raises `ValueError` when the class is defined: you have to use `field(default_factory=list)`",
+  "The default is ignored",
+  "It's automatically turned into a `default_factory`",
 ]
 correct = 1
-explanation = "`dataclass` detecta los defaults mutables comunes y se niega a crear la clase. La solución es `field(default_factory=list)`."
+explanation = "`dataclass` detects common mutable defaults and refuses to create the class. The fix is `field(default_factory=list)`."
 
 [[questions]]
-text = "¿Qué dos cosas te da `frozen=True`?"
+text = "Which two things does `frozen=True` give you?"
 options = [
-  "Validación de tipos y serialización",
-  "Inmutabilidad y hash (se puede usar en sets y como clave)",
-  "Orden y comparación",
-  "Menos memoria y acceso más rápido",
+  "Type validation and serialization",
+  "Immutability and a hash (usable in sets and as a key)",
+  "Ordering and comparison",
+  "Less memory and faster access",
 ]
 correct = 1
-explanation = "Con `frozen=True`, asignar levanta `FrozenInstanceError` y además se genera `__hash__` a partir de los campos. Menos memoria es `slots=True`."
+explanation = "With `frozen=True`, assigning raises `FrozenInstanceError`, and `__hash__` is also generated from the fields. Less memory is `slots=True`."
 
 [[questions]]
-text = "Con `@dataclass(order=True)` y campos `mayor, menor, parche`, ¿cómo se comparan dos instancias?"
+text = "With `@dataclass(order=True)` and fields `major, minor, patch`, how are two instances compared?"
 options = [
-  "Por la suma de los campos",
-  "Como tuplas `(mayor, menor, parche)`, en el orden de declaración",
-  "Solo por el primer campo",
-  "Por el `repr`",
+  "By the sum of the fields",
+  "As tuples `(major, minor, patch)`, in declaration order",
+  "Only by the first field",
+  "By the `repr`",
 ]
 correct = 1
-explanation = "`order=True` compara los campos como una tupla, respetando el orden en que se declararon."
+explanation = "`order=True` compares the fields as a tuple, following the order in which they were declared."
 
 [[questions]]
-text = "¿Cómo obtenés una copia de un dataclass frozen con un campo cambiado?"
+text = "How do you get a copy of a frozen dataclass with one field changed?"
 options = [
-  "`obj.campo = valor`",
-  "`dataclasses.replace(obj, campo=valor)`",
-  "`copy.copy(obj, campo=valor)`",
-  "No se puede",
+  "`obj.field = value`",
+  "`dataclasses.replace(obj, field=value)`",
+  "`copy.copy(obj, field=value)`",
+  "You can't",
 ]
 correct = 1
-explanation = "`replace` crea una instancia nueva con los campos indicados cambiados y deja la original intacta."
+explanation = "`replace` creates a new instance with the given fields changed and leaves the original intact."
 
 [[questions]]
-text = "`@dataclass class P: precio: float`. ¿Qué pasa con `P(\"caro\")`?"
+text = "`@dataclass class P: price: float`. What happens with `P(\"pricey\")`?"
 options = [
-  "Levanta `TypeError`",
-  "Se crea sin error: las dataclasses no validan tipos",
-  "Convierte `\"caro\"` a float",
-  "Levanta `ValueError`",
+  "It raises `TypeError`",
+  "It's created without error: dataclasses don't validate types",
+  "It converts `\"pricey\"` to float",
+  "It raises `ValueError`",
 ]
 correct = 1
-explanation = "Las anotaciones no se verifican al ejecutar. Para validar y convertir datos externos está Pydantic, o una validación manual en `__post_init__`."
+explanation = "Annotations aren't checked at runtime. To validate and convert external data there's Pydantic, or manual validation in `__post_init__`."

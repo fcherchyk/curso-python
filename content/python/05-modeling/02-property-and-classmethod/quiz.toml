@@ -1,54 +1,54 @@
 [[questions]]
-text = "¿Qué pasa al asignar a una property que no tiene setter?"
+text = "What happens when you assign to a property that has no setter?"
 options = [
-  "Se crea un atributo nuevo con ese nombre",
-  "Levanta `AttributeError`",
-  "Se ignora en silencio",
-  "Se llama al getter",
+  "A new attribute with that name is created",
+  "It raises `AttributeError`",
+  "It's silently ignored",
+  "The getter is called",
 ]
 correct = 1
-explanation = "Una property sin setter es de solo lectura: asignarle levanta `AttributeError`."
+explanation = "A property without a setter is read-only: assigning to it raises `AttributeError`."
 
 [[questions]]
-text = "Dentro del getter `@property def precio(self)`, ¿qué problema tiene `return self.precio`?"
+text = "Inside the getter `@property def price(self)`, what's wrong with `return self.price`?"
 options = [
-  "Ninguno",
-  "Recursión infinita: `self.precio` vuelve a llamar al getter",
-  "Devuelve la función, no el valor",
-  "Levanta `TypeError`",
+  "Nothing",
+  "Infinite recursion: `self.price` calls the getter again",
+  "It returns the function, not the value",
+  "It raises `TypeError`",
 ]
 correct = 1
-explanation = "`self.precio` pasa por la property otra vez. El valor real se guarda en otro atributo, como `self._precio`."
+explanation = "`self.price` goes through the property again. The real value is stored in another attribute, such as `self._price`."
 
 [[questions]]
-text = "¿Por qué un constructor alternativo usa `cls(...)` en lugar del nombre de la clase?"
+text = "Why does an alternative constructor use `cls(...)` instead of the class name?"
 options = [
-  "Porque es más rápido",
-  "Para que las subclases creen instancias de sí mismas",
-  "Porque el nombre de la clase no existe dentro de sus métodos",
-  "Por convención, sin diferencia práctica",
+  "Because it's faster",
+  "So that subclasses create instances of themselves",
+  "Because the class name doesn't exist inside its methods",
+  "By convention, with no practical difference",
 ]
 correct = 1
-explanation = "Si `Empleado` hereda de `Persona`, `Empleado.desde_dict(...)` recibe `cls = Empleado` y crea un `Empleado`."
+explanation = "If `Employee` inherits from `Person`, `Employee.from_dict(...)` gets `cls = Employee` and creates an `Employee`."
 
 [[questions]]
-text = "En el `__init__`, ¿por qué conviene `self.precio = precio` (por la property) y no `self._precio = precio`?"
+text = "In `__init__`, why is `self.price = price` (through the property) better than `self._price = price`?"
 options = [
-  "Porque `_precio` no se puede asignar en `__init__`",
-  "Para que la validación del setter corra también al construir el objeto",
-  "Porque es más corto",
-  "Para que el atributo sea público",
+  "Because `_price` can't be assigned in `__init__`",
+  "So the setter's validation also runs when the object is built",
+  "Because it's shorter",
+  "So the attribute is public",
 ]
 correct = 1
-explanation = "Así se valida en un solo lugar y no se puede crear un objeto en un estado inválido."
+explanation = "That way validation lives in one place and you can't create an object in an invalid state."
 
 [[questions]]
-text = "¿Cuándo **no** conviene una property?"
+text = "When is a property **not** a good fit?"
 options = [
-  "Para un valor derivado barato como `nombre_completo`",
-  "Cuando el cálculo hace una consulta a una API o a una base",
-  "Para validar un valor al asignarlo",
-  "Para convertir un atributo en calculado sin cambiar la API",
+  "For a cheap derived value like `full_name`",
+  "When the computation queries an API or a database",
+  "To validate a value on assignment",
+  "To turn an attribute into a computed one without changing the API",
 ]
 correct = 1
-explanation = "Quien lee `obj.x` espera algo instantáneo y sin efectos. Para cálculos caros o con I/O, usá un método con verbo o `cached_property`."
+explanation = "Whoever reads `obj.x` expects something instant and side-effect free. For expensive or I/O-bound computations, use a verb-named method or `cached_property`."

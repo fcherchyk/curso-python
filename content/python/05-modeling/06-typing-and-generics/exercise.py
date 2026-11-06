@@ -1,47 +1,47 @@
-"""Tipado moderno y genéricos.
+"""Modern typing and generics.
 
-Usá la sintaxis de 3.12 (`class Pila[T]`, `def f[T](...)`); los tests lo verifican.
+Use the 3.12 syntax (`class Stack[T]`, `def f[T](...)`); the tests check it.
 """
 
 from collections.abc import Callable, Iterable  # noqa: F401
 from typing import TypedDict
 
 
-class Pila:  # ← hacela genérica: class Pila[T]
-    """Pila (LIFO) genérica.
+class Stack:  # ← make it generic: class Stack[T]
+    """Generic (LIFO) stack.
 
-    - `apilar(x)`, `desapilar()` (vacía → IndexError("pila vacía")), `tope()` (o None)
-    - `len(pila)`, y `bool(pila)` es False si está vacía
-    - `repr(Pila([1, 2])) == "Pila([1, 2])"`
+    - `push(x)`, `pop()` (empty → IndexError("empty stack")), `peek()` (or None)
+    - `len(stack)`, and `bool(stack)` is False when it's empty
+    - `repr(Stack([1, 2])) == "Stack([1, 2])"`
     """
 
     def __init__(self, items: Iterable[object] = ()) -> None:
         raise NotImplementedError("TODO")
 
 
-def primero(xs, default=None):  # ← tipala con un genérico T
-    """Primer elemento de cualquier iterable, o `default` si está vacío."""
+def first(xs, default=None):  # ← type it with a generic T
+    """First element of any iterable, or `default` if it's empty."""
     raise NotImplementedError("TODO")
 
 
-def agrupar_por(xs, clave):  # ← tipala con dos genéricos T y K
-    """Agrupá los elementos según `clave(x)`, respetando el orden.
+def group_by(xs, key):  # ← type it with two generics T and K
+    """Group the elements by `key(x)`, preserving order.
 
-    Firma esperada: `(xs: Iterable[T], clave: Callable[[T], K]) -> dict[K, list[T]]`.
+    Expected signature: `(xs: Iterable[T], key: Callable[[T], K]) -> dict[K, list[T]]`.
 
-    >>> agrupar_por(["ana", "beto", "abi"], lambda s: s[0])
-    {'a': ['ana', 'abi'], 'b': ['beto']}
+    >>> group_by(["alice", "bob", "amy"], lambda s: s[0])
+    {'a': ['alice', 'amy'], 'b': ['bob']}
     """
     raise NotImplementedError("TODO")
 
 
-class UsuarioJSON(TypedDict):
+class UserJSON(TypedDict):
     id: int
-    nombre: str
-    activo: bool
+    name: str
+    active: bool
 
 
-def activos(usuarios: list[UsuarioJSON]) -> list[str]:
-    """Nombres de los usuarios activos, ordenados por id."""
+def active_names(users: list[UserJSON]) -> list[str]:
+    """Names of the active users, sorted by id."""
     raise NotImplementedError("TODO")
 

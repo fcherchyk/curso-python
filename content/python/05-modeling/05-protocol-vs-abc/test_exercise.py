@@ -2,54 +2,54 @@ import io
 import math
 
 import pytest
-from exercise import Circulo, Notificador, NotificadorMemoria, area_total, cerrar_todos
+from exercise import Circle, InMemoryNotifier, Notifier, close_all, total_area
 
 
-def test_area_total_duck_typing():
-    class Cuadrado:  # no hereda de nada
+def test_total_area_duck_typing():
+    class Square:  # doesn't inherit from anything
         def area(self):
             return 4.0
 
-    assert area_total([Circulo(1), Cuadrado()]) == pytest.approx(math.pi + 4)
-    assert area_total([]) == 0
+    assert total_area([Circle(1), Square()]) == pytest.approx(math.pi + 4)
+    assert total_area([]) == 0
 
 
-def test_notificador_es_abstracto():
+def test_notifier_is_abstract():
     with pytest.raises(TypeError):
-        Notificador()
+        Notifier()
 
 
-def test_subclase_incompleta_no_se_instancia():
-    class Incompleto(Notificador):
+def test_incomplete_subclass_cannot_be_instantiated():
+    class Incomplete(Notifier):
         pass
 
     with pytest.raises(TypeError):
-        Incompleto()
+        Incomplete()
 
 
-def test_notificador_memoria():
-    n = NotificadorMemoria()
-    assert n.enviar("ana", "hola") is True
-    assert n.enviar("", "hola") is False
-    assert n.enviados == [("ana", "hola")]
+def test_in_memory_notifier():
+    n = InMemoryNotifier()
+    assert n.send("alice", "hello") is True
+    assert n.send("", "hello") is False
+    assert n.sent == [("alice", "hello")]
 
 
-def test_enviar_a_todos_usa_enviar():
-    n = NotificadorMemoria()
-    assert n.enviar_a_todos(["a", "", "b"], "x") == 2
-    assert n.enviados == [("a", "x"), ("b", "x")]
+def test_send_to_all_uses_send():
+    n = InMemoryNotifier()
+    assert n.send_to_all(["a", "", "b"], "x") == 2
+    assert n.sent == [("a", "x"), ("b", "x")]
 
 
-def test_cerrar_todos():
-    archivo = io.StringIO("x")
+def test_close_all():
+    file = io.StringIO("x")
 
-    class Conexion:
+    class Connection:
         def __init__(self):
-            self.cerrada = False
+            self.closed = False
 
         def close(self):
-            self.cerrada = True
+            self.closed = True
 
-    c = Conexion()
-    assert cerrar_todos([archivo, c, 42, "texto"]) == 2
-    assert archivo.closed and c.cerrada
+    c = Connection()
+    assert close_all([file, c, 42, "text"]) == 2
+    assert file.closed and c.closed

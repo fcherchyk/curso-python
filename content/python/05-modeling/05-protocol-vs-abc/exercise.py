@@ -6,52 +6,52 @@ from collections.abc import Iterable
 from typing import Protocol, runtime_checkable  # noqa: F401
 
 
-class TieneArea(Protocol):
+class HasArea(Protocol):
     def area(self) -> float: ...
 
 
-class Circulo:
-    def __init__(self, radio: float) -> None:
-        self.radio = radio
+class Circle:
+    def __init__(self, radius: float) -> None:
+        self.radius = radius
 
     def area(self) -> float:
         raise NotImplementedError("TODO")
 
 
-def area_total(figuras: Iterable[TieneArea]) -> float:
-    """Suma de las áreas de cualquier cosa con un método `area()`, sin herencia."""
+def total_area(shapes: Iterable[HasArea]) -> float:
+    """Sum of the areas of anything with an `area()` method, without inheritance."""
     raise NotImplementedError("TODO")
 
 
-class Notificador:  # ← convertila en una ABC con `enviar` abstracto
-    """Base abstracta de notificadores.
+class Notifier:  # ← turn it into an ABC with an abstract `send`
+    """Abstract base for notifiers.
 
-    - `enviar(destino, mensaje) -> bool`: ABSTRACTO.
-    - `enviar_a_todos(destinos, mensaje) -> int`: concreto; cuántos envíos salieron bien.
+    - `send(recipient, message) -> bool`: ABSTRACT.
+    - `send_to_all(recipients, message) -> int`: concrete; how many sends succeeded.
     """
 
-    def enviar(self, destino: str, mensaje: str) -> bool:
+    def send(self, recipient: str, message: str) -> bool:
         raise NotImplementedError("TODO")
 
-    def enviar_a_todos(self, destinos: Iterable[str], mensaje: str) -> int:
+    def send_to_all(self, recipients: Iterable[str], message: str) -> int:
         raise NotImplementedError("TODO")
 
 
-class NotificadorMemoria(Notificador):
-    """Implementación para tests: guarda (destino, mensaje) en `self.enviados`.
-    Falla (devuelve False, sin guardar) si el destino está vacío.
+class InMemoryNotifier(Notifier):
+    """Implementation for tests: stores (recipient, message) in `self.sent`.
+    Fails (returns False, without storing) if the recipient is empty.
     """
 
     def __init__(self) -> None:
-        self.enviados: list[tuple[str, str]] = []
+        self.sent: list[tuple[str, str]] = []
 
 
-class Cerrable(Protocol):  # ← hacelo verificable en runtime
+class Closeable(Protocol):  # ← make it checkable at runtime
     def close(self) -> None: ...
 
 
-def cerrar_todos(objetos: Iterable[object]) -> int:
-    """Llamá a `close()` en los objetos que cumplan `Cerrable` (ignorá el resto) y
-    devolvé cuántos cerraste.
+def close_all(objects: Iterable[object]) -> int:
+    """Call `close()` on the objects that satisfy `Closeable` (ignore the rest) and
+    return how many you closed.
     """
     raise NotImplementedError("TODO")

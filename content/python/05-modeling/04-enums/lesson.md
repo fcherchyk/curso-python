@@ -1,157 +1,154 @@
 # Enums
 
-Un **enum** es un conjunto cerrado de valores con nombre: estados de un pedido, niveles de
-log, métodos HTTP, días de la semana. Usarlos en lugar de strings o números sueltos
-("mágicos") hace que el código se autodocumente, que los errores de tipeo fallen al
-instante y que el editor pueda autocompletar.
+An **enum** is a closed set of named values: order statuses, log levels, HTTP methods, days
+of the week. Using them instead of loose ("magic") strings or numbers makes the code
+self-documenting, makes typos fail immediately and lets the editor autocomplete.
 
-## El problema de los strings mágicos
+## The problem with magic strings
 
 ```python
-if pedido.estado == "enviado": ...
-if pedido.estado == "envíado": ...      # typo: nunca es True y nadie se entera
+if order.status == "shipped": ...
+if order.status == "shiped": ...        # typo: never True and nobody notices
 ```
 
-Con un enum:
+With an enum:
 
 ```python
 from enum import Enum
 
-class Estado(Enum):
-    PENDIENTE = "pendiente"
-    ENVIADO = "enviado"
-    ENTREGADO = "entregado"
+class Status(Enum):
+    PENDING = "pending"
+    SHIPPED = "shipped"
+    DELIVERED = "delivered"
 
-if pedido.estado is Estado.ENVIADO: ...
-if pedido.estado is Estado.ENVIADOO: ...  # AttributeError inmediato
+if order.status is Status.SHIPPED: ...
+if order.status is Status.SHIPED: ...     # immediate AttributeError
 ```
 
-## Lo básico
+## The basics
 
 ```python
-Estado.ENVIADO              # <Estado.ENVIADO: 'enviado'>
-Estado.ENVIADO.name         # 'ENVIADO'
-Estado.ENVIADO.value        # 'enviado'
-Estado("enviado")           # lookup por VALOR → Estado.ENVIADO
-Estado["ENVIADO"]           # lookup por NOMBRE
-Estado("perdido")           # ValueError
-list(Estado)                # los miembros, en orden de definición
-len(Estado)                 # 3
-Estado.ENVIADO in Estado    # True
+Status.SHIPPED              # <Status.SHIPPED: 'shipped'>
+Status.SHIPPED.name         # 'SHIPPED'
+Status.SHIPPED.value        # 'shipped'
+Status("shipped")           # lookup by VALUE → Status.SHIPPED
+Status["SHIPPED"]           # lookup by NAME
+Status("lost")              # ValueError
+list(Status)                # the members, in definition order
+len(Status)                 # 3
+Status.SHIPPED in Status    # True
 ```
 
-Los miembros son **singletons**: se comparan con `is` (aunque `==` también funciona).
+Members are **singletons**: compare them with `is` (though `==` works too).
 
-## `auto()`: cuando el valor no importa
+## `auto()`: when the value doesn't matter
 
 ```python
 from enum import Enum, auto
 
 class Color(Enum):
-    ROJO = auto()      # 1
-    VERDE = auto()     # 2
+    RED = auto()       # 1
+    GREEN = auto()     # 2
 ```
 
-## `StrEnum` e `IntEnum`: enums que además son str o int
+## `StrEnum` and `IntEnum`: enums that are also str or int
 
-Un `Enum` común **no** es igual a su valor: `Estado.ENVIADO == "enviado"` da `False`. Eso es
-molesto en los bordes del programa (JSON, base de datos, parámetros de una URL). `StrEnum`
-(3.11+) e `IntEnum` hacen que los miembros **sean** strings o enteros:
+A plain `Enum` is **not** equal to its value: `Status.SHIPPED == "shipped"` is `False`. That's
+annoying at the edges of your program (JSON, the database, URL parameters). `StrEnum`
+(3.11+) and `IntEnum` make the members **be** strings or integers:
 
 ```python
 from enum import StrEnum, IntEnum, auto
 
-class Metodo(StrEnum):
-    GET = auto()          # con StrEnum, auto() da el nombre en minúscula: "get"
+class Method(StrEnum):
+    GET = auto()          # with StrEnum, auto() gives the lowercase name: "get"
     POST = auto()
 
-Metodo.GET == "get"       # True
-f"{Metodo.GET}"           # 'get'
-json.dumps({"m": Metodo.GET})   # '{"m": "get"}'  ← serializa directo
+Method.GET == "get"       # True
+f"{Method.GET}"           # 'get'
+json.dumps({"m": Method.GET})   # '{"m": "get"}'  ← serializes directly
 
-class Prioridad(IntEnum):
-    BAJA = 1
-    MEDIA = 2
-    ALTA = 3
+class Priority(IntEnum):
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
 
-Prioridad.ALTA > Prioridad.BAJA     # True: se comparan como ints
-sorted([Prioridad.ALTA, Prioridad.BAJA])
+Priority.HIGH > Priority.LOW        # True: compared as ints
+sorted([Priority.HIGH, Priority.LOW])
 ```
 
-Regla práctica: **`StrEnum` para casi todo lo que viaja a JSON o a la base**; `IntEnum` cuando
-el orden numérico tiene sentido (prioridades, niveles); `Enum` puro cuando no querés que se
-mezcle con strings.
+Rule of thumb: **`StrEnum` for almost anything that goes to JSON or the database**; `IntEnum`
+when numeric order makes sense (priorities, levels); plain `Enum` when you don't want it
+mixing with strings.
 
-FastAPI, Pydantic y SQLAlchemy entienden enums: validan que el valor recibido sea uno de los
-miembros y lo documentan en OpenAPI.
+FastAPI, Pydantic and SQLAlchemy understand enums: they validate that the incoming value is
+one of the members and document it in OpenAPI.
 
-## Los enums son clases: pueden tener métodos
+## Enums are classes: they can have methods
 
 ```python
-class Estado(StrEnum):
-    PENDIENTE = "pendiente"
-    ENVIADO = "enviado"
-    ENTREGADO = "entregado"
+class Status(StrEnum):
+    PENDING = "pending"
+    SHIPPED = "shipped"
+    DELIVERED = "delivered"
 
     @property
-    def es_final(self) -> bool:
-        return self is Estado.ENTREGADO
+    def is_final(self) -> bool:
+        return self is Status.DELIVERED
 
-    def siguiente(self) -> "Estado":
-        miembros = list(Estado)
-        i = miembros.index(self)
-        if i == len(miembros) - 1:
-            raise ValueError("ya está en el estado final")
-        return miembros[i + 1]
+    def next(self) -> "Status":
+        members = list(Status)
+        i = members.index(self)
+        if i == len(members) - 1:
+            raise ValueError("already in the final status")
+        return members[i + 1]
 ```
 
-Así la lógica de "máquina de estados" vive junto a los estados.
+That way the "state machine" logic lives next to the states.
 
-## `Flag`: combinaciones
+## `Flag`: combinations
 
-Para permisos u opciones combinables, `Flag` permite operar con bits:
+For permissions or combinable options, `Flag` lets you work with bits:
 
 ```python
 from enum import Flag, auto
 
-class Permiso(Flag):
-    LEER = auto()        # 1
-    ESCRIBIR = auto()    # 2
-    BORRAR = auto()      # 4
-    TODOS = LEER | ESCRIBIR | BORRAR
+class Permission(Flag):
+    READ = auto()        # 1
+    WRITE = auto()       # 2
+    DELETE = auto()      # 4
+    ALL = READ | WRITE | DELETE
 
-p = Permiso.LEER | Permiso.ESCRIBIR
-Permiso.ESCRIBIR in p       # True
-Permiso.BORRAR in p         # False
-p & Permiso.BORRAR          # Permiso(0): vacío, falsy
+p = Permission.READ | Permission.WRITE
+Permission.WRITE in p       # True
+Permission.DELETE in p      # False
+p & Permission.DELETE       # Permission(0): empty, falsy
 ```
 
-## Enums y `match`
+## Enums and `match`
 
-Los enums combinan muy bien con `match` (módulo 06). Ojo con usar el nombre completo con
-punto:
+Enums go very well with `match` (module 06). Be careful to use the full dotted name:
 
 ```python
-match estado:
-    case Estado.PENDIENTE:     # ✓ compara con el miembro
+match status:
+    case Status.PENDING:       # ✓ compares with the member
         ...
-    case PENDIENTE:            # ✗ ¡captura cualquier valor en una variable llamada PENDIENTE!
+    case PENDING:              # ✗ captures any value into a variable named PENDING!
         ...
 ```
 
-## Resumen
+## Summary
 
-- Enum en lugar de strings o números mágicos: errores tempranos y código autodocumentado.
-- `.name`, `.value`, `Clase(valor)`, `Clase["NOMBRE"]`, `list(Clase)`.
-- `StrEnum` para valores que viajan a JSON o a la base; `IntEnum` si el orden numérico
-  importa.
-- Los enums pueden tener métodos y properties.
-- `Flag` para combinaciones de opciones.
+- Enums instead of magic strings or numbers: early errors and self-documenting code.
+- `.name`, `.value`, `Class(value)`, `Class["NAME"]`, `list(Class)`.
+- `StrEnum` for values that go to JSON or the database; `IntEnum` if numeric order
+  matters.
+- Enums can have methods and properties.
+- `Flag` for combinations of options.
 
-## Ejercicio
+## Exercise
 
-Un `StrEnum` con una máquina de estados, un `IntEnum` para ordenar por prioridad y un `Flag`
-de permisos.
+A `StrEnum` with a state machine, an `IntEnum` to sort by priority and a permissions `Flag`.
 
-**Para profundizar:** [enum](https://docs.python.org/3/library/enum.html),
+**Further reading:** [enum](https://docs.python.org/3/library/enum.html),
 [Enum HOWTO](https://docs.python.org/3/howto/enum.html).

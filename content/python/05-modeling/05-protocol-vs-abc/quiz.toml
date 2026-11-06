@@ -1,39 +1,39 @@
 [[questions]]
-text = "Una clase tiene un método `area()` pero no hereda de `TieneArea(Protocol)`. ¿Cumple el protocolo para mypy?"
+text = "A class has an `area()` method but doesn't inherit from `HasArea(Protocol)`. Does it satisfy the protocol for mypy?"
 options = [
-  "No: tiene que heredar",
-  "Sí: los Protocol son estructurales",
-  "Solo si está registrada con `register()`",
-  "Solo si tiene `@runtime_checkable`",
+  "No: it has to inherit",
+  "Yes: Protocols are structural",
+  "Only if it's registered with `register()`",
+  "Only if it has `@runtime_checkable`",
 ]
 correct = 1
-explanation = "Un Protocol se cumple por la forma: alcanza con tener los métodos con firmas compatibles, sin heredar."
+explanation = "A Protocol is satisfied by shape: having the methods with compatible signatures is enough, no inheritance needed."
 
 [[questions]]
-text = "Una subclase de una ABC no implementa un `@abstractmethod`. ¿Cuándo falla?"
+text = "A subclass of an ABC doesn't implement an `@abstractmethod`. When does it fail?"
 options = [
-  "Al definir la clase",
-  "Al crear una instancia",
-  "Al llamar al método faltante",
-  "Nunca",
+  "When the class is defined",
+  "When an instance is created",
+  "When the missing method is called",
+  "Never",
 ]
 correct = 1
-explanation = "La definición es válida, pero instanciar una clase con métodos abstractos pendientes levanta `TypeError`."
+explanation = "The definition is valid, but instantiating a class with pending abstract methods raises `TypeError`."
 
 [[questions]]
-text = "¿Qué pasa con `isinstance(x, MiProtocolo)` si el Protocol **no** tiene `@runtime_checkable`?"
-options = ["Devuelve `True` si tiene los métodos", "Levanta `TypeError`", "Devuelve siempre `False`", "Chequea las firmas"]
+text = "What happens with `isinstance(x, MyProtocol)` if the Protocol does **not** have `@runtime_checkable`?"
+options = ["It returns `True` if it has the methods", "It raises `TypeError`", "It always returns `False`", "It checks the signatures"]
 correct = 1
-explanation = "Los Protocol son para el type checker. Para usarlos con `isinstance` hay que marcarlos con `@runtime_checkable`, y aun así solo se verifica que los métodos existan."
+explanation = "Protocols are for the type checker. To use them with `isinstance` you have to mark them with `@runtime_checkable`, and even then only the existence of the methods is checked."
 
 [[questions]]
-text = "Querés que todas las implementaciones compartan un método `enviar_a_todos` que llama a `enviar`. ¿Qué conviene?"
-options = ["Protocol", "ABC", "Un dict de funciones", "Un enum"]
+text = "You want every implementation to share a `send_to_all` method that calls `send`. What's the best fit?"
+options = ["Protocol", "ABC", "A dict of functions", "An enum"]
 correct = 1
-explanation = "Una ABC puede tener métodos concretos que usan los abstractos (template method). Los Protocol describen una forma, no comparten implementación por herencia."
+explanation = "An ABC can have concrete methods that use the abstract ones (template method). Protocols describe a shape; they don't share implementation through inheritance."
 
 [[questions]]
-text = "¿Qué anotación es más flexible para un parámetro que solo se recorre una vez?"
+text = "Which annotation is most flexible for a parameter that's only iterated once?"
 options = ["`list[str]`", "`Iterable[str]`", "`tuple[str, ...]`", "`set[str]`"]
 correct = 1
-explanation = "`Iterable` acepta listas, tuplas, sets, generadores y más. Aceptá lo más abstracto que necesites."
+explanation = "`Iterable` accepts lists, tuples, sets, generators and more. Accept the most abstract type you need."

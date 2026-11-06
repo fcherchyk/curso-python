@@ -1,46 +1,46 @@
 import json
 
 import pytest
-from exercise import Estado, Permiso, Prioridad, mas_urgentes, puede
+from exercise import Permission, Priority, Status, can, most_urgent
 
 
-def test_estado_es_string():
-    assert Estado.PENDIENTE == "pendiente"
-    assert Estado("en_curso") is Estado.EN_CURSO
-    assert json.dumps({"e": Estado.TERMINADO}) == '{"e": "terminado"}'
+def test_status_is_string():
+    assert Status.PENDING == "pending"
+    assert Status("in_progress") is Status.IN_PROGRESS
+    assert json.dumps({"s": Status.DONE}) == '{"s": "done"}'
 
 
-def test_estado_siguiente():
-    assert Estado.PENDIENTE.siguiente() is Estado.EN_CURSO
-    assert Estado.EN_CURSO.siguiente() is Estado.TERMINADO
+def test_status_next():
+    assert Status.PENDING.next() is Status.IN_PROGRESS
+    assert Status.IN_PROGRESS.next() is Status.DONE
     with pytest.raises(ValueError):
-        Estado.TERMINADO.siguiente()
+        Status.DONE.next()
 
 
-def test_estado_es_final():
-    assert Estado.TERMINADO.es_final
-    assert not Estado.PENDIENTE.es_final
+def test_status_is_final():
+    assert Status.DONE.is_final
+    assert not Status.PENDING.is_final
 
 
-def test_prioridad_ordenable():
-    assert Prioridad.ALTA > Prioridad.BAJA
-    assert Prioridad.MEDIA == 2
+def test_priority_sortable():
+    assert Priority.HIGH > Priority.LOW
+    assert Priority.MEDIUM == 2
 
 
-def test_mas_urgentes():
-    tareas = [
-        ("a", Prioridad.BAJA),
-        ("b", Prioridad.ALTA),
-        ("c", Prioridad.MEDIA),
-        ("d", Prioridad.ALTA),
+def test_most_urgent():
+    tasks = [
+        ("a", Priority.LOW),
+        ("b", Priority.HIGH),
+        ("c", Priority.MEDIUM),
+        ("d", Priority.HIGH),
     ]
-    assert mas_urgentes(tareas) == ["b", "d", "c", "a"]
+    assert most_urgent(tasks) == ["b", "d", "c", "a"]
 
 
-def test_permisos():
-    rw = Permiso.LEER | Permiso.ESCRIBIR
-    assert puede(rw, Permiso.LEER)
-    assert puede(rw, Permiso.LEER | Permiso.ESCRIBIR)
-    assert not puede(rw, Permiso.BORRAR)
-    assert not puede(rw, Permiso.TODOS)
-    assert puede(Permiso.TODOS, Permiso.BORRAR)
+def test_permissions():
+    rw = Permission.READ | Permission.WRITE
+    assert can(rw, Permission.READ)
+    assert can(rw, Permission.READ | Permission.WRITE)
+    assert not can(rw, Permission.DELETE)
+    assert not can(rw, Permission.ALL)
+    assert can(Permission.ALL, Permission.DELETE)

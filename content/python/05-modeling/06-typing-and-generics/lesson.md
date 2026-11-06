@@ -1,166 +1,167 @@
-# Tipado moderno y genéricos
+# Modern typing and generics
 
-Los *type hints* no cambian cómo corre Python, pero cambian cómo se **escribe** y cómo se
-**mantiene**: el editor autocompleta, mypy o pyright encuentran bugs antes de ejecutar y la
-firma de una función documenta qué espera y qué devuelve. FastAPI, Pydantic y SQLAlchemy 2.0
-usan los tipos para generar validación, esquemas y consultas. Este capítulo es la chuleta de
-la sintaxis moderna (3.10 a 3.12).
+*Type hints* don't change how Python runs, but they change how code is **written** and
+**maintained**: the editor autocompletes, mypy or pyright find bugs before you run anything,
+and a function's signature documents what it expects and what it returns. FastAPI, Pydantic
+and SQLAlchemy 2.0 use types to generate validation, schemas and queries. This chapter is a
+cheat sheet for the modern syntax (3.10 to 3.12).
 
-## Lo básico, en su versión moderna
+## The basics, modern version
 
 ```python
-def buscar(ids: list[int], cache: dict[str, float] | None = None) -> tuple[int, ...]:
+def find(ids: list[int], cache: dict[str, float] | None = None) -> tuple[int, ...]:
     ...
 ```
 
-Ya **no** hace falta importar `List`, `Dict`, `Optional` ni `Union` de `typing`:
+You **no longer** need to import `List`, `Dict`, `Optional` or `Union` from `typing`:
 
-| Antes (≤ 3.8)                   | Ahora                    |
+| Before (≤ 3.8)                  | Now                      |
 |---------------------------------|--------------------------|
 | `List[int]`, `Dict[str, int]`   | `list[int]`, `dict[str, int]` (3.9) |
 | `Optional[str]`                 | `str \| None` (3.10)      |
 | `Union[int, str]`               | `int \| str` (3.10)       |
 | `Tuple[int, ...]`               | `tuple[int, ...]`        |
 
-Otros que vas a usar seguido:
+Others you'll use often:
 
 ```python
 from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from typing import Any, Literal, TypedDict, Self, Final, ClassVar
 
-Callable[[int, str], bool]       # función (int, str) -> bool
-Callable[..., Any]               # cualquier función
-Literal["r", "w", "a"]           # solo esos valores exactos
-Final                            # constante: no reasignar
+Callable[[int, str], bool]       # function (int, str) -> bool
+Callable[..., Any]               # any function
+Literal["r", "w", "a"]           # only those exact values
+Final                            # constant: don't reassign
 ```
 
-`Any` desactiva el chequeo: usalo como último recurso. Para "un objeto cualquiera que no voy
-a tocar", `object` es más seguro.
+`Any` turns checking off: use it as a last resort. For "any object I'm not going to touch",
+`object` is safer.
 
-## `TypedDict`: tipar dicts con forma conocida
+## `TypedDict`: typing dicts with a known shape
 
-Cuando trabajás con JSON o con dicts que tienen claves fijas:
+When you work with JSON or dicts that have fixed keys:
 
 ```python
 from typing import TypedDict, NotRequired
 
-class UsuarioJSON(TypedDict):
+class UserJSON(TypedDict):
     id: int
-    nombre: str
+    name: str
     email: NotRequired[str]
 
-def saludar(u: UsuarioJSON) -> str:
-    return f"hola {u['nombre']}"        # mypy sabe que 'nombre' es str
+def greet(u: UserJSON) -> str:
+    return f"hello {u['name']}"         # mypy knows 'name' is a str
 ```
 
-En runtime sigue siendo un `dict` común: solo existe para el type checker.
+At runtime it's still a plain `dict`: it only exists for the type checker.
 
-## Alias de tipos: `type` (3.12)
+## Type aliases: `type` (3.12)
 
 ```python
 type Json = dict[str, Json] | list[Json] | str | int | float | bool | None
-type Matriz = list[list[float]]
+type Matrix = list[list[float]]
 
-def cargar(texto: str) -> Json: ...
+def load(text: str) -> Json: ...
 ```
 
-Los alias dan nombre a tipos largos y permiten recursión (como en `Json`).
+Aliases give names to long types and allow recursion (as in `Json`).
 
-## Genéricos: funciones y clases parametrizadas por tipo
+## Generics: functions and classes parameterized by type
 
-Un genérico es un "tipo con un hueco". `list[int]` y `list[str]` son la misma clase con
-distinto parámetro. Desde 3.12 hay una sintaxis directa para escribir los tuyos:
+A generic is a "type with a hole". `list[int]` and `list[str]` are the same class with a
+different parameter. Since 3.12 there's a direct syntax for writing your own:
 
 ```python
-def primero[T](xs: Iterable[T], default: T | None = None) -> T | None:
+def first[T](xs: Iterable[T], default: T | None = None) -> T | None:
     return next(iter(xs), default)
 
-primero([1, 2])          # mypy infiere: int | None
-primero(["a"])           # str | None
+first([1, 2])            # mypy infers: int | None
+first(["a"])             # str | None
 ```
 
-`[T]` declara una **variable de tipo**: la función funciona con cualquier `T`, pero el tipo
-de entrada y el de salida quedan **ligados**.
+`[T]` declares a **type variable**: the function works with any `T`, but the input type
+and the output type are **tied together**.
 
 ```python
-class Pila[T]:
+class Stack[T]:
     def __init__(self) -> None:
         self._items: list[T] = []
 
-    def apilar(self, item: T) -> None:
+    def push(self, item: T) -> None:
         self._items.append(item)
 
-    def desapilar(self) -> T:
+    def pop(self) -> T:
         return self._items.pop()
 
-p = Pila[int]()
-p.apilar(1)
-p.apilar("x")            # mypy: error, se esperaba int
+s = Stack[int]()
+s.push(1)
+s.push("x")              # mypy: error, expected int
 ```
 
-Se pueden poner **cotas**:
+You can add **bounds**:
 
 ```python
-def maximo[T: (int, float)](xs: list[T]) -> T: ...      # T es int o float
-def ordenar[T: Comparable](xs: list[T]) -> list[T]: ... # T cumple un Protocol
+def maximum[T: (int, float)](xs: list[T]) -> T: ...     # T is int or float
+def sort[T: Comparable](xs: list[T]) -> list[T]: ...    # T satisfies a Protocol
 ```
 
-> Antes de 3.12 se escribía `T = TypeVar("T")` y `class Pila(Generic[T])`. Lo vas a ver en
-> mucho código existente; significa lo mismo.
+> Before 3.12 you wrote `T = TypeVar("T")` and `class Stack(Generic[T])`. You'll see it in
+> a lot of existing code; it means the same thing.
 
-## `Self`: métodos que devuelven la propia clase
+## `Self`: methods that return their own class
 
 ```python
 from typing import Self
 
-class Consulta:
-    def filtrar(self, cond: str) -> Self:    # sirve también en subclases
+class Query:
+    def filter(self, cond: str) -> Self:     # works in subclasses too
         ...
         return self
 ```
 
-## Los tipos no se verifican al ejecutar
+## Types aren't checked at runtime
 
 ```python
-def doble(x: int) -> int:
+def double(x: int) -> int:
     return x * 2
 
-doble("ab")      # 'abab': Python no se queja
+double("ab")     # 'abab': Python doesn't complain
 ```
 
-Para aprovechar los tipos hay que **correr un type checker**: `mypy`, `pyright` (el que usa
-VS Code) o `ty`. Lo configuramos en el módulo de herramientas. Si además necesitás validar
-datos **en runtime** (entradas externas), eso es Pydantic.
+To get value from types you have to **run a type checker**: `mypy`, `pyright` (the one
+VS Code uses) or `ty`. We set it up in the tooling module. If you also need to validate
+data **at runtime** (external input), that's Pydantic.
 
-Los tipos quedan disponibles para introspección, que es lo que usan los frameworks:
+Types remain available for introspection, which is what frameworks use:
 
 ```python
-doble.__annotations__        # {'x': <class 'int'>, 'return': <class 'int'>}
-Pila.__type_params__         # (T,)
+double.__annotations__       # {'x': <class 'int'>, 'return': <class 'int'>}
+Stack.__type_params__        # (T,)
 ```
 
-## Consejos prácticos
+## Practical tips
 
-- Tipá las **firmas** (parámetros y retorno): ahí está el 90 % del valor. Las variables
-  locales se infieren solas.
-- Aceptá tipos abstractos (`Iterable`, `Mapping`) y devolvé concretos (`list`, `dict`).
-- Si algo puede ser `None`, que lo diga el tipo (`str | None`), y mypy te obliga a manejarlo.
-- Evitá `Any`; si una librería no tiene tipos, aislala detrás de una función tipada.
+- Type the **signatures** (parameters and return): that's 90% of the value. Local
+  variables are inferred.
+- Accept abstract types (`Iterable`, `Mapping`) and return concrete ones (`list`, `dict`).
+- If something can be `None`, let the type say so (`str | None`), and mypy will force you to
+  handle it.
+- Avoid `Any`; if a library has no types, isolate it behind a typed function.
 
-## Resumen
+## Summary
 
-- `list[int]`, `dict[str, X]`, `X | None`: sin imports de `typing`.
-- `Callable`, `Iterable` y `Mapping` vienen de `collections.abc`; `Literal`, `TypedDict`, `Self`
-  y `Any`, de `typing`.
-- `type Alias = ...` para nombrar tipos (3.12).
-- Genéricos con `def f[T](...)` y `class C[T]:` (3.12), con cotas opcionales.
-- Los tipos no se verifican solos: hace falta mypy o pyright.
+- `list[int]`, `dict[str, X]`, `X | None`: no `typing` imports.
+- `Callable`, `Iterable` and `Mapping` come from `collections.abc`; `Literal`, `TypedDict`, `Self`
+  and `Any`, from `typing`.
+- `type Alias = ...` to name types (3.12).
+- Generics with `def f[T](...)` and `class C[T]:` (3.12), with optional bounds.
+- Types don't check themselves: you need mypy or pyright.
 
-## Ejercicio
+## Exercise
 
-Una pila genérica y dos funciones genéricas con la sintaxis de 3.12, más un `TypedDict` para
-datos tipo JSON.
+A generic stack and two generic functions with the 3.12 syntax, plus a `TypedDict` for
+JSON-like data.
 
-**Para profundizar:** [typing](https://docs.python.org/3/library/typing.html),
+**Further reading:** [typing](https://docs.python.org/3/library/typing.html),
 [PEP 695 — Type Parameter Syntax](https://peps.python.org/pep-0695/),
 [mypy cheat sheet](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html).

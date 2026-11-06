@@ -1,132 +1,135 @@
 # Interfaces: Protocol vs. ABC
 
-Python no tiene la palabra clave `interface`. Tiene **duck typing** ("si camina como pato y
-hace cuac, es un pato") y dos herramientas para formalizarlo: las **clases base abstractas**
-(ABC), que exigen herencia, y los **Protocol**, que describen una forma sin exigir nada. Saber
-cuál usar en cada caso es parte de diseñar APIs pythónicas.
+Python has no `interface` keyword. It has **duck typing** ("if it walks like a duck and
+quacks like a duck, it's a duck") and two tools to formalize it: **abstract base classes**
+(ABCs), which require inheritance, and **Protocols**, which describe a shape without requiring
+anything. Knowing which one to use in each case is part of designing Pythonic APIs.
 
-## Duck typing: el punto de partida
+## Duck typing: the starting point
 
 ```python
-def area_total(figuras):
-    return sum(f.area() for f in figuras)
+def total_area(shapes):
+    return sum(s.area() for s in shapes)
 ```
 
-A esta función no le importa **qué es** cada figura, sino **qué sabe hacer**: tener un método
-`area()`. Cualquier objeto que lo tenga sirve. Es flexible, pero la "interfaz" solo está en
-tu cabeza. Si alguien pasa un objeto sin `area`, se entera al ejecutar.
+This function doesn't care **what** each shape is, but **what it can do**: have an `area()`
+method. Any object that has it will do. It's flexible, but the "interface" only lives in
+your head. If someone passes an object without `area`, they find out at runtime.
 
-## ABC: interfaz nominal, con herencia
+## ABC: nominal interface, with inheritance
 
 ```python
 from abc import ABC, abstractmethod
 
-class Notificador(ABC):
+class Notifier(ABC):
     @abstractmethod
-    def enviar(self, destino: str, mensaje: str) -> bool:
-        """Envía un mensaje. Devuelve True si salió bien."""
+    def send(self, recipient: str, message: str) -> bool:
+        """Sends a message. Returns True if it went through."""
 
-    def enviar_a_todos(self, destinos: list[str], mensaje: str) -> int:
-        # método concreto que usa al abstracto (patrón "template method")
-        return sum(self.enviar(d, mensaje) for d in destinos)
+    def send_to_all(self, recipients: list[str], message: str) -> int:
+        # concrete method that uses the abstract one ("template method" pattern)
+        return sum(self.send(r, message) for r in recipients)
 
-class NotificadorEmail(Notificador):
-    def enviar(self, destino, mensaje):
+class EmailNotifier(Notifier):
+    def send(self, recipient, message):
         ...
         return True
 ```
 
-Qué te da una ABC:
+What an ABC gives you:
 
-- **No se puede instanciar** la base: `Notificador()` levanta `TypeError`.
-- **No se puede instanciar una subclase incompleta**: si `NotificadorEmail` no implementa
-  `enviar`, falla al crear la instancia (no más tarde, al llamar al método).
-- Puede traer **métodos concretos** compartidos, como `enviar_a_todos`.
-- `isinstance(x, Notificador)` funciona.
+- **The base can't be instantiated**: `Notifier()` raises `TypeError`.
+- **An incomplete subclass can't be instantiated**: if `EmailNotifier` doesn't implement
+  `send`, it fails when creating the instance (not later, when calling the method).
+- It can bring shared **concrete methods**, like `send_to_all`.
+- `isinstance(x, Notifier)` works.
 
-El costo es que hay que **heredar**. No sirve para clases que no controlás (de otra librería).
+The cost is that you have to **inherit**. It doesn't work for classes you don't control (from
+another library).
 
-## Protocol: interfaz estructural, sin herencia
+## Protocol: structural interface, no inheritance
 
 ```python
 from typing import Protocol
 
-class TieneArea(Protocol):
+class HasArea(Protocol):
     def area(self) -> float: ...
 
-class Circulo:                     # no hereda de TieneArea
+class Circle:                      # doesn't inherit from HasArea
     def __init__(self, r): self.r = r
     def area(self) -> float: return math.pi * self.r ** 2
 
-def area_total(figuras: Iterable[TieneArea]) -> float:
-    return sum(f.area() for f in figuras)
+def total_area(shapes: Iterable[HasArea]) -> float:
+    return sum(s.area() for s in shapes)
 ```
 
-Un `Protocol` describe **la forma** que tiene que tener un objeto. Cualquier clase que tenga
-esos métodos, con esas firmas, **cumple automáticamente**, sin heredar ni registrarse. Es duck
-typing, pero **verificado por el type checker** (mypy o pyright): si pasás algo sin `area()`,
-lo marca antes de ejecutar.
+A `Protocol` describes **the shape** an object must have. Any class that has those methods,
+with those signatures, **conforms automatically**, without inheriting or registering. It's
+duck typing, but **checked by the type checker** (mypy or pyright): if you pass something
+without `area()`, it flags it before running.
 
-Por defecto, un Protocol **no existe al ejecutar**: `isinstance(x, TieneArea)` levanta
-`TypeError`. Si necesitás chequearlo en runtime, decoralo con `@runtime_checkable`:
+By default, a Protocol **doesn't exist at runtime**: `isinstance(x, HasArea)` raises
+`TypeError`. If you need to check it at runtime, decorate it with `@runtime_checkable`:
 
 ```python
 from typing import Protocol, runtime_checkable
 
 @runtime_checkable
-class Cerrable(Protocol):
+class Closeable(Protocol):
     def close(self) -> None: ...
 
-isinstance(open("x.txt"), Cerrable)     # True
+isinstance(open("x.txt"), Closeable)    # True
 ```
 
-Ojo: `runtime_checkable` solo verifica que **existan** los métodos, no sus firmas ni sus tipos.
+Careful: `runtime_checkable` only checks that the methods **exist**, not their signatures or types.
 
-## ¿Cuál elegir?
+## Which one to choose?
 
-| Situación                                                      | Usá          |
+| Situation                                                      | Use          |
 |----------------------------------------------------------------|--------------|
-| Tipar un parámetro: "necesito algo que tenga `.read()`"        | **Protocol** |
-| Las implementaciones son de terceros o no las controlás        | **Protocol** |
-| Querés compartir código entre implementaciones (template method) | **ABC**    |
-| Querés que falle al instanciar una implementación incompleta   | **ABC**      |
-| Es una jerarquía propia con una relación "es un" clara         | **ABC**      |
+| Typing a parameter: "I need something with `.read()`"          | **Protocol** |
+| Implementations are third-party or you don't control them      | **Protocol** |
+| You want to share code across implementations (template method) | **ABC**     |
+| You want an incomplete implementation to fail on instantiation | **ABC**      |
+| It's your own hierarchy with a clear "is a" relationship       | **ABC**      |
 
-En la práctica moderna, **Protocol es la opción por defecto para tipar dependencias**: hace
-que el código sea fácil de testear (cualquier *fake* que tenga los métodos sirve) y no acopla
-a quien implementa con tu jerarquía de clases.
+In modern practice, **Protocol is the default choice for typing dependencies**: it makes code
+easy to test (any *fake* with the methods will do) and doesn't couple implementers to your
+class hierarchy.
 
-## Las ABCs de la stdlib: `collections.abc`
+## The stdlib ABCs: `collections.abc`
 
-La stdlib define ABCs para los protocolos del lenguaje, y conviene usarlas en las anotaciones
-de tipo:
+The stdlib defines ABCs for the language's protocols, and you should use them in type
+annotations:
 
 ```python
 from collections.abc import Iterable, Iterator, Sequence, Mapping, Callable
 
-def procesar(items: Iterable[str]) -> list[str]: ...     # acepta list, set, generador…
-def buscar(tabla: Mapping[str, int], k: str) -> int: ...   # acepta dict y más
+def process(items: Iterable[str]) -> list[str]: ...      # accepts list, set, generator…
+def lookup(table: Mapping[str, int], k: str) -> int: ...   # accepts dict and more
 ```
 
-Son "mixins" inteligentes: si heredás de `collections.abc.Sequence` e implementás `__getitem__`
-y `__len__`, te regalan `__contains__`, `__iter__`, `__reversed__`, `index` y `count`.
+They're smart "mixins": if you inherit from `collections.abc.Sequence` and implement
+`__getitem__` and `__len__`, you get `__contains__`, `__iter__`, `__reversed__`, `index` and
+`count` for free.
 
-Principio útil: **aceptá lo más abstracto** (`Iterable`, `Mapping`) y **devolvé lo más
-concreto** (`list`, `dict`).
+A useful principle: **accept the most abstract type** (`Iterable`, `Mapping`) and **return the
+most concrete one** (`list`, `dict`).
 
-## Resumen
+## Summary
 
-- Duck typing: importa lo que el objeto sabe hacer, no qué es.
-- ABC: herencia obligatoria, falla al instanciar si falta algo y permite compartir código.
-- Protocol: forma estructural sin herencia, verificada por el type checker; en runtime, solo
-  con `@runtime_checkable`.
-- Para tipar dependencias, Protocol por defecto.
-- En las anotaciones, `collections.abc` (`Iterable`, `Mapping`…).
+- Duck typing: what matters is what the object can do, not what it is.
+- ABC: mandatory inheritance, fails on instantiation if something is missing, and lets you
+  share code.
+- Protocol: structural shape without inheritance, checked by the type checker; at runtime,
+  only with `@runtime_checkable`.
+- For typing dependencies, Protocol by default.
+- In annotations, `collections.abc` (`Iterable`, `Mapping`…).
 
-## Ejercicio
+## Exercise
 
-Un Protocol para figuras, una ABC con un método template y un Protocol `runtime_checkable`
-para cerrar recursos.
+A Protocol for shapes, an ABC with a template method and a `runtime_checkable` Protocol for
+closing resources.
 
-**Para profundizar:** [PEP 544 — Protocols](https://peps.python.org/pep-0544/),
-[abc](https://docs.python.org/3/library/abc.html), *Fluent Python*, cap. 13.
+**Further reading:** [PEP 544 — Protocols](https://peps.python.org/pep-0544/),
+[abc](https://docs.python.org/3/library/abc.html), *Fluent Python*, ch. 13.

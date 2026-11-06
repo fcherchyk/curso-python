@@ -1,39 +1,39 @@
 [[questions]]
-text = "Con `class E(Enum): A = \"a\"`, ¿qué devuelve `E.A == \"a\"`?"
-options = ["`True`", "`False`", "Levanta `TypeError`", "`\"a\"`"]
+text = "With `class E(Enum): A = \"a\"`, what does `E.A == \"a\"` return?"
+options = ["`True`", "`False`", "It raises `TypeError`", "`\"a\"`"]
 correct = 1
-explanation = "Un `Enum` común no es igual a su valor. Hay que comparar `E.A.value == \"a\"`, o usar `StrEnum`, cuyos miembros son strings."
+explanation = "A plain `Enum` isn't equal to its value. You have to compare `E.A.value == \"a\"`, or use `StrEnum`, whose members are strings."
 
 [[questions]]
-text = "¿Cómo obtenés el miembro a partir de su **valor** `\"enviado\"`?"
-options = ["`Estado[\"enviado\"]`", "`Estado(\"enviado\")`", "`Estado.enviado`", "`Estado.get(\"enviado\")`"]
+text = "How do you get the member from its **value** `\"shipped\"`?"
+options = ["`Status[\"shipped\"]`", "`Status(\"shipped\")`", "`Status.shipped`", "`Status.get(\"shipped\")`"]
 correct = 1
-explanation = "Llamar a la clase busca por valor. Los corchetes buscan por **nombre** (`Estado[\"ENVIADO\"]`)."
+explanation = "Calling the class looks up by value. Square brackets look up by **name** (`Status[\"SHIPPED\"]`)."
 
 [[questions]]
-text = "¿Qué ventaja concreta tiene `StrEnum` al serializar a JSON?"
+text = "What concrete advantage does `StrEnum` have when serializing to JSON?"
 options = [
-  "Ninguna",
-  "Los miembros son `str`, así que `json.dumps` los serializa directamente",
-  "Comprime los valores",
-  "Valida el esquema del JSON",
+  "None",
+  "Members are `str`, so `json.dumps` serializes them directly",
+  "It compresses the values",
+  "It validates the JSON schema",
 ]
 correct = 1
-explanation = "Como cada miembro es también un `str`, `json.dumps` lo trata como un string común, sin conversión manual."
+explanation = "Since each member is also a `str`, `json.dumps` treats it like a regular string, with no manual conversion."
 
 [[questions]]
-text = "En un `match`, ¿qué hace `case PENDIENTE:` (sin el nombre de la clase)?"
+text = "In a `match`, what does `case PENDING:` (without the class name) do?"
 options = [
-  "Compara con `Estado.PENDIENTE`",
-  "Captura cualquier valor en una variable llamada `PENDIENTE`",
-  "Levanta `NameError`",
-  "Compara con el string `\"PENDIENTE\"`",
+  "Compares with `Status.PENDING`",
+  "Captures any value into a variable named `PENDING`",
+  "Raises `NameError`",
+  "Compares with the string `\"PENDING\"`",
 ]
 correct = 1
-explanation = "Un nombre suelto en un patrón es una captura, y siempre matchea. Para comparar hay que usar un nombre con punto: `case Estado.PENDIENTE:`."
+explanation = "A bare name in a pattern is a capture, and it always matches. To compare you need a dotted name: `case Status.PENDING:`."
 
 [[questions]]
-text = "Para representar permisos combinables (leer + escribir), ¿qué conviene?"
-options = ["`StrEnum`", "`IntEnum`", "`Flag`", "Una lista de strings"]
+text = "To represent combinable permissions (read + write), what's the best fit?"
+options = ["`StrEnum`", "`IntEnum`", "`Flag`", "A list of strings"]
 correct = 2
-explanation = "`Flag` permite combinar miembros con `|`, consultar con `in` y operar con `&`."
+explanation = "`Flag` lets you combine members with `|`, check with `in` and operate with `&`."

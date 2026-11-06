@@ -1,174 +1,173 @@
 # Dataclasses
 
-En el capítulo anterior escribiste `__init__`, `__repr__`, `__eq__` y `__hash__` a mano.
-`@dataclass` los **genera** a partir de las anotaciones de la clase. Es la forma idiomática
-de definir objetos que son principalmente datos: DTOs, registros, configuraciones,
-entidades de dominio.
+In the previous chapter you wrote `__init__`, `__repr__`, `__eq__` and `__hash__` by hand.
+`@dataclass` **generates** them from the class annotations. It's the idiomatic way to define
+objects that are mostly data: DTOs, records, configurations, domain entities.
 
-## Lo mínimo
+## The bare minimum
 
 ```python
 from dataclasses import dataclass
 
 @dataclass
-class Producto:
+class Product:
     sku: str
-    nombre: str
-    precio: float = 0.0          # con default
+    name: str
+    price: float = 0.0           # with a default
 
-p = Producto("A1", "Yerba", 3500)
-p                                # Producto(sku='A1', nombre='Yerba', precio=3500)
-p == Producto("A1", "Yerba", 3500)   # True: compara campo a campo
+p = Product("A1", "Coffee", 3500)
+p                                # Product(sku='A1', name='Coffee', price=3500)
+p == Product("A1", "Coffee", 3500)   # True: compares field by field
 ```
 
-Se generan `__init__`, `__repr__` y `__eq__`. Los **campos** son los atributos de clase
-**anotados**. Los atributos sin anotación no son campos.
+It generates `__init__`, `__repr__` and `__eq__`. The **fields** are the **annotated** class
+attributes. Attributes without an annotation aren't fields.
 
-Regla: los campos con default van **después** de los que no tienen default, igual que en
-cualquier firma de función. Si no, `TypeError: non-default argument follows default argument`.
+Rule: fields with a default go **after** fields without one, just like in any function
+signature. Otherwise, `TypeError: non-default argument follows default argument`.
 
-## Defaults mutables: `field(default_factory=...)`
+## Mutable defaults: `field(default_factory=...)`
 
 ```python
 from dataclasses import field
 
 @dataclass
-class Carrito:
+class Cart:
     items: list[str] = []                         # ValueError: mutable default
-    items: list[str] = field(default_factory=list)   # ✓ una lista nueva por instancia
+    items: list[str] = field(default_factory=list)   # ✓ a new list per instance
 ```
 
-Es la misma trampa del default mutable de las funciones, pero `dataclass` **la detecta** y te
-frena. `default_factory` recibe una función sin argumentos (`list`, `dict`, `set` o
-`lambda: {"a": 1}`) que se llama para cada instancia nueva.
+It's the same mutable-default trap as with functions, but `dataclass` **detects it** and
+stops you. `default_factory` takes a no-argument function (`list`, `dict`, `set` or
+`lambda: {"a": 1}`) that's called for every new instance.
 
-Otras opciones de `field`:
+Other `field` options:
 
 ```python
-id: int = field(default=0, repr=False)         # no aparece en el repr
-cache: dict = field(default_factory=dict, compare=False)   # no participa de ==
-_interno: int = field(init=False, default=0)    # no está en el __init__
+id: int = field(default=0, repr=False)         # doesn't show up in the repr
+cache: dict = field(default_factory=dict, compare=False)   # doesn't take part in ==
+_internal: int = field(init=False, default=0)   # not in the __init__
 ```
 
-## Opciones del decorador
+## Decorator options
 
 ```python
 @dataclass(frozen=True, order=True, slots=True, kw_only=True)
 ```
 
-| Opción          | Qué hace                                                            |
+| Option          | What it does                                                        |
 |-----------------|---------------------------------------------------------------------|
-| `frozen=True`   | inmutable (asignar levanta `FrozenInstanceError`) **y hashable**    |
-| `order=True`    | genera `<`, `<=`, `>`, `>=` comparando los campos como una tupla, en orden |
-| `slots=True`    | (3.10) usa `__slots__`: menos memoria, acceso más rápido, no se pueden agregar atributos |
-| `kw_only=True`  | (3.10) todos los campos son solo keyword en el `__init__`           |
-| `eq=False`      | no genera `__eq__` (igualdad por identidad)                          |
+| `frozen=True`   | immutable (assigning raises `FrozenInstanceError`) **and hashable** |
+| `order=True`    | generates `<`, `<=`, `>`, `>=` comparing the fields as a tuple, in order |
+| `slots=True`    | (3.10) uses `__slots__`: less memory, faster access, no new attributes can be added |
+| `kw_only=True`  | (3.10) every field is keyword-only in the `__init__`                |
+| `eq=False`      | doesn't generate `__eq__` (equality by identity)                    |
 
-`frozen=True` es una muy buena opción por defecto para objetos de valor (puntos, dinero,
-versiones, coordenadas): son más fáciles de razonar, se pueden compartir sin miedo y se
-pueden usar en sets y como claves de dict.
+`frozen=True` is a great default for value objects (points, money, versions, coordinates):
+they're easier to reason about, can be shared without fear and can be used in sets and as
+dict keys.
 
-`order=True` compara los campos **en el orden en que están declarados**. Por eso, el orden
-de los campos pasa a ser parte del diseño:
+`order=True` compares the fields **in the order they're declared**. So field order becomes
+part of the design:
 
 ```python
 @dataclass(frozen=True, order=True)
 class Version:
-    mayor: int
-    menor: int = 0
-    parche: int = 0
+    major: int
+    minor: int = 0
+    patch: int = 0
 
 sorted([Version(1, 10), Version(1, 2)])     # [Version(1, 2, 0), Version(1, 10, 0)]
 ```
 
-## Validar: `__post_init__`
+## Validating: `__post_init__`
 
-El `__init__` generado llama a `__post_init__` al final, si existe. Es el lugar para validar
-o calcular campos derivados:
+The generated `__init__` calls `__post_init__` at the end, if it exists. That's the place to
+validate or compute derived fields:
 
 ```python
 @dataclass
-class Rango:
-    desde: int
-    hasta: int
+class Range:
+    start: int
+    end: int
 
     def __post_init__(self) -> None:
-        if self.desde > self.hasta:
-            raise ValueError(f"rango inválido: {self.desde} > {self.hasta}")
+        if self.start > self.end:
+            raise ValueError(f"invalid range: {self.start} > {self.end}")
 ```
 
-En un dataclass `frozen`, para asignar un campo derivado dentro de `__post_init__` hay que
-usar `object.__setattr__(self, "campo", valor)`, porque la asignación normal está bloqueada.
+In a `frozen` dataclass, to set a derived field inside `__post_init__` you have to use
+`object.__setattr__(self, "field", value)`, because normal assignment is blocked.
 
-## "Modificar" un frozen: `replace`
+## "Modifying" a frozen one: `replace`
 
 ```python
 from dataclasses import replace
 
 v = Version(1, 2, 3)
-v2 = replace(v, parche=4)       # copia con un campo cambiado; v no se toca
+v2 = replace(v, patch=4)        # copy with one field changed; v is untouched
 ```
 
-Así se trabaja con objetos inmutables: en lugar de mutar, se crean versiones nuevas.
+That's how you work with immutable objects: instead of mutating, you create new versions.
 
-## Utilidades
+## Utilities
 
 ```python
 from dataclasses import asdict, astuple, fields
 
-asdict(p)       # {'sku': 'A1', 'nombre': 'Yerba', 'precio': 3500}  (recursivo)
-astuple(p)      # ('A1', 'Yerba', 3500)
+asdict(p)       # {'sku': 'A1', 'name': 'Coffee', 'price': 3500}  (recursive)
+astuple(p)      # ('A1', 'Coffee', 3500)
 [f.name for f in fields(p)]
 ```
 
-`asdict` es útil para serializar a JSON: `json.dumps(asdict(p))`.
+`asdict` is handy for serializing to JSON: `json.dumps(asdict(p))`.
 
-## Métodos y properties siguen funcionando
+## Methods and properties still work
 
-Una dataclass es una clase normal. Podés agregarle métodos, properties, classmethods y
-dunders propios. Si definís un método que el decorador también generaría (por ejemplo,
-`__repr__`), **se respeta el tuyo**.
+A dataclass is a regular class. You can add methods, properties, classmethods and your own
+dunders. If you define a method the decorator would also generate (for example,
+`__repr__`), **yours is kept**.
 
 ```python
 @dataclass(frozen=True, order=True)
 class Version:
-    mayor: int
-    menor: int = 0
-    parche: int = 0
+    major: int
+    minor: int = 0
+    patch: int = 0
 
     @classmethod
-    def desde_str(cls, texto: str) -> "Version":
-        return cls(*(int(p) for p in texto.split(".")))
+    def from_str(cls, text: str) -> "Version":
+        return cls(*(int(p) for p in text.split(".")))
 
     def __str__(self) -> str:
-        return f"{self.mayor}.{self.menor}.{self.parche}"
+        return f"{self.major}.{self.minor}.{self.patch}"
 ```
 
-## ¿Dataclass, NamedTuple, dict o Pydantic?
+## Dataclass, NamedTuple, dict or Pydantic?
 
-| Opción             | Cuándo                                                              |
+| Option             | When                                                                |
 |--------------------|---------------------------------------------------------------------|
-| `dict`             | datos sueltos y temporales, o JSON que solo pasa de largo            |
-| `typing.NamedTuple`| registros inmutables chicos que además querés desempaquetar o indexar |
-| `@dataclass`       | objetos de tu dominio, internos: el caso por defecto                |
-| Pydantic `BaseModel` | datos que vienen **de afuera** (JSON de una API, config) y hay que **validar y convertir** |
+| `dict`             | loose, temporary data, or JSON that's just passing through          |
+| `typing.NamedTuple`| small immutable records you also want to unpack or index            |
+| `@dataclass`       | internal objects of your domain: the default choice                 |
+| Pydantic `BaseModel` | data coming **from outside** (API JSON, config) that has to be **validated and converted** |
 
-Las dataclasses **no validan tipos**: `Producto("A1", "Yerba", "caro")` se crea sin quejarse.
-Las anotaciones son para las herramientas. Si necesitás validación real al recibir datos
-externos, eso es Pydantic, que vemos en el módulo de frameworks.
+Dataclasses **don't validate types**: `Product("A1", "Coffee", "pricey")` is created without
+complaint. Annotations are for tools. If you need real validation when receiving external
+data, that's Pydantic, which we cover in the frameworks module.
 
-## Resumen
+## Summary
 
-- `@dataclass` genera `__init__`, `__repr__` y `__eq__` a partir de las anotaciones.
-- Para defaults mutables, `field(default_factory=list)`.
-- `frozen=True` da objetos inmutables y hashables; `order=True` compara por los campos en orden.
-- `__post_init__` para validar; `replace` para "modificar" un frozen; `asdict` para serializar.
-- No valida tipos: para datos externos, Pydantic.
+- `@dataclass` generates `__init__`, `__repr__` and `__eq__` from the annotations.
+- For mutable defaults, `field(default_factory=list)`.
+- `frozen=True` gives immutable, hashable objects; `order=True` compares by fields in order.
+- `__post_init__` to validate; `replace` to "modify" a frozen one; `asdict` to serialize.
+- No type validation: for external data, Pydantic.
 
-## Ejercicio
+## Exercise
 
-Un `Punto` frozen, una `Version` comparable y un `Pedido` con default mutable, validación y
-operaciones inmutables.
+A frozen `Point`, a comparable `Version` and an `Order` with a mutable default, validation
+and immutable operations.
 
-**Para profundizar:** [dataclasses](https://docs.python.org/3/library/dataclasses.html),
-[PEP 557](https://peps.python.org/pep-0557/), *Fluent Python*, cap. 5.
+**Further reading:** [dataclasses](https://docs.python.org/3/library/dataclasses.html),
+[PEP 557](https://peps.python.org/pep-0557/), *Fluent Python*, ch. 5.

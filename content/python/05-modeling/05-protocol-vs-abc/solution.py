@@ -4,50 +4,50 @@ from collections.abc import Iterable
 from typing import Protocol, runtime_checkable
 
 
-class TieneArea(Protocol):
+class HasArea(Protocol):
     def area(self) -> float: ...
 
 
-class Circulo:
-    def __init__(self, radio: float) -> None:
-        self.radio = radio
+class Circle:
+    def __init__(self, radius: float) -> None:
+        self.radius = radius
 
     def area(self) -> float:
-        return math.pi * self.radio**2
+        return math.pi * self.radius**2
 
 
-def area_total(figuras: Iterable[TieneArea]) -> float:
-    return sum(f.area() for f in figuras)
+def total_area(shapes: Iterable[HasArea]) -> float:
+    return sum(s.area() for s in shapes)
 
 
-class Notificador(ABC):
+class Notifier(ABC):
     @abstractmethod
-    def enviar(self, destino: str, mensaje: str) -> bool: ...
+    def send(self, recipient: str, message: str) -> bool: ...
 
-    def enviar_a_todos(self, destinos: Iterable[str], mensaje: str) -> int:
-        return sum(self.enviar(d, mensaje) for d in destinos)
+    def send_to_all(self, recipients: Iterable[str], message: str) -> int:
+        return sum(self.send(r, message) for r in recipients)
 
 
-class NotificadorMemoria(Notificador):
+class InMemoryNotifier(Notifier):
     def __init__(self) -> None:
-        self.enviados: list[tuple[str, str]] = []
+        self.sent: list[tuple[str, str]] = []
 
-    def enviar(self, destino: str, mensaje: str) -> bool:
-        if not destino:
+    def send(self, recipient: str, message: str) -> bool:
+        if not recipient:
             return False
-        self.enviados.append((destino, mensaje))
+        self.sent.append((recipient, message))
         return True
 
 
 @runtime_checkable
-class Cerrable(Protocol):
+class Closeable(Protocol):
     def close(self) -> None: ...
 
 
-def cerrar_todos(objetos: Iterable[object]) -> int:
-    cerrados = 0
-    for obj in objetos:
-        if isinstance(obj, Cerrable):
+def close_all(objects: Iterable[object]) -> int:
+    closed = 0
+    for obj in objects:
+        if isinstance(obj, Closeable):
             obj.close()
-            cerrados += 1
-    return cerrados
+            closed += 1
+    return closed
