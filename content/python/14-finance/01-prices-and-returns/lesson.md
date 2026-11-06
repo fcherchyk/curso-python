@@ -1,123 +1,123 @@
-# Precios y retornos
+# Prices and returns
 
-En finanzas casi nunca se trabaja con precios directamente, sino con **retornos**: cuánto
-cambió el precio en proporción. Un precio de 100 contra uno de 50 no dice nada. Que ambos
-subieron un 2 % ayer sí permite compararlos. Este capítulo arma la base de todo el módulo.
+In finance you almost never work with prices directly, but with **returns**: how much the
+price changed, proportionally. A price of 100 versus one of 50 tells you nothing. Knowing that
+both went up 2 % yesterday does let you compare them. This chapter lays the groundwork for the whole module.
 
-## Los datos
+## The data
 
-Cada capítulo trae `precios.csv`: precios de cierre diarios **sintéticos** de cuatro acciones
-inventadas (`ACME`, `BETA`, `CIRC`, `DELTA`) y un índice de mercado (`INDICE`), entre 2023 y
-2025. Son sintéticos para que los tests sean reproducibles y no dependan de internet. Con datos
-reales el código es idéntico:
+Every chapter ships `prices.csv`: **synthetic** daily closing prices for four made-up stocks
+(`ACME`, `BETA`, `CIRC`, `DELTA`) and a market index (`INDEX`), from 2023 to 2025. They are
+synthetic so the tests are reproducible and don't depend on the internet. With real data the
+code is identical:
 
 ```python
 import yfinance as yf                                        # pip install yfinance
-precios = yf.download(["AAPL", "MSFT", "SPY"], start="2023-01-01")["Close"]
+prices = yf.download(["AAPL", "MSFT", "SPY"], start="2023-01-01")["Close"]
 ```
 
 ```python
-precios = pd.read_csv("precios.csv", parse_dates=["fecha"], index_col="fecha")
-precios.shape          # (783, 5): ~252 días hábiles por año
+prices = pd.read_csv("prices.csv", parse_dates=["date"], index_col="date")
+prices.shape          # (783, 5): ~252 trading days per year
 ```
 
-Solo hay **días hábiles**: un año bursátil tiene unas **252** ruedas. Ese número aparece cada
-vez que se anualiza algo.
+There are only **trading days**: a market year has about **252** sessions. That number shows up
+every time you annualize something.
 
-## Retorno simple
+## Simple return
 
 ```text
 r_t = P_t / P_{t-1} - 1
 ```
 
 ```python
-retornos = precios.pct_change().dropna()   # el primer día no tiene anterior: NaN
+returns = prices.pct_change().dropna()   # the first day has no previous day: NaN
 ```
 
 ```
-              ACME    BETA    CIRC   DELTA  INDICE
-fecha
+              ACME    BETA    CIRC   DELTA   INDEX
+date
 2023-01-03  0.0225  0.0248  0.0263  0.0078  0.0170
 2023-01-04  0.0179  0.0145  0.0052  0.0037  0.0119
 ```
 
-Propiedades:
+Properties:
 
-- **Se agregan entre activos**: el retorno de un portafolio es el promedio ponderado de los
-  retornos simples de sus activos (lo vamos a usar en el capítulo de portafolios).
-- **No se suman en el tiempo**: +10 % y luego −10 % no da 0 sino 1.1 × 0.9 − 1 = −1 %.
-  Se **componen**: el acumulado es el producto.
+- **They aggregate across assets**: a portfolio's return is the weighted average of the simple
+  returns of its assets (we'll use this in the portfolios chapter).
+- **They don't add up over time**: +10 % followed by −10 % is not 0 but 1.1 × 0.9 − 1 = −1 %.
+  They **compound**: the cumulative return is the product.
 
 ```python
-acumulado = (1 + retornos).prod() - 1      # ACME: 0.4118 → +41.18 % en todo el período
-curva = (1 + retornos).cumprod()           # evolución de $1 invertido
+cumulative = (1 + returns).prod() - 1      # ACME: 0.4118 → +41.18 % over the whole period
+curve = (1 + returns).cumprod()            # growth of $1 invested
 ```
 
-## Retorno logarítmico
+## Log return
 
 ```text
 l_t = ln(P_t / P_{t-1}) = ln(1 + r_t)
 ```
 
 ```python
-log_ret = np.log(precios / precios.shift(1)).dropna()
+log_ret = np.log(prices / prices.shift(1)).dropna()
 ```
 
-- **Se suman en el tiempo**: el log-retorno de todo el período es la suma de los diarios.
-  `log_ret.sum()` en ACME da 0.3449, y `np.exp(0.3449) - 1` da 0.4118, el mismo acumulado.
-- Para cambios chicos, `l ≈ r`. Con cambios grandes divergen.
-- **No se agregan entre activos**: el log-retorno de un portafolio no es el promedio de los
-  log-retornos.
+- **They add up over time**: the log return of the whole period is the sum of the daily ones.
+  `log_ret.sum()` for ACME gives 0.3449, and `np.exp(0.3449) - 1` gives 0.4118, the same cumulative return.
+- For small changes, `l ≈ r`. With large changes they diverge.
+- **They don't aggregate across assets**: a portfolio's log return is not the average of the
+  log returns.
 
-Regla práctica: **simples para portafolios** y **log para sumar en el tiempo o para modelos
-estadísticos**.
+Rule of thumb: **simple for portfolios** and **log for adding over time or for statistical
+models**.
 
-## Anualizar
+## Annualizing
 
-Un retorno total del 41 % en tres años no se compara directamente con uno del 15 % en uno.
-Hay que llevarlos a una base común, el **año**:
+A 41 % total return over three years can't be compared directly with a 15 % return over one.
+You have to bring them to a common basis, the **year**:
 
 ```text
-R_anual = (1 + R_total) ^ (252 / n) - 1
+R_annual = (1 + R_total) ^ (252 / n) - 1
 ```
 
-con `n` la cantidad de retornos diarios. Es interés compuesto al revés.
+where `n` is the number of daily returns. It's compound interest in reverse.
 
 ```python
-anual = (1 + retornos).prod() ** (252 / len(retornos)) - 1    # ACME: 0.1175
+annual = (1 + returns).prod() ** (252 / len(returns)) - 1    # ACME: 0.1175
 ```
 
-**No** multipliques el retorno diario promedio por 252: ignora la composición y sobreestima
-cuando hay volatilidad.
+Do **not** multiply the average daily return by 252: it ignores compounding and overestimates
+when there is volatility.
 
 ## CAGR
 
-La **tasa de crecimiento anual compuesta** es la misma idea, pero medida con fechas de calendario
-en lugar de contar ruedas:
+The **compound annual growth rate** is the same idea, but measured with calendar dates instead
+of counting sessions:
 
 ```text
-CAGR = (P_final / P_inicial) ^ (1 / años) - 1
+CAGR = (P_final / P_initial) ^ (1 / years) - 1
 ```
 
 ```python
-anios = (precios.index[-1] - precios.index[0]).days / 365.25
-cagr = (precios.iloc[-1] / precios.iloc[0]) ** (1 / anios) - 1   # ACME: 0.122
+years = (prices.index[-1] - prices.index[0]).days / 365.25
+cagr = (prices.iloc[-1] / prices.iloc[0]) ** (1 / years) - 1   # ACME: 0.122
 ```
 
-La diferencia con el anterior (0.1175 contra 0.122) viene de que el CSV empieza con el precio
-del 2 de enero, sin el retorno de ese día, y de la convención de días. En la práctica, elegí una
-convención y usala de forma consistente.
+The difference from the previous figure (0.1175 versus 0.122) comes from the CSV starting with
+the January 2 price, without that day's return, and from the day-count convention. In practice,
+pick one convention and use it consistently.
 
-## Resumen
+## Summary
 
-- `pct_change()` para retornos simples y `np.log(p / p.shift())` para logarítmicos; `dropna()`.
-- Simples: se ponderan entre activos y se componen en el tiempo (`(1 + r).prod() - 1`).
-- Log: se suman en el tiempo; `exp(suma) - 1` vuelve al simple.
-- Anualizá componiendo: `(1 + R)^(252/n) - 1`; CAGR con fechas de calendario.
+- `pct_change()` for simple returns and `np.log(p / p.shift())` for log returns; `dropna()`.
+- Simple: weighted across assets and compounded over time (`(1 + r).prod() - 1`).
+- Log: added over time; `exp(sum) - 1` gets you back to the simple return.
+- Annualize by compounding: `(1 + R)^(252/n) - 1`; CAGR with calendar dates.
 
-## Ejercicio
+## Exercise
 
-Calculá retornos simples y logarítmicos, el acumulado, el retorno anualizado y el CAGR.
+Compute simple and log returns, the cumulative return, the annualized return and the CAGR.
 
-**Para profundizar:** *Python for Finance* (Yves Hilpisch), cap. "Financial Time Series";
+**Further reading:** *Python for Finance* (Yves Hilpisch), chapter "Financial Time Series";
 [pandas: pct_change](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.pct_change.html).

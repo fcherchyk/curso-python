@@ -1,36 +1,36 @@
-# Portafolios: pesos, covarianza y diversificación
+# Portfolios: weights, covariance and diversification
 
-Casi nadie invierte en un solo activo. Un **portafolio** es una combinación con **pesos** (qué
-fracción del capital va a cada activo), y tiene una propiedad casi mágica: su riesgo es **menor
-que el promedio** de los riesgos de sus partes. En este capítulo usamos solo las cuatro acciones
-(sin el INDICE).
+Hardly anyone invests in a single asset. A **portfolio** is a combination with **weights** (what
+fraction of the capital goes to each asset), and it has an almost magical property: its risk is
+**lower than the average** of the risks of its parts. In this chapter we use only the four stocks
+(without INDEX).
 
-## Pesos y retorno
+## Weights and return
 
 ```python
-activos = ["ACME", "BETA", "CIRC", "DELTA"]
-pesos = pd.Series(0.25, index=activos)      # partes iguales; deben sumar 1
-r = precios[activos].pct_change().dropna()
+assets = ["ACME", "BETA", "CIRC", "DELTA"]
+weights = pd.Series(0.25, index=assets)     # equal parts; must add up to 1
+r = prices[assets].pct_change().dropna()
 
-r_port = r @ pesos                          # retorno diario del portafolio: Σ wᵢ·rᵢ
+r_port = r @ weights                        # the portfolio's daily return: Σ wᵢ·rᵢ
 ```
 
-Como el retorno simple se **agrega entre activos** (capítulo 1), el retorno del portafolio es
-el promedio ponderado. El retorno esperado anual es `pesos @ r.mean() * 252` (0.1216 con pesos
-iguales).
+Since simple returns **aggregate across assets** (chapter 1), the portfolio's return is the
+weighted average. The expected annual return is `weights @ r.mean() * 252` (0.1216 with equal
+weights).
 
-## Riesgo: la matriz de covarianza
+## Risk: the covariance matrix
 
-La volatilidad del portafolio **no** es el promedio ponderado de las volatilidades. Depende de
-cómo se mueven los activos **entre sí**:
+The portfolio's volatility is **not** the weighted average of the volatilities. It depends on
+how the assets move **relative to each other**:
 
 ```text
 σ²_p = wᵀ Σ w = Σᵢ Σⱼ wᵢ wⱼ cov(i, j)
 ```
 
 ```python
-cov_anual = r.cov() * 252
-vol_port = np.sqrt(pesos @ cov_anual @ pesos)     # 0.1788
+annual_cov = r.cov() * 252
+port_vol = np.sqrt(weights @ annual_cov @ weights)     # 0.1788
 ```
 
 ```
@@ -41,75 +41,74 @@ CIRC   0.0463  0.0284  0.1460  0.0113
 DELTA  0.0103  0.0066  0.0113  0.0115
 ```
 
-La diagonal tiene las varianzas (vol²) y el resto, las covarianzas. Con `@`, el álgebra de NumPy
-del módulo 11 hace todo el trabajo.
+The diagonal holds the variances (vol²) and the rest, the covariances. With `@`, the NumPy linear
+algebra from module 11 does all the work.
 
-## Diversificación
+## Diversification
 
-| | volatilidad anual |
+| | annual volatility |
 |---|---|
-| promedio ponderado de las 4 acciones | 0.2336 |
-| portafolio con pesos iguales           | 0.1788 |
+| weighted average of the 4 stocks | 0.2336 |
+| equal-weight portfolio           | 0.1788 |
 
-El portafolio tiene **23.5 % menos de riesgo** que el promedio de sus partes, sin resignar
-retorno esperado. Es lo único "gratis" en finanzas: viene de que las correlaciones son menores
-que 1, así que los movimientos se compensan en parte.
+The portfolio has **23.5 % less risk** than the average of its parts, without giving up expected
+return. It's the only "free lunch" in finance: it comes from correlations being below 1, so the
+moves partly offset each other.
 
 ```python
-beneficio = 1 - vol_port / (pesos @ vol_individual)
+benefit = 1 - port_vol / (weights @ individual_vol)
 ```
 
-- Con correlación 1 (todo se mueve igual) no hay beneficio.
-- Cuanto más bajas las correlaciones, mayor es el beneficio.
-- Hay un piso: el **riesgo sistemático** (el del mercado, que afecta a todos) no se puede
-  diversificar. Solo se elimina el riesgo **idiosincrático** de cada empresa.
+- With correlation 1 (everything moves the same way) there's no benefit.
+- The lower the correlations, the bigger the benefit.
+- There's a floor: **systematic risk** (market risk, which affects everyone) can't be
+  diversified away. Only each company's **idiosyncratic** risk is eliminated.
 
-## Buy & hold y la deriva de los pesos
+## Buy & hold and weight drift
 
-Si comprás una vez y no tocás nada (**buy & hold**), los pesos **cambian solos**: lo que sube
-pesa cada vez más.
+If you buy once and never touch anything (**buy & hold**), the weights **change on their own**:
+whatever goes up weighs more and more.
 
 ```python
 capital = 1000
-acciones = capital * pesos / precios.iloc[0]          # cuántas acciones compré de cada uno
-valor = (precios[activos] * acciones).sum(axis=1)     # valor diario: 1351.27 al final
-pesos_finales = precios.iloc[-1] * acciones / valor.iloc[-1]
+shares = capital * weights / prices.iloc[0]          # how many shares of each I bought
+value = (prices[assets] * shares).sum(axis=1)        # daily value: 1351.27 at the end
+final_weights = prices.iloc[-1] * shares / value.iloc[-1]
 ```
 
 ```
 ACME 0.261   BETA 0.164   CIRC 0.289   DELTA 0.285
 ```
 
-BETA bajó al 16 % y CIRC subió al 29 %: el portafolio ya **no es** el que elegiste, y su riesgo
-cambió.
+BETA dropped to 16 % and CIRC rose to 29 %: the portfolio is **no longer** the one you chose,
+and its risk has changed.
 
-## Rebalanceo
+## Rebalancing
 
-**Rebalancear** es vender lo que subió y comprar lo que bajó para volver a los pesos objetivo.
-El caso extremo es rebalancear **todos los días**, que equivale a aplicar pesos fijos a los
-retornos:
+**Rebalancing** means selling what went up and buying what went down to get back to the target
+weights. The extreme case is rebalancing **every day**, which is the same as applying fixed
+weights to the returns:
 
 ```python
-valor_rebal = capital * (1 + r @ pesos).cumprod()     # 1388.07 al final
+rebal_value = capital * (1 + r @ weights).cumprod()     # 1388.07 at the end
 ```
 
-En estos datos, el rebalanceo diario terminó arriba (1388 contra 1351), pero no es una regla: en
-mercados con tendencia fuerte, buy & hold suele ganar, y en mercados que oscilan, el rebalanceo
-"compra barato y vende caro". En la práctica se rebalancea cada mes, cada trimestre o cuando un
-peso se desvía más de un umbral, porque **cada operación tiene costos** (lo vemos en
-backtesting).
+On this data, daily rebalancing came out ahead (1388 versus 1351), but that's not a rule: in
+strongly trending markets buy & hold usually wins, and in choppy markets rebalancing "buys low
+and sells high". In practice you rebalance monthly, quarterly, or when a weight drifts beyond a
+threshold, because **every trade has costs** (we'll see this in backtesting).
 
-## Resumen
+## Summary
 
-- Retorno del portafolio: `r @ pesos`. Retorno esperado anual: `pesos @ r.mean() * 252`.
-- Volatilidad: `√(wᵀ Σ w)` con `Σ = r.cov() * 252`. No es el promedio de las volatilidades.
-- Diversificar reduce el riesgo idiosincrático gracias a las correlaciones menores que 1.
-- En buy & hold los pesos derivan; rebalancear los devuelve al objetivo.
+- Portfolio return: `r @ weights`. Expected annual return: `weights @ r.mean() * 252`.
+- Volatility: `√(wᵀ Σ w)` with `Σ = r.cov() * 252`. It's not the average of the volatilities.
+- Diversifying reduces idiosyncratic risk thanks to correlations below 1.
+- With buy & hold the weights drift; rebalancing brings them back to target.
 
-## Ejercicio
+## Exercise
 
-Calculá el retorno, el retorno esperado y la volatilidad de un portafolio, el beneficio de
-diversificación, el valor en buy & hold con los pesos finales y el valor con rebalanceo diario.
+Compute a portfolio's return, expected return and volatility, the diversification benefit, the
+buy & hold value with the final weights, and the value with daily rebalancing.
 
-**Para profundizar:** H. Markowitz, *Portfolio Selection* (1952);
+**Further reading:** H. Markowitz, *Portfolio Selection* (1952);
 [Investopedia: Diversification](https://www.investopedia.com/terms/d/diversification.asp).

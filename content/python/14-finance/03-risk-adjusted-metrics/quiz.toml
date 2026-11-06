@@ -1,39 +1,39 @@
 [[questions]]
-text = "Dos fondos rinden 12 % anual. A tiene una volatilidad del 10 % y B, del 25 %. Con una tasa libre de riesgo del 2 %, ¿cuál tiene mejor Sharpe?"
-options = ["A: (12 − 2) / 10 = 1.0", "B: (12 − 2) / 25 = 0.4", "Son iguales", "No se puede calcular"]
+text = "Two funds return 12 % a year. A has 10 % volatility and B has 25 %. With a 2 % risk-free rate, which has the better Sharpe?"
+options = ["A: (12 − 2) / 10 = 1.0", "B: (12 − 2) / 25 = 0.4", "They're equal", "It can't be computed"]
 correct = 0
-explanation = "Mismo exceso de retorno con menos volatilidad: más retorno por unidad de riesgo."
+explanation = "Same excess return with less volatility: more return per unit of risk."
 
 [[questions]]
-text = "¿Qué diferencia al Sortino del Sharpe?"
+text = "What sets Sortino apart from Sharpe?"
 options = [
-  "Usa el retorno compuesto",
-  "Solo penaliza la volatilidad a la baja (desvío a la baja)",
-  "No usa la tasa libre de riesgo",
-  "Usa la beta",
+  "It uses the compounded return",
+  "It only penalizes downside volatility (downside deviation)",
+  "It doesn't use the risk-free rate",
+  "It uses beta",
 ]
 correct = 1
-explanation = "Las subas no son riesgo para el inversor. El Sortino divide por el desvío de los retornos por debajo del objetivo."
+explanation = "Gains aren't risk to an investor. Sortino divides by the deviation of the returns below the target."
 
 [[questions]]
-text = "Una acción tiene beta 1.5. Si el mercado sube 4 %, ¿cuánto se espera que suba?"
+text = "A stock has a beta of 1.5. If the market rises 4 %, how much is it expected to rise?"
 options = ["4 %", "1.5 %", "6 %", "5.5 %"]
 correct = 2
-explanation = "La beta es la sensibilidad al mercado: 1.5 × 4 % = 6 % (sin contar el alfa ni el riesgo propio)."
+explanation = "Beta is the sensitivity to the market: 1.5 × 4 % = 6 % (ignoring alpha and asset-specific risk)."
 
 [[questions]]
-text = "¿Qué par de activos diversifica mejor al combinarlos?"
-options = ["Correlación 0.95", "Correlación 0.70", "Correlación 0.10", "Da igual"]
+text = "Which pair of assets diversifies best when combined?"
+options = ["Correlation 0.95", "Correlation 0.70", "Correlation 0.10", "It makes no difference"]
 correct = 2
-explanation = "Cuanto menor es la correlación, más se compensan los movimientos y menos riesgo tiene la combinación."
+explanation = "The lower the correlation, the more the moves offset each other and the less risk the combination has."
 
 [[questions]]
-text = "¿Cómo se calcula la beta de un activo?"
+text = "How do you compute an asset's beta?"
 options = [
-  "corr(activo, mercado)",
-  "cov(activo, mercado) / var(mercado)",
-  "vol(activo) / vol(mercado)",
-  "retorno(activo) / retorno(mercado)",
+  "corr(asset, market)",
+  "cov(asset, market) / var(market)",
+  "vol(asset) / vol(market)",
+  "return(asset) / return(market)",
 ]
 correct = 1
-explanation = "Es la pendiente de la regresión de los retornos del activo contra los del mercado. También es corr × vol_activo / vol_mercado."
+explanation = "It's the slope of the regression of the asset's returns against the market's. It's also corr × vol_asset / vol_market."

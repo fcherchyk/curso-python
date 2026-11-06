@@ -1,53 +1,53 @@
-"""Portafolios. `pesos` es una Series indexada por activo cuyos valores suman 1."""
+"""Portfolios. `weights` is a Series indexed by asset whose values add up to 1."""
 
 from pathlib import Path
 
 import numpy as np  # noqa: F401
 import pandas as pd
 
-CSV = Path(__file__).parent / "precios.csv"
-ACTIVOS = ["ACME", "BETA", "CIRC", "DELTA"]
-DIAS_HABILES = 252
+CSV = Path(__file__).parent / "prices.csv"
+ASSETS = ["ACME", "BETA", "CIRC", "DELTA"]
+TRADING_DAYS = 252
 
 
-def cargar() -> pd.DataFrame:
-    """Solo las cuatro acciones (sin el INDICE)."""
-    return pd.read_csv(CSV, parse_dates=["fecha"], index_col="fecha")[ACTIVOS]
+def load() -> pd.DataFrame:
+    """Only the four stocks (without INDEX)."""
+    return pd.read_csv(CSV, parse_dates=["date"], index_col="date")[ASSETS]
 
 
-def retornos_simples(precios: pd.DataFrame) -> pd.DataFrame:
-    return precios.pct_change().dropna()
+def simple_returns(prices: pd.DataFrame) -> pd.DataFrame:
+    return prices.pct_change().dropna()
 
 
-def retorno_portafolio(retornos: pd.DataFrame, pesos: pd.Series) -> pd.Series:
-    """Retorno diario del portafolio con pesos fijos: Σ wᵢ·rᵢ."""
+def portfolio_return(returns: pd.DataFrame, weights: pd.Series) -> pd.Series:
+    """Daily return of the portfolio with fixed weights: Σ wᵢ·rᵢ."""
     raise NotImplementedError("TODO")
 
 
-def retorno_esperado(retornos: pd.DataFrame, pesos: pd.Series) -> float:
-    """Retorno esperado anual: pesos · media diaria × 252."""
+def expected_return(returns: pd.DataFrame, weights: pd.Series) -> float:
+    """Expected annual return: weights · daily mean × 252."""
     raise NotImplementedError("TODO")
 
 
-def volatilidad_portafolio(retornos: pd.DataFrame, pesos: pd.Series) -> float:
-    """√(wᵀ Σ w) con Σ = covarianza diaria × 252."""
+def portfolio_volatility(returns: pd.DataFrame, weights: pd.Series) -> float:
+    """√(wᵀ Σ w) with Σ = daily covariance × 252."""
     raise NotImplementedError("TODO")
 
 
-def beneficio_diversificacion(retornos: pd.DataFrame, pesos: pd.Series) -> float:
-    """1 - vol del portafolio / promedio ponderado de las vol anuales individuales."""
+def diversification_benefit(returns: pd.DataFrame, weights: pd.Series) -> float:
+    """1 - portfolio vol / weighted average of the individual annual vols."""
     raise NotImplementedError("TODO")
 
 
-def buy_and_hold(precios: pd.DataFrame, pesos: pd.Series, capital: float) -> tuple[pd.Series, pd.Series]:
-    """Compra el primer día (capital × peso / precio inicial acciones de cada activo) y no
-    vuelve a operar. Devuelve (valor diario del portafolio, pesos el último día).
+def buy_and_hold(prices: pd.DataFrame, weights: pd.Series, capital: float) -> tuple[pd.Series, pd.Series]:
+    """Buy on the first day (capital × weight / initial price shares of each asset) and never
+    trade again. Return (daily portfolio value, weights on the last day).
     """
     raise NotImplementedError("TODO")
 
 
-def rebalanceo_diario(precios: pd.DataFrame, pesos: pd.Series, capital: float) -> pd.Series:
-    """Valor del portafolio rebalanceando todos los días: capital × Π(1 + retorno del portafolio).
-    El índice arranca en la SEGUNDA fecha (la del primer retorno).
+def daily_rebalancing(prices: pd.DataFrame, weights: pd.Series, capital: float) -> pd.Series:
+    """Portfolio value rebalancing every day: capital × Π(1 + portfolio return).
+    The index starts at the SECOND date (that of the first return).
     """
     raise NotImplementedError("TODO")

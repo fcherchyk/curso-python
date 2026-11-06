@@ -1,49 +1,49 @@
 [[questions]]
-text = "Dos activos con volatilidad del 20 % cada uno, mitad y mitad. ¿Cuál es la volatilidad del portafolio?"
+text = "Two assets with 20 % volatility each, half and half. What is the portfolio's volatility?"
 options = [
-  "Siempre 20 %",
-  "Depende de la correlación: 20 % si es 1 y menos si es menor",
-  "Siempre 10 %",
+  "Always 20 %",
+  "It depends on the correlation: 20 % if it's 1 and less if it's lower",
+  "Always 10 %",
   "40 %",
 ]
 correct = 1
-explanation = "σ²_p = 0.25·0.04 + 0.25·0.04 + 2·0.25·ρ·0.04. Con ρ = 1 da 20 %; con ρ = 0, unos 14 %."
+explanation = "σ²_p = 0.25·0.04 + 0.25·0.04 + 2·0.25·ρ·0.04. With ρ = 1 it's 20 %; with ρ = 0, about 14 %."
 
 [[questions]]
-text = "¿Cómo se calcula la varianza de un portafolio con pesos w y matriz de covarianza Σ?"
-options = ["w · σ", "wᵀ Σ w", "Σ w", "suma de las varianzas"]
+text = "How do you compute the variance of a portfolio with weights w and covariance matrix Σ?"
+options = ["w · σ", "wᵀ Σ w", "Σ w", "the sum of the variances"]
 correct = 1
-explanation = "La forma cuadrática wᵀΣw suma todos los términos wᵢwⱼcov(i,j), incluidas las covarianzas cruzadas."
+explanation = "The quadratic form wᵀΣw adds up every term wᵢwⱼcov(i,j), including the cross covariances."
 
 [[questions]]
-text = "¿Qué riesgo NO se puede eliminar diversificando?"
+text = "Which risk can NOT be eliminated by diversifying?"
 options = [
-  "El de una empresa en particular",
-  "El riesgo sistemático, el del mercado en su conjunto",
-  "El de un sector",
-  "Ninguno: todo se diversifica",
+  "The risk of one particular company",
+  "Systematic risk, the risk of the market as a whole",
+  "The risk of a sector",
+  "None: everything can be diversified",
 ]
 correct = 1
-explanation = "Una recesión afecta a todos los activos. Diversificar elimina el riesgo idiosincrático, no el sistemático."
+explanation = "A recession affects every asset. Diversifying eliminates idiosyncratic risk, not systematic risk."
 
 [[questions]]
-text = "En buy & hold, ¿qué pasa con los pesos con el tiempo?"
+text = "With buy & hold, what happens to the weights over time?"
 options = [
-  "Se mantienen fijos",
-  "Derivan: los activos que más suben pasan a pesar más",
-  "Se igualan solos",
-  "Bajan todos",
+  "They stay fixed",
+  "They drift: the assets that rise the most end up weighing more",
+  "They even out on their own",
+  "They all go down",
 ]
 correct = 1
-explanation = "Las cantidades de acciones quedan fijas, pero sus precios cambian, y con ellos la proporción de cada una en el total."
+explanation = "The number of shares stays fixed, but their prices change, and with them each one's share of the total."
 
 [[questions]]
-text = "¿Qué hace un rebalanceo?"
+text = "What does rebalancing do?"
 options = [
-  "Compra más de lo que más subió",
-  "Vende parte de lo que subió y compra de lo que bajó para volver a los pesos objetivo",
-  "Liquida todo el portafolio",
-  "Cambia los pesos objetivo",
+  "Buys more of whatever rose the most",
+  "Sells part of what went up and buys what went down to get back to the target weights",
+  "Liquidates the whole portfolio",
+  "Changes the target weights",
 ]
 correct = 1
-explanation = "Restablece el riesgo elegido. Además, tiene un efecto contrario a la tendencia: vende caro y compra barato."
+explanation = "It restores the chosen risk. It also works against the trend: it sells high and buys low."

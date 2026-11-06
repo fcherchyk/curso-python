@@ -1,95 +1,96 @@
-# Riesgo: volatilidad, drawdown y VaR
+# Risk: volatility, drawdown and VaR
 
-Un retorno alto no dice nada sin el riesgo que hubo que correr para obtenerlo. "Riesgo" no es
-una sola cosa, y cada medida responde a una pregunta distinta:
+A high return means nothing without the risk you had to take to get it. "Risk" is not a single
+thing, and each measure answers a different question:
 
-| Pregunta                                            | Medida                 |
+| Question                                            | Measure                |
 |-----------------------------------------------------|------------------------|
-| ¿Cuánto oscila en un año típico?                     | volatilidad anualizada |
-| ¿Cuál fue la peor caída desde un máximo?              | drawdown máximo        |
-| ¿Cuánto puedo perder en un mal día (con 95 % de confianza)? | VaR             |
-| Y en los días que superan el VaR, ¿cuánto pierdo en promedio? | CVaR / Expected Shortfall |
+| How much does it swing in a typical year?            | annualized volatility  |
+| What was the worst fall from a peak?                  | maximum drawdown       |
+| How much can I lose on a bad day (with 95 % confidence)? | VaR                 |
+| And on the days beyond the VaR, how much do I lose on average? | CVaR / Expected Shortfall |
 
-Usamos los retornos simples diarios del capítulo anterior: `r = precios.pct_change().dropna()`.
+We use the daily simple returns from the previous chapter: `r = prices.pct_change().dropna()`.
 
-## Volatilidad
+## Volatility
 
-Es el **desvío estándar de los retornos**. Mide cuánto se alejan del promedio, para arriba y
-para abajo.
+It's the **standard deviation of returns**. It measures how far they stray from the average,
+both up and down.
 
 ```python
-vol_diaria = r.std()
-vol_anual = r.std() * np.sqrt(252)
+daily_vol = r.std()
+annual_vol = r.std() * np.sqrt(252)
 ```
 
 ```
-ACME 0.269   BETA 0.176   CIRC 0.382   DELTA 0.107   INDICE 0.160
+ACME 0.269   BETA 0.176   CIRC 0.382   DELTA 0.107   INDEX 0.160
 ```
 
-¿Por qué `√252` y no `252`? Si los retornos diarios son independientes, las **varianzas** se
-suman: la varianza anual es 252 veces la diaria, y el desvío es la raíz. Esta es la "regla de la
-raíz del tiempo". Con 16 % de volatilidad anual, el INDICE se mueve típicamente ±1 % por día
+Why `√252` and not `252`? If daily returns are independent, the **variances** add up: the annual
+variance is 252 times the daily one, and the standard deviation is its square root. This is the
+"square-root-of-time rule". With 16 % annual volatility, INDEX typically moves ±1 % per day
 (0.16 / √252 ≈ 0.010).
 
-Limitaciones: castiga igual las subas y las bajas, y supone algo parecido a una distribución
-normal. Los mercados reales tienen **colas gordas**: los días extremos son mucho más frecuentes
-de lo que la normal predice.
+Limitations: it penalizes gains and losses equally, and it assumes something close to a normal
+distribution. Real markets have **fat tails**: extreme days are far more frequent than the
+normal distribution predicts.
 
 ## Drawdown
 
-El **drawdown** es cuánto estás por debajo del **máximo anterior**. Es la medida que más se
-parece a lo que siente un inversor ("¿cuánto perdí desde el pico?").
+The **drawdown** is how far you are below the **previous peak**. It's the measure closest to what
+an investor feels ("how much have I lost since the top?").
 
 ```python
-pico = precios.cummax()                  # máximo acumulado hasta cada fecha
-drawdown = precios / pico - 1            # 0 en máximos, negativo en las caídas
+peak = prices.cummax()                   # running maximum up to each date
+drawdown = prices / peak - 1             # 0 at peaks, negative during falls
 max_dd = drawdown.min()                  # CIRC: −0.51
 ```
 
-CIRC llegó a estar **51 % abajo** de su máximo (del 6/9/2023 al 17/6/2024). Para recuperar una
-caída del 51 % hay que **subir 104 %**: 1 / (1 − 0.51) − 1. Por eso las caídas grandes son tan
-dañinas, y por eso el drawdown importa más que la volatilidad para muchos inversores.
+CIRC was at one point **51 % below** its peak (from 2023-09-06 to 2024-06-17). To recover from a
+51 % fall you need to **rise 104 %**: 1 / (1 − 0.51) − 1. That's why large falls are so damaging,
+and why drawdown matters more than volatility to many investors.
 
-## VaR histórico
+## Historical VaR
 
-El **Value at Risk** al 95 % responde: *"en 95 de cada 100 días, la pérdida no supera X"*. La
-versión **histórica** no supone ninguna distribución: toma el percentil 5 de los retornos
-observados.
+The 95 % **Value at Risk** answers: *"on 95 out of 100 days, the loss doesn't exceed X"*. The
+**historical** version assumes no distribution: it takes the 5th percentile of the observed
+returns.
 
 ```python
-var_95 = -r.quantile(0.05)       # ACME: 0.0284 → en el 5 % de los peores días pierde ≥ 2.84 %
+var_95 = -r.quantile(0.05)       # ACME: 0.0284 → on the worst 5 % of days it loses ≥ 2.84 %
 ```
 
-Se suele expresar como pérdida **positiva**, de ahí el signo menos. Con una posición de
-$100 000 en ACME, el VaR diario al 95 % es de unos $2 840.
+It's usually expressed as a **positive** loss, hence the minus sign. With a $100,000 position in
+ACME, the 95 % daily VaR is about $2,840.
 
-El VaR **no dice cuánto se pierde en ese 5 %**: podría ser 3 % o 30 %. Para eso está el CVaR.
+The VaR **doesn't tell you how much you lose in that 5 %**: it could be 3 % or 30 %. That's what
+CVaR is for.
 
 ## CVaR (Expected Shortfall)
 
-El promedio de los retornos **en los días que superan el VaR**:
+The average of the returns **on the days beyond the VaR**:
 
 ```python
 q = r.quantile(0.05)
 cvar_95 = -r[r <= q].mean()      # ACME: 0.0345
 ```
 
-Es siempre mayor o igual al VaR y describe mejor la cola. Los reguladores bancarios (Basilea)
-pasaron del VaR al Expected Shortfall justamente por eso.
+It's always greater than or equal to the VaR and describes the tail better. Banking regulators
+(Basel) moved from VaR to Expected Shortfall precisely for that reason.
 
-## Resumen
+## Summary
 
-- Volatilidad: `r.std() * √252`. Mide oscilación simétrica y supone colas normales.
-- Drawdown: `p / p.cummax() - 1`; el máximo drawdown es su mínimo. Una caída del 50 % exige
-  un +100 % para recuperarse.
-- VaR histórico: `-r.quantile(1 - nivel)`, la pérdida que no se supera en el `nivel` % de los días.
-- CVaR: el promedio de las pérdidas en los días que superan el VaR.
-- **Todo es histórico**: el riesgo pasado no garantiza el futuro.
+- Volatility: `r.std() * √252`. Measures symmetric swings and assumes normal tails.
+- Drawdown: `p / p.cummax() - 1`; the maximum drawdown is its minimum. A 50 % fall requires
+  +100 % to recover.
+- Historical VaR: `-r.quantile(1 - level)`, the loss not exceeded on `level` % of days.
+- CVaR: the average loss on the days beyond the VaR.
+- **It's all historical**: past risk doesn't guarantee the future.
 
-## Ejercicio
+## Exercise
 
-Implementá la volatilidad anualizada, la serie de drawdown, el drawdown máximo, el VaR y el CVaR
-históricos.
+Implement annualized volatility, the drawdown series, maximum drawdown, and historical VaR and
+CVaR.
 
-**Para profundizar:** [Investopedia: Value at Risk](https://www.investopedia.com/terms/v/var.asp),
-*Fooled by Randomness* (N. N. Taleb) sobre las colas gordas.
+**Further reading:** [Investopedia: Value at Risk](https://www.investopedia.com/terms/v/var.asp),
+*Fooled by Randomness* (N. N. Taleb) on fat tails.

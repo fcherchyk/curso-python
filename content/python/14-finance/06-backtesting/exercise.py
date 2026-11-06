@@ -1,4 +1,4 @@
-"""Backtesting de un cruce de medias móviles sobre un solo activo (una Series de precios)."""
+"""Backtesting a moving-average crossover on a single asset (a Series of prices)."""
 
 from pathlib import Path
 
@@ -6,42 +6,42 @@ import matplotlib.pyplot as plt  # noqa: F401
 import pandas as pd
 from matplotlib.figure import Figure
 
-CSV = Path(__file__).parent / "precios.csv"
+CSV = Path(__file__).parent / "prices.csv"
 
 
-def cargar(activo: str) -> pd.Series:
-    return pd.read_csv(CSV, parse_dates=["fecha"], index_col="fecha")[activo]
+def load(asset: str) -> pd.Series:
+    return pd.read_csv(CSV, parse_dates=["date"], index_col="date")[asset]
 
 
-def senal_cruce(precios: pd.Series, corta: int = 20, larga: int = 50) -> pd.Series:
-    """1 si la media móvil corta > la larga, 0 si no (incluidos los días sin datos suficientes).
+def crossover_signal(prices: pd.Series, short: int = 20, long: int = 50) -> pd.Series:
+    """1 if the short moving average > the long one, 0 otherwise (including days without enough data).
     dtype int.
     """
     raise NotImplementedError("TODO")
 
 
-def posicion(senal: pd.Series) -> pd.Series:
-    """La posición de cada día es la señal del día ANTERIOR (sin look-ahead). El primer día, 0."""
+def position(signal: pd.Series) -> pd.Series:
+    """Each day's position is the PREVIOUS day's signal (no look-ahead). On the first day, 0."""
     raise NotImplementedError("TODO")
 
 
-def retornos_estrategia(precios: pd.Series, pos: pd.Series, costo: float = 0.001) -> pd.Series:
-    """pos × retorno diario (pct_change con el primer día en 0)
-    - costo × |cambio de posición| (el cambio del primer día es la posición misma).
+def strategy_returns(prices: pd.Series, pos: pd.Series, cost: float = 0.001) -> pd.Series:
+    """pos × daily return (pct_change with the first day at 0)
+    - cost × |change in position| (the first day's change is the position itself).
     """
     raise NotImplementedError("TODO")
 
 
-def resumen(precios: pd.Series, corta: int = 20, larga: int = 50, costo: float = 0.001) -> dict:
-    """{"estrategia": retorno total, "buy_and_hold": retorno total,
-        "operaciones": cantidad de cambios de posición (int), "exposicion": fracción de días comprado}
+def summary(prices: pd.Series, short: int = 20, long: int = 50, cost: float = 0.001) -> dict:
+    """{"strategy": total return, "buy_and_hold": total return,
+        "trades": number of position changes (int), "exposure": fraction of days invested}
     """
     raise NotImplementedError("TODO")
 
 
-def grafico_equity(precios: pd.Series, capital: float = 1000, corta: int = 20, larga: int = 50,
-                   costo: float = 0.001) -> Figure:
-    """Dos líneas: capital × Π(1 + r_estrategia) con label "Estrategia" y
-    capital × Π(1 + r) con label "Buy & hold". Leyenda e ylabel "Capital ($)".
+def equity_plot(prices: pd.Series, capital: float = 1000, short: int = 20, long: int = 50,
+                cost: float = 0.001) -> Figure:
+    """Two lines: capital × Π(1 + r_strategy) with label "Strategy" and
+    capital × Π(1 + r) with label "Buy & hold". Legend and ylabel "Capital ($)".
     """
     raise NotImplementedError("TODO")

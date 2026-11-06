@@ -1,113 +1,113 @@
-# Métricas ajustadas por riesgo: Sharpe, Sortino, correlación y beta
+# Risk-adjusted metrics: Sharpe, Sortino, correlation and beta
 
-CIRC rindió un 15 % anual y DELTA, también un 15 %. ¿Son igual de buenas? No: CIRC lo logró con
-38 % de volatilidad y una caída del 51 %, y DELTA con 11 % de volatilidad y una caída del 12 %.
-Las métricas ajustadas por riesgo responden a la pregunta: **¿cuánto retorno obtengo por cada
-unidad de riesgo?**
+CIRC returned 15 % a year and so did DELTA. Are they equally good? No: CIRC got there with
+38 % volatility and a 51 % fall, and DELTA with 11 % volatility and a 12 % fall.
+Risk-adjusted metrics answer the question: **how much return do I get for each unit of
+risk?**
 
-## La tasa libre de riesgo
+## The risk-free rate
 
-Antes que nada: invertir en algo riesgoso solo tiene sentido si paga **más** que la alternativa
-sin riesgo (bonos del Tesoro de corto plazo de EE. UU., por ejemplo). Lo que importa es el
-**exceso de retorno** sobre esa tasa. Usamos un 4 % anual, que en datos diarios es:
+First things first: investing in something risky only makes sense if it pays **more** than the
+risk-free alternative (short-term US Treasury bills, for example). What matters is the
+**excess return** over that rate. We use 4 % a year, which in daily terms is:
 
 ```python
-rf_diaria = 0.04 / 252
-exceso = retornos - rf_diaria
+daily_rf = 0.04 / 252
+excess = returns - daily_rf
 ```
 
-## Ratio de Sharpe
+## Sharpe ratio
 
 ```text
-Sharpe = media(exceso diario) / desvío(retornos diarios) × √252
+Sharpe = mean(daily excess) / std(daily returns) × √252
 ```
 
-Es el exceso de retorno por unidad de volatilidad, anualizado. La media escala con 252 y el
-desvío con √252, así que el cociente escala con 252 / √252 = √252. Por convención, el Sharpe
-usa la media **aritmética** de los retornos (a diferencia del retorno anualizado compuesto del
-capítulo 1).
+It's the excess return per unit of volatility, annualized. The mean scales with 252 and the
+standard deviation with √252, so the ratio scales with 252 / √252 = √252. By convention, Sharpe
+uses the **arithmetic** mean of returns (unlike the compounded annualized return from
+chapter 1).
 
 ```
-ACME 0.40   BETA −0.36   CIRC 0.46   DELTA 0.98   INDICE 0.36
+ACME 0.40   BETA −0.36   CIRC 0.46   DELTA 0.98   INDEX 0.36
 ```
 
-DELTA tiene un Sharpe de casi el doble que CIRC: el mismo retorno con mucho menos riesgo. Como
-referencia, un Sharpe mayor que 1 sostenido en el tiempo es muy bueno, y uno negativo significa
-que habría convenido la tasa libre de riesgo.
+DELTA's Sharpe is almost twice CIRC's: the same return with much less risk. As a reference, a
+Sharpe above 1 sustained over time is very good, and a negative one means you would have been
+better off with the risk-free rate.
 
-## Ratio de Sortino
+## Sortino ratio
 
-El Sharpe castiga la volatilidad **hacia arriba** igual que la volatilidad hacia abajo, pero a
-nadie le molestan las subas. El Sortino solo usa el **desvío a la baja** (*downside deviation*):
+Sharpe penalizes **upside** volatility just as much as downside volatility, but nobody minds
+gains. Sortino only uses the **downside deviation**:
 
 ```python
-abajo = exceso.clip(upper=0)                          # los excesos positivos cuentan como 0
-desvio_abajo = np.sqrt((abajo ** 2).mean()) * np.sqrt(252)
-sortino = exceso.mean() * 252 / desvio_abajo
+downside = excess.clip(upper=0)                          # positive excess counts as 0
+downside_dev = np.sqrt((downside ** 2).mean()) * np.sqrt(252)
+sortino = excess.mean() * 252 / downside_dev
 ```
 
 ```
-ACME 0.58   BETA −0.49   CIRC 0.69   DELTA 1.46   INDICE 0.52
+ACME 0.58   BETA −0.49   CIRC 0.69   DELTA 1.46   INDEX 0.52
 ```
 
-Ojo: el desvío a la baja se calcula sobre **todos** los días (con 0 en los positivos), no
-solo sobre los negativos.
+Watch out: the downside deviation is computed over **all** days (with 0 on the positive ones),
+not just over the negative ones.
 
-## Correlación
+## Correlation
 
 ```python
 r.corr()
 ```
 
 ```
-        ACME  BETA  CIRC  DELTA  INDICE
+        ACME  BETA  CIRC  DELTA   INDEX
 ACME    1.00  0.47  0.45   0.36    0.69
 DELTA   0.36  0.35  0.28   1.00    0.45
 ```
 
-Mide si dos activos **se mueven juntos** (+1), en direcciones opuestas (−1) o de forma
-independiente (0). Es la clave de la diversificación del próximo capítulo: combinar activos
-**poco correlacionados** reduce el riesgo del conjunto. DELTA es el activo menos correlacionado
-con los demás.
+It measures whether two assets **move together** (+1), in opposite directions (−1) or
+independently (0). It's the key to diversification in the next chapter: combining
+**weakly correlated** assets reduces the risk of the whole. DELTA is the asset least correlated
+with the rest.
 
-Cuidado: la correlación **cambia con el tiempo**, y en las crisis tiende a subir. Justo cuando
-más la necesitás, la diversificación funciona peor.
+Careful: correlation **changes over time**, and it tends to rise in crises. Exactly when you
+need it most, diversification works worst.
 
 ## Beta
 
-La beta mide **cuánto se mueve un activo cuando se mueve el mercado**:
+Beta measures **how much an asset moves when the market moves**:
 
 ```text
-β = cov(r_activo, r_mercado) / var(r_mercado)
+β = cov(r_asset, r_market) / var(r_market)
 ```
 
 ```python
-beta = r["ACME"].cov(r["INDICE"]) / r["INDICE"].var()     # 1.16
+beta = r["ACME"].cov(r["INDEX"]) / r["INDEX"].var()     # 1.16
 ```
 
 ```
 ACME 1.16   BETA 0.78   CIRC 1.46   DELTA 0.30
 ```
 
-- β = 1: se mueve igual que el mercado. β > 1 amplifica (CIRC: si el índice cae 10 %, se espera
-  que caiga 14.6 %); β < 1 amortigua.
-- La beta es la pendiente de la regresión de los retornos del activo contra los del mercado. Es
-  el corazón del **CAPM**, que dice que el retorno esperado depende solo del riesgo de mercado
-  (beta), porque el resto del riesgo se elimina diversificando.
-- Lo que el activo rinde por encima de lo que predice su beta se llama **alfa**.
+- β = 1: it moves just like the market. β > 1 amplifies (CIRC: if the index falls 10 %, it's
+  expected to fall 14.6 %); β < 1 dampens.
+- Beta is the slope of the regression of the asset's returns against the market's. It's the
+  heart of the **CAPM**, which says the expected return depends only on market risk (beta),
+  because the rest of the risk can be diversified away.
+- What the asset returns above what its beta predicts is called **alpha**.
 
-## Resumen
+## Summary
 
-- Trabajá con el **exceso** sobre la tasa libre de riesgo.
-- Sharpe: `exceso.mean() / r.std() * √252`. Sortino: igual, pero dividiendo solo por el desvío
-  a la baja.
-- `corr()` para ver qué se mueve junto; las correlaciones bajas son las que diversifican.
-- Beta = cov / var del mercado: sensibilidad al mercado.
+- Work with the **excess** over the risk-free rate.
+- Sharpe: `excess.mean() / r.std() * √252`. Sortino: the same, but dividing only by the
+  downside deviation.
+- `corr()` to see what moves together; low correlations are the ones that diversify.
+- Beta = cov / market var: sensitivity to the market.
 
-## Ejercicio
+## Exercise
 
-Implementá Sharpe, Sortino, beta contra el índice y una función que encuentre el activo menos
-correlacionado con uno dado.
+Implement Sharpe, Sortino, beta against the index, and a function that finds the asset least
+correlated with a given one.
 
-**Para profundizar:** W. Sharpe, *The Sharpe Ratio* (1994);
+**Further reading:** W. Sharpe, *The Sharpe Ratio* (1994);
 [Investopedia: Sortino Ratio](https://www.investopedia.com/terms/s/sortinoratio.asp).

@@ -1,39 +1,39 @@
-"""Métricas ajustadas por riesgo. `retornos`: retornos simples diarios, una columna por activo."""
+"""Risk-adjusted metrics. `returns`: daily simple returns, one column per asset."""
 
 from pathlib import Path
 
 import numpy as np  # noqa: F401
 import pandas as pd
 
-CSV = Path(__file__).parent / "precios.csv"
-DIAS_HABILES = 252
+CSV = Path(__file__).parent / "prices.csv"
+TRADING_DAYS = 252
 
 
-def cargar() -> pd.DataFrame:
-    return pd.read_csv(CSV, parse_dates=["fecha"], index_col="fecha")
+def load() -> pd.DataFrame:
+    return pd.read_csv(CSV, parse_dates=["date"], index_col="date")
 
 
-def retornos_simples(precios: pd.DataFrame) -> pd.DataFrame:
-    return precios.pct_change().dropna()
+def simple_returns(prices: pd.DataFrame) -> pd.DataFrame:
+    return prices.pct_change().dropna()
 
 
-def sharpe(retornos: pd.DataFrame, tasa_libre: float = 0.04) -> pd.Series:
-    """exceso = retornos - tasa_libre / 252;  media(exceso) / desvío(retornos) × √252."""
+def sharpe(returns: pd.DataFrame, risk_free: float = 0.04) -> pd.Series:
+    """excess = returns - risk_free / 252;  mean(excess) / std(returns) × √252."""
     raise NotImplementedError("TODO")
 
 
-def sortino(retornos: pd.DataFrame, tasa_libre: float = 0.04) -> pd.Series:
-    """media(exceso) × 252 / desvío_a_la_baja, con
-    desvío_a_la_baja = √(media(min(exceso, 0)²)) × √252 (sobre TODOS los días).
+def sortino(returns: pd.DataFrame, risk_free: float = 0.04) -> pd.Series:
+    """mean(excess) × 252 / downside_deviation, with
+    downside_deviation = √(mean(min(excess, 0)²)) × √252 (over ALL days).
     """
     raise NotImplementedError("TODO")
 
 
-def beta(retornos: pd.DataFrame, mercado: str = "INDICE") -> pd.Series:
-    """cov(activo, mercado) / var(mercado) para cada columna EXCEPTO el mercado."""
+def beta(returns: pd.DataFrame, market: str = "INDEX") -> pd.Series:
+    """cov(asset, market) / var(market) for every column EXCEPT the market."""
     raise NotImplementedError("TODO")
 
 
-def menos_correlacionado(retornos: pd.DataFrame, activo: str) -> str:
-    """El nombre de la otra columna con menor correlación con `activo`."""
+def least_correlated(returns: pd.DataFrame, asset: str) -> str:
+    """The name of the other column with the lowest correlation with `asset`."""
     raise NotImplementedError("TODO")

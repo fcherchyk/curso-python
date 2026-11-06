@@ -3,34 +3,34 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-CSV = Path(__file__).parent / "precios.csv"
-DIAS_HABILES = 252
+CSV = Path(__file__).parent / "prices.csv"
+TRADING_DAYS = 252
 
 
-def cargar() -> pd.DataFrame:
-    return pd.read_csv(CSV, parse_dates=["fecha"], index_col="fecha")
+def load() -> pd.DataFrame:
+    return pd.read_csv(CSV, parse_dates=["date"], index_col="date")
 
 
-def retornos_simples(precios: pd.DataFrame) -> pd.DataFrame:
-    return precios.pct_change().dropna()
+def simple_returns(prices: pd.DataFrame) -> pd.DataFrame:
+    return prices.pct_change().dropna()
 
 
-def volatilidad_anual(retornos: pd.DataFrame) -> pd.Series:
-    return retornos.std() * np.sqrt(DIAS_HABILES)
+def annual_volatility(returns: pd.DataFrame) -> pd.Series:
+    return returns.std() * np.sqrt(TRADING_DAYS)
 
 
-def drawdown(precios: pd.DataFrame) -> pd.DataFrame:
-    return precios / precios.cummax() - 1
+def drawdown(prices: pd.DataFrame) -> pd.DataFrame:
+    return prices / prices.cummax() - 1
 
 
-def max_drawdown(precios: pd.DataFrame) -> pd.Series:
-    return drawdown(precios).min()
+def max_drawdown(prices: pd.DataFrame) -> pd.Series:
+    return drawdown(prices).min()
 
 
-def var_historico(retornos: pd.DataFrame, nivel: float = 0.95) -> pd.Series:
-    return -retornos.quantile(1 - nivel)
+def historical_var(returns: pd.DataFrame, level: float = 0.95) -> pd.Series:
+    return -returns.quantile(1 - level)
 
 
-def cvar_historico(retornos: pd.DataFrame, nivel: float = 0.95) -> pd.Series:
-    corte = retornos.quantile(1 - nivel)
-    return -retornos[retornos <= corte].mean()
+def historical_cvar(returns: pd.DataFrame, level: float = 0.95) -> pd.Series:
+    cutoff = returns.quantile(1 - level)
+    return -returns[returns <= cutoff].mean()

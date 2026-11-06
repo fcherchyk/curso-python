@@ -1,42 +1,42 @@
-"""Medidas de riesgo. `retornos` son retornos simples diarios (una columna por activo)."""
+"""Risk measures. `returns` are daily simple returns (one column per asset)."""
 
 from pathlib import Path
 
 import numpy as np  # noqa: F401
 import pandas as pd
 
-CSV = Path(__file__).parent / "precios.csv"
-DIAS_HABILES = 252
+CSV = Path(__file__).parent / "prices.csv"
+TRADING_DAYS = 252
 
 
-def cargar() -> pd.DataFrame:
-    return pd.read_csv(CSV, parse_dates=["fecha"], index_col="fecha")
+def load() -> pd.DataFrame:
+    return pd.read_csv(CSV, parse_dates=["date"], index_col="date")
 
 
-def retornos_simples(precios: pd.DataFrame) -> pd.DataFrame:
-    return precios.pct_change().dropna()
+def simple_returns(prices: pd.DataFrame) -> pd.DataFrame:
+    return prices.pct_change().dropna()
 
 
-def volatilidad_anual(retornos: pd.DataFrame) -> pd.Series:
-    """Desvío estándar de los retornos diarios × √252."""
+def annual_volatility(returns: pd.DataFrame) -> pd.Series:
+    """Standard deviation of daily returns × √252."""
     raise NotImplementedError("TODO")
 
 
-def drawdown(precios: pd.DataFrame) -> pd.DataFrame:
-    """Precio / máximo acumulado hasta esa fecha - 1 (0 en máximos, negativo en caídas)."""
+def drawdown(prices: pd.DataFrame) -> pd.DataFrame:
+    """Price / running maximum up to that date - 1 (0 at peaks, negative during falls)."""
     raise NotImplementedError("TODO")
 
 
-def max_drawdown(precios: pd.DataFrame) -> pd.Series:
-    """La peor caída desde un máximo, por activo (número negativo)."""
+def max_drawdown(prices: pd.DataFrame) -> pd.Series:
+    """The worst fall from a peak, per asset (a negative number)."""
     raise NotImplementedError("TODO")
 
 
-def var_historico(retornos: pd.DataFrame, nivel: float = 0.95) -> pd.Series:
-    """VaR histórico como pérdida POSITIVA: -(cuantil 1 - nivel de los retornos)."""
+def historical_var(returns: pd.DataFrame, level: float = 0.95) -> pd.Series:
+    """Historical VaR as a POSITIVE loss: -(the 1 - level quantile of the returns)."""
     raise NotImplementedError("TODO")
 
 
-def cvar_historico(retornos: pd.DataFrame, nivel: float = 0.95) -> pd.Series:
-    """Promedio de los retornos <= al cuantil (1 - nivel), como pérdida POSITIVA. Por activo."""
+def historical_cvar(returns: pd.DataFrame, level: float = 0.95) -> pd.Series:
+    """Average of the returns <= the (1 - level) quantile, as a POSITIVE loss. Per asset."""
     raise NotImplementedError("TODO")

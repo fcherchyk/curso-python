@@ -1,54 +1,54 @@
 [[questions]]
-text = "¿Por qué se hace `posicion = senal.shift(1)`?"
+text = "Why do you write `position = signal.shift(1)`?"
 options = [
-  "Para suavizar la señal",
-  "Porque la señal del día t usa el cierre de t: recién se puede operar al día siguiente",
-  "Para reducir costos",
-  "Por convención de pandas",
+  "To smooth the signal",
+  "Because day t's signal uses t's close: you can only trade on the next day",
+  "To reduce costs",
+  "Because of a pandas convention",
 ]
 correct = 1
-explanation = "Usar la señal el mismo día es usar información que todavía no existía: es el look-ahead bias."
+explanation = "Using the signal on the same day means using information that didn't exist yet: that's look-ahead bias."
 
 [[questions]]
-text = "Un backtest da un 5000 % anual con una regla simple. ¿Qué es lo más probable?"
+text = "A backtest shows 5000 % a year with a simple rule. What's most likely?"
 options = [
-  "Encontraste una mina de oro",
-  "Hay un error, como look-ahead bias u overfitting",
-  "El mercado es ineficiente",
-  "Los costos lo mejoran",
+  "You found a gold mine",
+  "There's a bug, such as look-ahead bias or overfitting",
+  "The market is inefficient",
+  "Costs improve it",
 ]
 correct = 1
-explanation = "Los resultados demasiado buenos casi siempre son un bug. El primer sospechoso es usar datos del futuro."
+explanation = "Results that are too good are almost always a bug. The first suspect is using data from the future."
 
 [[questions]]
-text = "¿Cómo se modelan los costos de transacción en un backtest vectorizado simple?"
+text = "How do you model transaction costs in a simple vectorized backtest?"
 options = [
-  "Restando un porcentaje fijo cada día",
-  "Restando costo × |cambio de posición| en los días en que se opera",
-  "Restando el costo una vez al final",
-  "No se modelan",
+  "Subtracting a fixed percentage every day",
+  "Subtracting cost × |change in position| on the days you trade",
+  "Subtracting the cost once at the end",
+  "You don't model them",
 ]
 correct = 1
-explanation = "Solo se paga cuando la posición cambia. `posicion.diff().abs()` marca esos días."
+explanation = "You only pay when the position changes. `position.diff().abs()` marks those days."
 
 [[questions]]
-text = "Probaste 200 combinaciones de medias móviles y elegiste la mejor. ¿Qué riesgo corrés?"
+text = "You tried 200 moving-average combinations and picked the best. What risk are you running?"
 options = [
-  "Ninguno",
-  "Sobreajuste: la mejor combinación probablemente capturó ruido del período testeado",
+  "None",
+  "Overfitting: the best combination probably captured noise from the tested period",
   "Look-ahead bias",
-  "Sesgo de supervivencia",
+  "Survivorship bias",
 ]
 correct = 1
-explanation = "Con suficientes intentos, algo siempre funciona en el pasado por azar. Hay que validarlo en datos fuera de muestra."
+explanation = "With enough attempts, something always works in the past by chance. You need to validate it on out-of-sample data."
 
 [[questions]]
-text = "¿Contra qué hay que comparar siempre una estrategia?"
+text = "What should you always compare a strategy against?"
 options = [
-  "Contra cero",
-  "Contra la alternativa simple: buy & hold del mismo activo o del índice",
-  "Contra la tasa de inflación únicamente",
-  "Contra otra estrategia compleja",
+  "Against zero",
+  "Against the simple alternative: buy & hold of the same asset or the index",
+  "Against the inflation rate only",
+  "Against another complex strategy",
 ]
 correct = 1
-explanation = "Si no le gana a comprar y no hacer nada (con costos y riesgo comparables), la estrategia no agrega valor."
+explanation = "If it doesn't beat buying and doing nothing (with comparable costs and risk), the strategy adds no value."

@@ -1,38 +1,38 @@
-"""Precios y retornos. `precios` es un DataFrame con índice de fechas y una columna por activo."""
+"""Prices and returns. `prices` is a DataFrame with a date index and one column per asset."""
 
 from pathlib import Path
 
 import numpy as np  # noqa: F401
 import pandas as pd
 
-CSV = Path(__file__).parent / "precios.csv"
-DIAS_HABILES = 252
+CSV = Path(__file__).parent / "prices.csv"
+TRADING_DAYS = 252
 
 
-def cargar() -> pd.DataFrame:
-    return pd.read_csv(CSV, parse_dates=["fecha"], index_col="fecha")
+def load() -> pd.DataFrame:
+    return pd.read_csv(CSV, parse_dates=["date"], index_col="date")
 
 
-def retornos_simples(precios: pd.DataFrame) -> pd.DataFrame:
-    """P_t / P_{t-1} - 1, sin la primera fila (NaN)."""
+def simple_returns(prices: pd.DataFrame) -> pd.DataFrame:
+    """P_t / P_{t-1} - 1, without the first row (NaN)."""
     raise NotImplementedError("TODO")
 
 
-def retornos_log(precios: pd.DataFrame) -> pd.DataFrame:
-    """ln(P_t / P_{t-1}), sin la primera fila."""
+def log_returns(prices: pd.DataFrame) -> pd.DataFrame:
+    """ln(P_t / P_{t-1}), without the first row."""
     raise NotImplementedError("TODO")
 
 
-def retorno_acumulado(retornos: pd.DataFrame) -> pd.Series:
-    """Retorno total del período por activo, componiendo los retornos simples."""
+def cumulative_return(returns: pd.DataFrame) -> pd.Series:
+    """Total return over the period per asset, compounding the simple returns."""
     raise NotImplementedError("TODO")
 
 
-def retorno_anualizado(retornos: pd.DataFrame) -> pd.Series:
-    """(1 + acumulado) ** (252 / cantidad de retornos) - 1, por activo."""
+def annualized_return(returns: pd.DataFrame) -> pd.Series:
+    """(1 + cumulative) ** (252 / number of returns) - 1, per asset."""
     raise NotImplementedError("TODO")
 
 
-def cagr(precios: pd.DataFrame) -> pd.Series:
-    """(último / primero) ** (1 / años) - 1, con años = días de calendario / 365.25."""
+def cagr(prices: pd.DataFrame) -> pd.Series:
+    """(last / first) ** (1 / years) - 1, with years = calendar days / 365.25."""
     raise NotImplementedError("TODO")

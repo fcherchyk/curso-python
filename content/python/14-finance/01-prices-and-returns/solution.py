@@ -3,30 +3,30 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-CSV = Path(__file__).parent / "precios.csv"
-DIAS_HABILES = 252
+CSV = Path(__file__).parent / "prices.csv"
+TRADING_DAYS = 252
 
 
-def cargar() -> pd.DataFrame:
-    return pd.read_csv(CSV, parse_dates=["fecha"], index_col="fecha")
+def load() -> pd.DataFrame:
+    return pd.read_csv(CSV, parse_dates=["date"], index_col="date")
 
 
-def retornos_simples(precios: pd.DataFrame) -> pd.DataFrame:
-    return precios.pct_change().dropna()
+def simple_returns(prices: pd.DataFrame) -> pd.DataFrame:
+    return prices.pct_change().dropna()
 
 
-def retornos_log(precios: pd.DataFrame) -> pd.DataFrame:
-    return np.log(precios / precios.shift(1)).dropna()
+def log_returns(prices: pd.DataFrame) -> pd.DataFrame:
+    return np.log(prices / prices.shift(1)).dropna()
 
 
-def retorno_acumulado(retornos: pd.DataFrame) -> pd.Series:
-    return (1 + retornos).prod() - 1
+def cumulative_return(returns: pd.DataFrame) -> pd.Series:
+    return (1 + returns).prod() - 1
 
 
-def retorno_anualizado(retornos: pd.DataFrame) -> pd.Series:
-    return (1 + retorno_acumulado(retornos)) ** (DIAS_HABILES / len(retornos)) - 1
+def annualized_return(returns: pd.DataFrame) -> pd.Series:
+    return (1 + cumulative_return(returns)) ** (TRADING_DAYS / len(returns)) - 1
 
 
-def cagr(precios: pd.DataFrame) -> pd.Series:
-    anios = (precios.index[-1] - precios.index[0]).days / 365.25
-    return (precios.iloc[-1] / precios.iloc[0]) ** (1 / anios) - 1
+def cagr(prices: pd.DataFrame) -> pd.Series:
+    years = (prices.index[-1] - prices.index[0]).days / 365.25
+    return (prices.iloc[-1] / prices.iloc[0]) ** (1 / years) - 1

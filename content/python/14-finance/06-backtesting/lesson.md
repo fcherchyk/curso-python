@@ -1,117 +1,117 @@
-# Backtesting: probar una estrategia sin engañarte
+# Backtesting: testing a strategy without fooling yourself
 
-Un **backtest** simula cómo le habría ido a una regla de inversión con datos históricos. Es
-fácil de programar y **todavía más fácil de hacer mal**: un backtest con errores siempre parece
-excelente. Este capítulo arma uno simple y, sobre todo, muestra las trampas.
+A **backtest** simulates how an investment rule would have done on historical data. It's easy to
+code and **even easier to get wrong**: a buggy backtest always looks excellent. This chapter
+builds a simple one and, above all, shows the traps.
 
-## La estrategia: cruce de medias móviles
+## The strategy: moving-average crossover
 
-Una regla clásica de seguimiento de tendencia:
+A classic trend-following rule:
 
-- **Media corta** (20 días) por encima de la **media larga** (50 días): tendencia alcista,
-  **comprado**.
-- Si no: **afuera** (en efectivo).
+- **Short average** (20 days) above the **long average** (50 days): uptrend, **long** (invested).
+- Otherwise: **out** (in cash).
 
 ```python
-s = precios["ACME"]
-corta = s.rolling(20).mean()
-larga = s.rolling(50).mean()
-senal = (corta > larga).astype(int)      # 1 = comprado, 0 = afuera
+s = prices["ACME"]
+short = s.rolling(20).mean()
+long = s.rolling(50).mean()
+signal = (short > long).astype(int)      # 1 = invested, 0 = out
 ```
 
-Los primeros 49 días la media larga es NaN, y `NaN > x` da `False`: la señal es 0 (afuera)
-hasta tener datos suficientes.
+For the first 49 days the long average is NaN, and `NaN > x` is `False`: the signal is 0 (out)
+until there's enough data.
 
-## La trampa número uno: *look-ahead bias*
+## Trap number one: *look-ahead bias*
 
-La señal del día `t` usa el precio de **cierre** del día `t`. Recién lo conocés cuando el día
-terminó, así que **no podés haber operado durante ese día con esa información**. La posición
-que realmente tenés el día `t` es la señal de **ayer**:
+The signal for day `t` uses day `t`'s **closing** price. You only know it once the day is over,
+so **you can't have traded during that day with that information**. The position you actually
+hold on day `t` is **yesterday's** signal:
 
 ```python
-posicion = senal.shift(1).fillna(0)      # operás al día siguiente de la señal
+position = signal.shift(1).fillna(0)     # you trade the day after the signal
 r = s.pct_change().fillna(0)
-r_estrategia = posicion * r
+r_strategy = position * r
 ```
 
-Para ver cuánto engaña olvidarse del `shift`, probá una regla absurda: "estar comprado los días
-que sube".
+To see how badly forgetting the `shift` misleads you, try an absurd rule: "be invested on the
+days it goes up".
 
 ```python
-trampa = (r > 0) * r                     # sin shift: sabe el futuro
-honesta = (r > 0).shift(1).fillna(False) * r
+cheat = (r > 0) * r                      # no shift: it knows the future
+honest = (r > 0).shift(1).fillna(False) * r
 ```
 
-En ACME, la versión con trampa multiplica el capital **214 veces** en tres años, y la honesta
-gana un 8 %. Con medias móviles el error es menos obvio (58 % contra 56 %), y por eso es tan
-peligroso: el resultado parece creíble.
+On ACME, the cheating version multiplies the capital **214 times** in three years, and the honest
+one gains 8 %. With moving averages the error is less obvious (58 % versus 56 %), and that's why
+it's so dangerous: the result looks believable.
 
-## Costos de transacción
+## Transaction costs
 
-Cada vez que la posición cambia, pagás comisiones y el *spread* (la diferencia entre el precio
-de compra y el de venta). Un modelo simple cobra un porcentaje por cada cambio:
+Every time the position changes, you pay commissions and the *spread* (the difference between
+the buy and sell price). A simple model charges a percentage on each change:
 
 ```python
-operaciones = posicion.diff().fillna(posicion).abs()   # 1 en cada entrada o salida
-r_neta = posicion * r - 0.001 * operaciones            # 0.1 % por operación
+trades = position.diff().fillna(position).abs()   # 1 on every entry or exit
+r_net = position * r - 0.001 * trades             # 0.1 % per trade
 ```
 
-`fillna(posicion)` cuenta la primera entrada si la posición arranca en 1. Una estrategia que
-opera mucho puede pasar de ganadora a perdedora solo por los costos.
+`fillna(position)` counts the first entry if the position starts at 1. A strategy that trades a
+lot can go from winner to loser on costs alone.
 
-## Comparar contra buy & hold
+## Compare against buy & hold
 
-Una estrategia solo vale si le gana a la alternativa más simple: **comprar y no hacer nada**.
+A strategy is only worth it if it beats the simplest alternative: **buy and do nothing**.
 
-| ACME (2023–2025) | retorno total | operaciones | tiempo comprado |
+| ACME (2023–2025) | total return | trades | time invested |
 |---|---|---|---|
-| Buy & hold                         | 41.2 % | 1  | 100 % |
-| Cruce 20/50 sin costos             | 55.6 % | 15 | 54 % |
-| Cruce 20/50 con 0.1 % por operación | 53.3 % | 15 | 54 % |
+| Buy & hold                          | 41.2 % | 1  | 100 % |
+| 20/50 crossover, no costs           | 55.6 % | 15 | 54 % |
+| 20/50 crossover, 0.1 % per trade    | 53.3 % | 15 | 54 % |
 
-En ACME la estrategia ganó. En el INDICE, la misma regla rinde **22 %** contra **30 %** de buy &
-hold: **perdió**. Un resultado en un solo activo y un solo período no prueba nada.
+On ACME the strategy won. On INDEX, the same rule returns **22 %** against **30 %** for buy &
+hold: **it lost**. A result on a single asset over a single period proves nothing.
 
-## La curva de capital (*equity curve*)
+## The equity curve
 
 ```python
-equity = capital * (1 + r_neta).cumprod()
+equity = capital * (1 + r_net).cumprod()
 buy_hold = capital * (1 + r).cumprod()
 fig, ax = plt.subplots()
-ax.plot(equity, label="Estrategia")
+ax.plot(equity, label="Strategy")
 ax.plot(buy_hold, label="Buy & hold")
 ```
 
-Mirá la curva entera, no solo el número final: ¿cuándo ganó?, ¿cuánto tiempo estuvo debajo de su
-máximo (drawdown, capítulo 2)?
+Look at the whole curve, not just the final number: when did it make money? How long was it
+below its peak (drawdown, chapter 2)?
 
-## Otras trampas
+## Other traps
 
-- **Sobreajuste (*overfitting*)**: probar 100 combinaciones de medias y quedarse con la mejor
-  encuentra ruido, no una señal. Separá los datos: optimizá en un período y validá en otro que
-  no hayas mirado (*out-of-sample*).
-- **Sesgo de supervivencia**: si solo testeás con empresas que hoy existen, te salteás las que
-  quebraron.
-- **Ejecución irreal**: suponer que operás exactamente al cierre, sin impacto en el precio.
-- **Datos sintéticos**: estos precios son un random walk. Por construcción, **ninguna**
-  estrategia tiene ventaja real en ellos; cualquier "ganancia" es suerte. Lo mismo te puede
-  pasar con datos reales sin darte cuenta.
+- **Overfitting**: trying 100 combinations of averages and keeping the best one finds noise, not
+  a signal. Split the data: optimize on one period and validate on another you haven't looked
+  at (*out-of-sample*).
+- **Survivorship bias**: if you only test with companies that exist today, you skip the ones
+  that went bankrupt.
+- **Unrealistic execution**: assuming you trade exactly at the close, with no price impact.
+- **Synthetic data**: these prices are a random walk. By construction, **no** strategy has a
+  real edge on them; any "profit" is luck. The same can happen to you with real data without
+  noticing.
 
-Herramientas como `vectorbt` o `backtrader` resuelven la mecánica, pero no estos sesgos: esos
-siempre los tenés que cuidar vos.
+Tools like `vectorbt` or `backtrader` handle the mechanics, but not these biases: those are
+always on you.
 
-## Resumen
+## Summary
 
-- Señal con datos hasta `t` → posición en `t + 1`: `senal.shift(1)`. Sin shift, el backtest
-  hace trampa.
-- Retorno de la estrategia: `posicion * r - costo * |Δposicion|`.
-- Compará siempre contra buy & hold, en varios activos y períodos.
-- Desconfiá de los backtests demasiado buenos: overfitting, supervivencia y ejecución irreal.
+- Signal with data up to `t` → position at `t + 1`: `signal.shift(1)`. Without the shift, the
+  backtest cheats.
+- Strategy return: `position * r - cost * |Δposition|`.
+- Always compare against buy & hold, across several assets and periods.
+- Be suspicious of backtests that are too good: overfitting, survivorship and unrealistic
+  execution.
 
-## Ejercicio
+## Exercise
 
-Implementá la señal de cruce, la posición sin look-ahead, los retornos netos de costos, un
-resumen comparado con buy & hold y la equity curve.
+Implement the crossover signal, the position without look-ahead, the returns net of costs, a
+summary compared with buy & hold, and the equity curve.
 
-**Para profundizar:** M. López de Prado, *Advances in Financial Machine Learning*, cap. 11
+**Further reading:** M. López de Prado, *Advances in Financial Machine Learning*, ch. 11
 ("The Dangers of Backtesting"); [vectorbt](https://vectorbt.dev/).

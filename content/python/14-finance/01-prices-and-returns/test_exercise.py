@@ -5,49 +5,49 @@ from pathlib import Path
 
 import pytest
 from exercise import (
+    annualized_return,
     cagr,
-    cargar,
-    retorno_acumulado,
-    retorno_anualizado,
-    retornos_log,
-    retornos_simples,
+    cumulative_return,
+    load,
+    log_returns,
+    simple_returns,
 )
 
-# Referencia calculada sin pandas, con el módulo csv.
-with open(Path(__file__).parent / "precios.csv", encoding="utf-8") as f:
-    FILAS = list(csv.DictReader(f))
-ACME = [float(f["ACME"]) for f in FILAS]
+# Reference computed without pandas, using the csv module.
+with open(Path(__file__).parent / "prices.csv", encoding="utf-8") as f:
+    ROWS = list(csv.DictReader(f))
+ACME = [float(row["ACME"]) for row in ROWS]
 
 
-def test_retornos_simples():
-    r = retornos_simples(cargar())
-    assert len(r) == len(FILAS) - 1, "sacá la primera fila con dropna()"
+def test_simple_returns():
+    r = simple_returns(load())
+    assert len(r) == len(ROWS) - 1, "drop the first row with dropna()"
     assert not r.isna().any().any()
     assert r["ACME"].iloc[0] == pytest.approx(ACME[1] / ACME[0] - 1)
     assert r["ACME"].iloc[-1] == pytest.approx(ACME[-1] / ACME[-2] - 1)
 
 
-def test_retornos_log():
-    r = retornos_log(cargar())
-    assert len(r) == len(FILAS) - 1
+def test_log_returns():
+    r = log_returns(load())
+    assert len(r) == len(ROWS) - 1
     assert r["ACME"].iloc[0] == pytest.approx(math.log(ACME[1] / ACME[0]))
-    assert r["ACME"].sum() == pytest.approx(math.log(ACME[-1] / ACME[0])), "los log se suman"
+    assert r["ACME"].sum() == pytest.approx(math.log(ACME[-1] / ACME[0])), "log returns add up"
 
 
-def test_retorno_acumulado():
-    acum = retorno_acumulado(retornos_simples(cargar()))
-    assert acum["ACME"] == pytest.approx(ACME[-1] / ACME[0] - 1)
-    assert acum["BETA"] < 0
+def test_cumulative_return():
+    cum = cumulative_return(simple_returns(load()))
+    assert cum["ACME"] == pytest.approx(ACME[-1] / ACME[0] - 1)
+    assert cum["BETA"] < 0
 
 
-def test_retorno_anualizado():
-    anual = retorno_anualizado(retornos_simples(cargar()))
+def test_annualized_return():
+    annual = annualized_return(simple_returns(load()))
     n = len(ACME) - 1
-    assert anual["ACME"] == pytest.approx((ACME[-1] / ACME[0]) ** (252 / n) - 1)
+    assert annual["ACME"] == pytest.approx((ACME[-1] / ACME[0]) ** (252 / n) - 1)
 
 
 def test_cagr():
-    c = cagr(cargar())
-    anios = (date.fromisoformat(FILAS[-1]["fecha"]) - date.fromisoformat(FILAS[0]["fecha"])).days / 365.25
-    assert c["ACME"] == pytest.approx((ACME[-1] / ACME[0]) ** (1 / anios) - 1)
-    assert set(c.index) == {"ACME", "BETA", "CIRC", "DELTA", "INDICE"}
+    c = cagr(load())
+    years = (date.fromisoformat(ROWS[-1]["date"]) - date.fromisoformat(ROWS[0]["date"])).days / 365.25
+    assert c["ACME"] == pytest.approx((ACME[-1] / ACME[0]) ** (1 / years) - 1)
+    assert set(c.index) == {"ACME", "BETA", "CIRC", "DELTA", "INDEX"}

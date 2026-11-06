@@ -1,54 +1,54 @@
 [[questions]]
-text = "¿Qué es la frontera eficiente?"
+text = "What is the efficient frontier?"
 options = [
-  "El portafolio con mayor retorno",
-  "El conjunto de portafolios con el máximo retorno posible para cada nivel de riesgo",
-  "Los portafolios con Sharpe mayor que 1",
-  "El portafolio de pesos iguales",
+  "The portfolio with the highest return",
+  "The set of portfolios with the highest possible return for each level of risk",
+  "The portfolios with a Sharpe above 1",
+  "The equal-weight portfolio",
 ]
 correct = 1
-explanation = "Es el borde superior de la nube riesgo-retorno. Por debajo, siempre hay otro portafolio mejor con el mismo riesgo."
+explanation = "It's the upper edge of the risk-return cloud. Below it, there's always a better portfolio with the same risk."
 
 [[questions]]
-text = "¿Para qué sirve `keepdims=True` en `W /= W.sum(axis=1, keepdims=True)`?"
+text = "What is `keepdims=True` for in `W /= W.sum(axis=1, keepdims=True)`?"
 options = [
-  "Para no modificar W",
-  "Para que la suma quede con forma (n, 1) y el broadcasting divida cada fila por su suma",
-  "Para ordenar las filas",
-  "Para que sea más rápido",
+  "So W isn't modified",
+  "So the sum has shape (n, 1) and broadcasting divides each row by its sum",
+  "To sort the rows",
+  "To make it faster",
 ]
 correct = 1
-explanation = "Sin keepdims, la suma tiene forma (n,) y no se alinea con las filas de una matriz (n, 4)."
+explanation = "Without keepdims, the sum has shape (n,) and doesn't line up with the rows of an (n, 4) matrix."
 
 [[questions]]
-text = "¿Qué calcula `np.einsum('ij,jk,ik->i', W, cov, W)`?"
+text = "What does `np.einsum('ij,jk,ik->i', W, cov, W)` compute?"
 options = [
-  "El retorno de cada portafolio",
-  "La varianza wᵀΣw de cada portafolio (cada fila de W)",
-  "La covarianza entre portafolios",
-  "La suma de los pesos",
+  "The return of each portfolio",
+  "The variance wᵀΣw of each portfolio (each row of W)",
+  "The covariance between portfolios",
+  "The sum of the weights",
 ]
 correct = 1
-explanation = "Para cada fila i, suma W[i,j]·cov[j,k]·W[i,k] sobre j y k: la forma cuadrática fila por fila."
+explanation = "For each row i, it sums W[i,j]·cov[j,k]·W[i,k] over j and k: the quadratic form row by row."
 
 [[questions]]
-text = "¿Por qué es importante fijar la semilla en la simulación?"
+text = "Why is it important to fix the seed in the simulation?"
 options = [
-  "Para que los resultados sean reproducibles (y testeables)",
-  "Para que el resultado sea más óptimo",
-  "Porque numpy lo exige",
-  "Para que sea más rápido",
+  "So the results are reproducible (and testable)",
+  "So the result is more optimal",
+  "Because numpy requires it",
+  "To make it faster",
 ]
 correct = 0
-explanation = "La misma semilla genera los mismos números. Así podés repetir el análisis y comparar los cambios."
+explanation = "The same seed generates the same numbers. That way you can repeat the analysis and compare changes."
 
 [[questions]]
-text = "¿Cuál es la principal crítica a la optimización de Markowitz en la práctica?"
+text = "What is the main criticism of Markowitz optimization in practice?"
 options = [
-  "Es muy lenta",
-  "Es muy sensible a los errores de estimación de los retornos esperados: los pesos cambian mucho con otros datos",
-  "No admite más de 4 activos",
-  "Ignora la volatilidad",
+  "It's very slow",
+  "It's very sensitive to estimation errors in expected returns: the weights change a lot with different data",
+  "It doesn't support more than 4 assets",
+  "It ignores volatility",
 ]
 correct = 1
-explanation = "Pequeños cambios en los retornos esperados (que se estiman muy mal) producen pesos óptimos muy distintos y concentrados."
+explanation = "Small changes in expected returns (which are estimated very poorly) produce very different, concentrated optimal weights."

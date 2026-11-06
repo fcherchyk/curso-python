@@ -3,44 +3,44 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-CSV = Path(__file__).parent / "precios.csv"
-ACTIVOS = ["ACME", "BETA", "CIRC", "DELTA"]
-DIAS_HABILES = 252
+CSV = Path(__file__).parent / "prices.csv"
+ASSETS = ["ACME", "BETA", "CIRC", "DELTA"]
+TRADING_DAYS = 252
 
 
-def cargar() -> pd.DataFrame:
-    return pd.read_csv(CSV, parse_dates=["fecha"], index_col="fecha")[ACTIVOS]
+def load() -> pd.DataFrame:
+    return pd.read_csv(CSV, parse_dates=["date"], index_col="date")[ASSETS]
 
 
-def retornos_simples(precios: pd.DataFrame) -> pd.DataFrame:
-    return precios.pct_change().dropna()
+def simple_returns(prices: pd.DataFrame) -> pd.DataFrame:
+    return prices.pct_change().dropna()
 
 
-def retorno_portafolio(retornos: pd.DataFrame, pesos: pd.Series) -> pd.Series:
-    return retornos[pesos.index] @ pesos
+def portfolio_return(returns: pd.DataFrame, weights: pd.Series) -> pd.Series:
+    return returns[weights.index] @ weights
 
 
-def retorno_esperado(retornos: pd.DataFrame, pesos: pd.Series) -> float:
-    return float(pesos @ retornos[pesos.index].mean() * DIAS_HABILES)
+def expected_return(returns: pd.DataFrame, weights: pd.Series) -> float:
+    return float(weights @ returns[weights.index].mean() * TRADING_DAYS)
 
 
-def volatilidad_portafolio(retornos: pd.DataFrame, pesos: pd.Series) -> float:
-    cov = retornos[pesos.index].cov() * DIAS_HABILES
-    return float(np.sqrt(pesos @ cov @ pesos))
+def portfolio_volatility(returns: pd.DataFrame, weights: pd.Series) -> float:
+    cov = returns[weights.index].cov() * TRADING_DAYS
+    return float(np.sqrt(weights @ cov @ weights))
 
 
-def beneficio_diversificacion(retornos: pd.DataFrame, pesos: pd.Series) -> float:
-    vol_individual = retornos[pesos.index].std() * np.sqrt(DIAS_HABILES)
-    return 1 - volatilidad_portafolio(retornos, pesos) / float(pesos @ vol_individual)
+def diversification_benefit(returns: pd.DataFrame, weights: pd.Series) -> float:
+    individual_vol = returns[weights.index].std() * np.sqrt(TRADING_DAYS)
+    return 1 - portfolio_volatility(returns, weights) / float(weights @ individual_vol)
 
 
-def buy_and_hold(precios: pd.DataFrame, pesos: pd.Series, capital: float) -> tuple[pd.Series, pd.Series]:
-    precios = precios[pesos.index]
-    acciones = capital * pesos / precios.iloc[0]
-    tenencias = precios * acciones
-    valor = tenencias.sum(axis=1)
-    return valor, tenencias.iloc[-1] / valor.iloc[-1]
+def buy_and_hold(prices: pd.DataFrame, weights: pd.Series, capital: float) -> tuple[pd.Series, pd.Series]:
+    prices = prices[weights.index]
+    shares = capital * weights / prices.iloc[0]
+    holdings = prices * shares
+    value = holdings.sum(axis=1)
+    return value, holdings.iloc[-1] / value.iloc[-1]
 
 
-def rebalanceo_diario(precios: pd.DataFrame, pesos: pd.Series, capital: float) -> pd.Series:
-    return capital * (1 + retorno_portafolio(retornos_simples(precios), pesos)).cumprod()
+def daily_rebalancing(prices: pd.DataFrame, weights: pd.Series, capital: float) -> pd.Series:
+    return capital * (1 + portfolio_return(simple_returns(prices), weights)).cumprod()

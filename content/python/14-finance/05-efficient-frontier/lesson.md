@@ -1,85 +1,85 @@
-# Frontera eficiente por Monte Carlo
+# The efficient frontier with Monte Carlo
 
-El capítulo anterior calculaba el riesgo y el retorno de **un** portafolio. La pregunta natural
-es: **¿cuáles son los mejores pesos?** Harry Markowitz respondió en 1952 (y ganó el Nobel): no
-hay un único "mejor", sino una **frontera eficiente**, el conjunto de portafolios que dan el
-máximo retorno posible para cada nivel de riesgo.
+The previous chapter computed the risk and return of **one** portfolio. The natural question
+is: **what are the best weights?** Harry Markowitz answered it in 1952 (and won the Nobel): there
+is no single "best", but an **efficient frontier**, the set of portfolios that give the highest
+possible return for each level of risk.
 
-## La idea con Monte Carlo
+## The idea with Monte Carlo
 
-La forma rigurosa es un problema de optimización (`scipy.optimize.minimize` o `cvxpy`). La forma
-intuitiva, y la que usamos acá, es **probar muchos portafolios al azar** y mirar la nube:
-
-```python
-rng = np.random.default_rng(42)            # semilla: resultados reproducibles
-W = rng.random((5000, 4))                  # 5000 portafolios × 4 activos, en [0, 1)
-W /= W.sum(axis=1, keepdims=True)          # normalizar: cada fila suma 1 (sin ventas en corto)
-```
-
-`keepdims=True` deja la suma con forma `(5000, 1)`, así el **broadcasting** del módulo 11 divide
-cada fila por su propia suma.
-
-## Retorno y volatilidad de 5000 portafolios a la vez
-
-Nada de `for`: la vectorización de NumPy calcula todos juntos.
+The rigorous way is an optimization problem (`scipy.optimize.minimize` or `cvxpy`). The intuitive
+way, and the one we use here, is to **try lots of random portfolios** and look at the cloud:
 
 ```python
-mu = r.mean().to_numpy() * 252            # retornos esperados anuales (4,)
-cov = r.cov().to_numpy() * 252            # covarianza anual (4, 4)
-
-retornos = W @ mu                                          # (5000,)
-vols = np.sqrt(np.einsum("ij,jk,ik->i", W, cov, W))       # wᵢᵀ Σ wᵢ para cada fila
-sharpes = (retornos - 0.04) / vols
+rng = np.random.default_rng(42)            # seed: reproducible results
+W = rng.random((5000, 4))                  # 5000 portfolios × 4 assets, in [0, 1)
+W /= W.sum(axis=1, keepdims=True)          # normalize: each row adds up to 1 (no short selling)
 ```
 
-`einsum` describe la operación con índices: para cada portafolio `i`, suma `W[i,j]·cov[j,k]·W[i,k]`
-sobre `j` y `k`. Es `wᵀΣw` aplicado fila por fila. Una alternativa equivalente es
+`keepdims=True` keeps the sum with shape `(5000, 1)`, so **broadcasting** from module 11 divides
+each row by its own sum.
+
+## Return and volatility of 5000 portfolios at once
+
+No `for` loops: NumPy vectorization computes them all together.
+
+```python
+mu = r.mean().to_numpy() * 252            # expected annual returns (4,)
+cov = r.cov().to_numpy() * 252            # annual covariance (4, 4)
+
+returns = W @ mu                                           # (5000,)
+vols = np.sqrt(np.einsum("ij,jk,ik->i", W, cov, W))       # wᵢᵀ Σ wᵢ for each row
+sharpes = (returns - 0.04) / vols
+```
+
+`einsum` describes the operation with indices: for each portfolio `i`, it sums `W[i,j]·cov[j,k]·W[i,k]`
+over `j` and `k`. It's `wᵀΣw` applied row by row. An equivalent alternative is
 `((W @ cov) * W).sum(axis=1)`.
 
-## Los dos portafolios notables
+## The two notable portfolios
 
 ```python
-i = sharpes.argmax()      # máximo Sharpe: el mejor retorno por unidad de riesgo
-j = vols.argmin()         # mínima varianza: el menos riesgoso
+i = sharpes.argmax()      # maximum Sharpe: the best return per unit of risk
+j = vols.argmin()         # minimum variance: the least risky
 ```
 
-| | ACME | BETA | CIRC | DELTA | retorno | vol | Sharpe |
+| | ACME | BETA | CIRC | DELTA | return | vol | Sharpe |
 |---|---|---|---|---|---|---|---|
-| máximo Sharpe   | 0.087 | 0.023 | 0.055 | 0.835 | 0.146 | 0.112 | 0.95 |
-| mínima varianza | 0.053 | 0.252 | 0.006 | 0.689 | 0.104 | 0.107 | 0.59 |
+| maximum Sharpe   | 0.087 | 0.023 | 0.055 | 0.835 | 0.146 | 0.112 | 0.95 |
+| minimum variance | 0.053 | 0.252 | 0.006 | 0.689 | 0.104 | 0.107 | 0.59 |
 
-Ambos cargan mucho DELTA: baja volatilidad, buen retorno y poca correlación con el resto.
+Both load up on DELTA: low volatility, good return and little correlation with the rest.
 
-## La nube y su borde
+## The cloud and its edge
 
 
-Al graficar volatilidad (X) contra retorno (Y), la nube tiene un **borde superior izquierdo**:
-esa es la frontera eficiente. Cualquier portafolio que esté por debajo es **ineficiente**,
-porque hay otro con el mismo riesgo y más retorno. El de máximo Sharpe es el punto de la
-frontera donde toca la recta que sale de la tasa libre de riesgo (la *capital market line*).
+When you plot volatility (X) against return (Y), the cloud has an **upper-left edge**: that's
+the efficient frontier. Any portfolio below it is **inefficient**, because there's another one
+with the same risk and more return. The maximum-Sharpe portfolio is the point on the frontier
+where it touches the line coming out of the risk-free rate (the *capital market line*).
 
-## Advertencias importantes
+## Important caveats
 
-- **Las entradas son estimaciones históricas**, y los retornos esperados son ruidosísimos. Con
-  otro período, los pesos "óptimos" cambian por completo. La optimización de Markowitz es
-  famosa por **amplificar los errores de estimación** ("error maximization").
-- Por eso, en la práctica se usan restricciones (pesos máximos), estimadores más robustos o
-  enfoques que no dependen de los retornos esperados (mínima varianza, *risk parity*).
-- Monte Carlo es aproximado: con muchos activos, los portafolios aleatorios casi nunca llegan
-  al borde. Ahí hace falta un optimizador.
+- **The inputs are historical estimates**, and expected returns are extremely noisy. With a
+  different period, the "optimal" weights change completely. Markowitz optimization is famous
+  for **amplifying estimation errors** ("error maximization").
+- That's why, in practice, people use constraints (maximum weights), more robust estimators, or
+  approaches that don't depend on expected returns (minimum variance, *risk parity*).
+- Monte Carlo is approximate: with many assets, random portfolios almost never reach the edge.
+  That's when you need an optimizer.
 
-## Resumen
+## Summary
 
-- Generá pesos aleatorios con `default_rng(semilla)` y normalizá las filas con `keepdims=True`.
-- Retornos: `W @ mu`. Varianzas: `einsum("ij,jk,ik->i", W, cov, W)`.
-- Máximo Sharpe con `argmax` y mínima varianza con `argmin` sobre la volatilidad.
-- La frontera es el borde superior de la nube riesgo-retorno.
-- Los pesos óptimos son muy sensibles a las estimaciones: desconfiá de ellos.
+- Generate random weights with `default_rng(seed)` and normalize the rows with `keepdims=True`.
+- Returns: `W @ mu`. Variances: `einsum("ij,jk,ik->i", W, cov, W)`.
+- Maximum Sharpe with `argmax`, and minimum variance with `argmin` over the volatility.
+- The frontier is the upper edge of the risk-return cloud.
+- Optimal weights are very sensitive to the estimates: don't trust them blindly.
 
-## Ejercicio
+## Exercise
 
-Generá pesos aleatorios reproducibles, simulá portafolios, encontrá los de máximo Sharpe y
-mínima varianza y graficá la nube marcando ambos.
+Generate reproducible random weights, simulate portfolios, find the maximum-Sharpe and
+minimum-variance ones, and plot the cloud marking both.
 
-**Para profundizar:** [PyPortfolioOpt](https://pyportfolioopt.readthedocs.io/) (optimización
-real); [numpy.einsum](https://numpy.org/doc/stable/reference/generated/numpy.einsum.html).
+**Further reading:** [PyPortfolioOpt](https://pyportfolioopt.readthedocs.io/) (real
+optimization); [numpy.einsum](https://numpy.org/doc/stable/reference/generated/numpy.einsum.html).

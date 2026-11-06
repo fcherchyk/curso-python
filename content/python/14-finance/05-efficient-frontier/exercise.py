@@ -1,4 +1,4 @@
-"""Frontera eficiente por Monte Carlo, con NumPy vectorizado."""
+"""Efficient frontier with Monte Carlo, using vectorized NumPy."""
 
 from pathlib import Path
 
@@ -7,48 +7,48 @@ import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
 
-CSV = Path(__file__).parent / "precios.csv"
-ACTIVOS = ["ACME", "BETA", "CIRC", "DELTA"]
-DIAS_HABILES = 252
+CSV = Path(__file__).parent / "prices.csv"
+ASSETS = ["ACME", "BETA", "CIRC", "DELTA"]
+TRADING_DAYS = 252
 
 
-def cargar() -> pd.DataFrame:
-    return pd.read_csv(CSV, parse_dates=["fecha"], index_col="fecha")[ACTIVOS]
+def load() -> pd.DataFrame:
+    return pd.read_csv(CSV, parse_dates=["date"], index_col="date")[ASSETS]
 
 
-def retornos_simples(precios: pd.DataFrame) -> pd.DataFrame:
-    return precios.pct_change().dropna()
+def simple_returns(prices: pd.DataFrame) -> pd.DataFrame:
+    return prices.pct_change().dropna()
 
 
-def pesos_aleatorios(n_portafolios: int, n_activos: int, semilla: int) -> np.ndarray:
-    """Matriz (n_portafolios, n_activos): rng = default_rng(semilla), rng.random(...),
-    y cada fila normalizada para que sume 1.
+def random_weights(n_portfolios: int, n_assets: int, seed: int) -> np.ndarray:
+    """Matrix (n_portfolios, n_assets): rng = default_rng(seed), rng.random(...),
+    with each row normalized so it adds up to 1.
     """
     raise NotImplementedError("TODO")
 
 
-def simular(retornos: pd.DataFrame, n: int, semilla: int, tasa_libre: float = 0.04) -> pd.DataFrame:
-    """Un DataFrame de n filas con columnas: una por activo (los pesos), "retorno" (anual),
-    "volatilidad" (anual) y "sharpe" ((retorno - tasa_libre) / volatilidad).
-    Sin bucles: usá W @ mu y einsum (o ((W @ cov) * W).sum(axis=1)).
+def simulate(returns: pd.DataFrame, n: int, seed: int, risk_free: float = 0.04) -> pd.DataFrame:
+    """A DataFrame with n rows and columns: one per asset (the weights), "return" (annual),
+    "volatility" (annual) and "sharpe" ((return - risk_free) / volatility).
+    No loops: use W @ mu and einsum (or ((W @ cov) * W).sum(axis=1)).
     """
     raise NotImplementedError("TODO")
 
 
 def max_sharpe(sim: pd.DataFrame) -> pd.Series:
-    """La fila con mayor Sharpe."""
+    """The row with the highest Sharpe."""
     raise NotImplementedError("TODO")
 
 
-def min_varianza(sim: pd.DataFrame) -> pd.Series:
-    """La fila con menor volatilidad."""
+def min_variance(sim: pd.DataFrame) -> pd.Series:
+    """The row with the lowest volatility."""
     raise NotImplementedError("TODO")
 
 
-def grafico_frontera(sim: pd.DataFrame) -> Figure:
-    """Scatter volatilidad (X) vs retorno (Y) coloreado por sharpe (c=..., cmap="viridis").
-    Encima, dos puntos: max_sharpe (label "Máximo Sharpe") y min_varianza
-    (label "Mínima varianza"), cada uno con su propio scatter. Leyenda.
-    xlabel "Volatilidad anual", ylabel "Retorno anual".
+def frontier_plot(sim: pd.DataFrame) -> Figure:
+    """Scatter of volatility (X) vs return (Y) colored by sharpe (c=..., cmap="viridis").
+    On top, two points: max_sharpe (label "Maximum Sharpe") and min_variance
+    (label "Minimum variance"), each with its own scatter. Legend.
+    xlabel "Annual volatility", ylabel "Annual return".
     """
     raise NotImplementedError("TODO")
