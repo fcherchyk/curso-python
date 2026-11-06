@@ -33,7 +33,7 @@ dev = [
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-testpaths = ["semana1", "tests"]
+testpaths = ["week1", "tests"]
 # content/ holds exercise tests that only run through the app (tests/test_content.py).
 norecursedirs = ["content", ".*", "__pycache__"]
 addopts = "-q"
