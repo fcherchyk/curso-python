@@ -9,27 +9,27 @@ def fibonacci() -> Iterator[int]:
         a, b = b, a + b
 
 
-def lineas_utiles(lineas: Iterable[str]) -> Iterator[str]:
-    for linea in lineas:
-        linea = linea.strip()
-        if linea and not linea.startswith("#"):
-            yield linea
+def useful_lines(lines: Iterable[str]) -> Iterator[str]:
+    for line in lines:
+        line = line.strip()
+        if line and not line.startswith("#"):
+            yield line
 
 
-def aplanar_profundo(anidado: Iterable[object]) -> Iterator[object]:
-    for x in anidado:
+def deep_flatten(nested: Iterable[object]) -> Iterator[object]:
+    for x in nested:
         if isinstance(x, (list, tuple)):
-            yield from aplanar_profundo(x)
+            yield from deep_flatten(x)
         else:
             yield x
 
 
-def rango_decimal(inicio: float, fin: float, paso: float) -> Iterator[float]:
-    # Como es un generador, esta validación corre recién en el primer next().
-    if paso <= 0:
-        raise ValueError("paso tiene que ser positivo")
+def decimal_range(start: float, stop: float, step: float) -> Iterator[float]:
+    # Since this is a generator, this check only runs on the first next().
+    if step <= 0:
+        raise ValueError("step must be positive")
     for i in count():
-        valor = round(inicio + i * paso, 10)
-        if valor >= fin:
+        value = round(start + i * step, 10)
+        if value >= stop:
             return
-        yield valor
+        yield value

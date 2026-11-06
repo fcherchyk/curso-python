@@ -1,39 +1,39 @@
 [[questions]]
-text = "Con `gen = (x for x in [1, 2, 3])`, ¿qué devuelve `list(gen), list(gen)`?"
+text = "Given `gen = (x for x in [1, 2, 3])`, what does `list(gen), list(gen)` return?"
 options = [
   "`([1, 2, 3], [1, 2, 3])`",
   "`([1, 2, 3], [])`",
   "`([], [])`",
-  "Levanta `StopIteration`",
+  "Raises `StopIteration`",
 ]
 correct = 1
-explanation = "Un generador es un iterador: se consume una sola vez. La segunda vez ya no quedan elementos."
+explanation = "A generator is an iterator: it is consumed only once. The second time there are no elements left."
 
 [[questions]]
-text = "¿Qué tiene que devolver `__iter__` en un **iterable** (como una lista)?"
+text = "What must `__iter__` return in an **iterable** (like a list)?"
 options = [
   "`self`",
-  "Un iterador nuevo cada vez",
-  "El primer elemento",
-  "Una lista con todos los elementos",
+  "A new iterator every time",
+  "The first element",
+  "A list with all the elements",
 ]
 correct = 1
-explanation = "Un iterable entrega un iterador nuevo en cada `iter()`, por eso se puede recorrer muchas veces. El que devuelve `self` es un **iterador**."
+explanation = "An iterable hands out a new iterator on every `iter()` call, which is why it can be iterated many times. The one that returns `self` is an **iterator**."
 
 [[questions]]
-text = "¿Cómo señala `__next__` que no quedan más elementos?"
-options = ["Devuelve `None`", "Levanta `StopIteration`", "Devuelve `False`", "Levanta `IndexError`"]
+text = "How does `__next__` signal that there are no more elements?"
+options = ["Returns `None`", "Raises `StopIteration`", "Returns `False`", "Raises `IndexError`"]
 correct = 1
-explanation = "El protocolo usa la excepción `StopIteration`. El `for` la atrapa y termina el bucle."
+explanation = "The protocol uses the `StopIteration` exception. The `for` loop catches it and ends the loop."
 
 [[questions]]
-text = "¿Qué devuelve `next(iter([]), \"vacío\")`?"
-options = ["`None`", "`'vacío'`", "Levanta `StopIteration`", "`[]`"]
+text = "What does `next(iter([]), \"empty\")` return?"
+options = ["`None`", "`'empty'`", "Raises `StopIteration`", "`[]`"]
 correct = 1
-explanation = "Con un segundo argumento, `next` devuelve ese valor por defecto en lugar de levantar `StopIteration`."
+explanation = "With a second argument, `next` returns that default value instead of raising `StopIteration`."
 
 [[questions]]
-text = "Una función recorre dos veces el parámetro `datos` (para el total y para los porcentajes). ¿Con qué argumento falla en silencio?"
-options = ["Una lista", "Una tupla", "Un generador", "Un `range`"]
+text = "A function iterates over its `data` parameter twice (once for the total, once for the percentages). Which argument makes it fail silently?"
+options = ["A list", "A tuple", "A generator", "A `range`"]
 correct = 2
-explanation = "Lista, tupla y `range` son iterables que se pueden recorrer muchas veces. El generador se agota en la primera pasada y la segunda queda vacía, sin error."
+explanation = "Lists, tuples and `range` are iterables that can be iterated many times. The generator is exhausted on the first pass and the second one comes up empty, with no error."

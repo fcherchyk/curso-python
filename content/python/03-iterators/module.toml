@@ -1,2 +1,2 @@
-title = "Iteradores y generadores"
-description = "El protocolo de iteración, generadores, pipelines perezosos e itertools: procesar datos grandes con memoria constante."
+title = "Iterators and generators"
+description = "The iteration protocol, generators, lazy pipelines and itertools: process large data with constant memory."

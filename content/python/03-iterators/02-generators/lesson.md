@@ -1,147 +1,147 @@
-# Generadores
+# Generators
 
-Un **generador** es una función que, en lugar de calcular todo y devolverlo, **produce los
-valores de a uno**, cuando alguien los pide. Es la forma más simple de escribir un iterador:
-nada de clases con `__next__`, solo `yield`.
+A **generator** is a function that, instead of computing everything and returning it,
+**produces values one at a time**, whenever someone asks for them. It's the simplest way to write an
+iterator: no classes with `__next__`, just `yield`.
 
-## `yield` convierte una función en generador
+## `yield` turns a function into a generator
 
 ```python
-def cuenta_regresiva(n):
-    print("arranca")
+def countdown(n):
+    print("starting")
     while n > 0:
         yield n
         n -= 1
-    print("terminó")
+    print("done")
 
-g = cuenta_regresiva(3)    # ¡no imprime nada! solo crea el generador
-next(g)                    # imprime "arranca", devuelve 3
-next(g)                    # 2
-next(g)                    # 1
-next(g)                    # imprime "terminó" y levanta StopIteration
+g = countdown(3)    # prints nothing! it only creates the generator
+next(g)             # prints "starting", returns 3
+next(g)             # 2
+next(g)             # 1
+next(g)             # prints "done" and raises StopIteration
 ```
 
-Qué conviene observar:
+Things to notice:
 
-1. Llamar a la función **no ejecuta el cuerpo**: devuelve un objeto generador.
-2. Cada `next()` ejecuta hasta el siguiente `yield`, entrega ese valor y **se pausa**,
-   conservando las variables locales y la posición.
-3. Cuando la función termina (o hace `return`), el generador levanta `StopIteration`.
+1. Calling the function **doesn't run the body**: it returns a generator object.
+2. Each `next()` runs until the next `yield`, hands over that value and **pauses**,
+   keeping its local variables and position.
+3. When the function ends (or hits `return`), the generator raises `StopIteration`.
 
-Por eso los generadores son **perezosos** (*lazy*): no calculan nada que nadie haya pedido.
+That's why generators are **lazy**: they don't compute anything nobody asked for.
 
-## Por qué importa: memoria y composición
+## Why it matters: memory and composition
 
 ```python
-def cuadrados_lista(n):
-    return [i * i for i in range(n)]      # construye n elementos en memoria
+def squares_list(n):
+    return [i * i for i in range(n)]      # builds n elements in memory
 
-def cuadrados_gen(n):
+def squares_gen(n):
     for i in range(n):
-        yield i * i                        # un elemento a la vez
+        yield i * i                        # one element at a time
 
-sum(cuadrados_lista(10**8))   # ~4 GB de RAM
-sum(cuadrados_gen(10**8))     # memoria constante
+sum(squares_list(10**8))   # ~4 GB of RAM
+sum(squares_gen(10**8))    # constant memory
 ```
 
-Además, un generador puede ser **infinito**, porque solo produce lo que se consume:
+A generator can also be **infinite**, because it only produces what gets consumed:
 
 ```python
-def naturales():
+def naturals():
     n = 0
     while True:
         yield n
         n += 1
 
 from itertools import islice
-list(islice(naturales(), 5))   # [0, 1, 2, 3, 4]
+list(islice(naturals(), 5))   # [0, 1, 2, 3, 4]
 ```
 
 ## Generator expressions
 
-Para casos simples, la sintaxis de comprehension con paréntesis crea un generador sin
-escribir una función:
+For simple cases, comprehension syntax with parentheses creates a generator without
+writing a function:
 
 ```python
-cuadrados = (i * i for i in range(10))
-total = sum(len(linea) for linea in archivo)       # sin paréntesis extra si es el único argumento
+squares = (i * i for i in range(10))
+total = sum(len(line) for line in file)       # no extra parentheses when it's the only argument
 ```
 
-Regla práctica: si entra en una línea legible, usá una generator expression; si necesita
-estado, varios pasos o `try`, escribí una función con `yield`.
+Rule of thumb: if it fits on one readable line, use a generator expression; if it needs
+state, several steps or `try`, write a function with `yield`.
 
-## `yield from`: delegar en otro iterable
+## `yield from`: delegating to another iterable
 
-`yield from iterable` produce todos los elementos de `iterable`, uno por uno. Es ideal para
-**recursión**:
+`yield from iterable` yields every element of `iterable`, one by one. It's ideal for
+**recursion**:
 
 ```python
-def recorrer(nodo):
-    yield nodo.valor
-    for hijo in nodo.hijos:
-        yield from recorrer(hijo)
+def walk(node):
+    yield node.value
+    for child in node.children:
+        yield from walk(child)
 ```
 
-Sin `yield from`, habría que escribir `for x in recorrer(hijo): yield x`.
+Without `yield from`, you'd have to write `for x in walk(child): yield x`.
 
-## Generadores con estado
+## Stateful generators
 
-Un generador es una forma muy natural de expresar algoritmos que "recuerdan" algo entre
-un paso y el siguiente:
+A generator is a very natural way to express algorithms that "remember" something from
+one step to the next:
 
 ```python
-def promedios_moviles(valores):
+def running_averages(values):
     total = 0
-    for i, v in enumerate(valores, start=1):
+    for i, v in enumerate(values, start=1):
         total += v
         yield total / i
 
-list(promedios_moviles([10, 20, 30]))   # [10.0, 15.0, 20.0]
+list(running_averages([10, 20, 30]))   # [10.0, 15.0, 20.0]
 ```
 
-## Limpieza: `try/finally` y `with` adentro de un generador
+## Cleanup: `try/finally` and `with` inside a generator
 
-Si el generador abre un recurso, usá `with` adentro. Cuando el generador termina, o cuando
-se destruye sin terminar (por ejemplo, al salir de un `for` con `break`), Python llama a
-`gen.close()` y el recurso se libera:
+If the generator opens a resource, use `with` inside it. When the generator finishes, or when
+it's destroyed before finishing (for example, when a `for` loop exits with `break`), Python calls
+`gen.close()` and the resource is released:
 
 ```python
-def lineas(ruta):
-    with open(ruta, encoding="utf-8") as f:
-        for linea in f:
-            yield linea.rstrip("\n")
+def lines(path):
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            yield line.rstrip("\n")
 ```
 
-## Lo avanzado (para reconocerlo)
+## Advanced features (so you can recognize them)
 
-- `return valor` dentro de un generador termina la iteración; el valor viaja en
-  `StopIteration.value` y es lo que devuelve `yield from`.
-- `gen.send(x)` le manda un valor al generador (el `yield` lo recibe como resultado). Es la
-  base histórica de las corrutinas; hoy, para concurrencia, se usa `async`/`await`.
-- `gen.throw(exc)` y `gen.close()` inyectan una excepción o lo cierran.
+- `return value` inside a generator ends the iteration; the value travels in
+  `StopIteration.value` and is what `yield from` returns.
+- `gen.send(x)` sends a value into the generator (the `yield` receives it as its result). It's the
+  historical basis of coroutines; today, for concurrency, you use `async`/`await`.
+- `gen.throw(exc)` and `gen.close()` inject an exception or close it.
 
-No los vas a necesitar seguido, pero aparecen en librerías y en entrevistas.
+You won't need them often, but they show up in libraries and in interviews.
 
-## Cuándo **no** usar un generador
+## When **not** to use a generator
 
-- Si vas a recorrer el resultado varias veces, o necesitás `len()`, índices o slicing:
-  devolvé una lista.
-- Si el conjunto es chico y lo vas a usar entero: una lista es más simple de depurar.
-- Si la función tiene efectos secundarios que tienen que ocurrir **ya**: recordá que el cuerpo
-  no corre hasta que alguien itera. Un generador que nadie consume no hace nada.
+- If you'll iterate over the result several times, or need `len()`, indexing or slicing:
+  return a list.
+- If the collection is small and you'll use all of it: a list is easier to debug.
+- If the function has side effects that must happen **right away**: remember that the body
+  doesn't run until someone iterates. A generator nobody consumes does nothing.
 
-## Resumen
+## Summary
 
-- `yield` pausa la función y entrega un valor; el cuerpo corre recién al iterar.
-- Los generadores usan memoria constante y pueden ser infinitos.
-- `(expr for x in xs)` para casos de una línea; `def` con `yield` para lógica con estado.
-- `yield from` delega, ideal para recursión.
-- Son iteradores: se consumen una sola vez.
+- `yield` pauses the function and hands over a value; the body only runs when you iterate.
+- Generators use constant memory and can be infinite.
+- `(expr for x in xs)` for one-liners; `def` with `yield` for stateful logic.
+- `yield from` delegates, ideal for recursion.
+- They are iterators: they're consumed only once.
 
-## Ejercicio
+## Exercise
 
-Cuatro generadores: uno infinito, un filtro de líneas, un aplanado recursivo con `yield from`
-y un `range` para decimales.
+Four generators: an infinite one, a line filter, a recursive flatten with `yield from`
+and a `range` for decimals.
 
-**Para profundizar:** [PEP 255 — Simple Generators](https://peps.python.org/pep-0255/),
-[PEP 380 — yield from](https://peps.python.org/pep-0380/), *Fluent Python*, cap. 17.
+**Further reading:** [PEP 255 — Simple Generators](https://peps.python.org/pep-0255/),
+[PEP 380 — yield from](https://peps.python.org/pep-0380/), *Fluent Python*, ch. 17.

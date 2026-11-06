@@ -1,30 +1,30 @@
 import itertools
 
-from exercise import combinaciones_que_suman, comprimir_repetidos, saldos, ventanas
+from exercise import balances, combinations_that_sum, compress_runs, windows
 
 
-def test_ventanas():
-    assert list(ventanas([1, 2, 3, 4, 5], 3)) == [(1, 2, 3), (2, 3, 4), (3, 4, 5)]
-    assert list(ventanas([1, 2], 3)) == []
+def test_windows():
+    assert list(windows([1, 2, 3, 4, 5], 3)) == [(1, 2, 3), (2, 3, 4), (3, 4, 5)]
+    assert list(windows([1, 2], 3)) == []
 
 
-def test_ventanas_perezoso_con_infinito():
-    v = ventanas(itertools.count(), 2)
-    assert next(v) == (0, 1)
-    assert next(v) == (1, 2)
+def test_windows_lazy_with_infinite():
+    w = windows(itertools.count(), 2)
+    assert next(w) == (0, 1)
+    assert next(w) == (1, 2)
 
 
-def test_comprimir_repetidos():
-    assert comprimir_repetidos("aaabccaa") == [("a", 3), ("b", 1), ("c", 2), ("a", 2)]
-    assert comprimir_repetidos("") == []
+def test_compress_runs():
+    assert compress_runs("aaabccaa") == [("a", 3), ("b", 1), ("c", 2), ("a", 2)]
+    assert compress_runs("") == []
 
 
-def test_combinaciones_que_suman():
-    assert combinaciones_que_suman([1, 2, 3, 4, 5], 2, 6) == [(1, 5), (2, 4)]
-    assert combinaciones_que_suman([1, 2, 3, 4, 5], 3, 9) == [(1, 3, 5), (2, 3, 4)]
-    assert combinaciones_que_suman([1, 2], 3, 3) == []
+def test_combinations_that_sum():
+    assert combinations_that_sum([1, 2, 3, 4, 5], 2, 6) == [(1, 5), (2, 4)]
+    assert combinations_that_sum([1, 2, 3, 4, 5], 3, 9) == [(1, 3, 5), (2, 3, 4)]
+    assert combinations_that_sum([1, 2], 3, 3) == []
 
 
-def test_saldos():
-    assert saldos(1000, [100, -30, 50]) == [1000, 1100, 1070, 1120]
-    assert saldos(5, []) == [5]
+def test_balances():
+    assert balances(1000, [100, -30, 50]) == [1000, 1100, 1070, 1120]
+    assert balances(5, []) == [5]

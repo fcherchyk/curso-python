@@ -2,7 +2,7 @@ import itertools
 import types
 
 import pytest
-from exercise import aplanar_profundo, fibonacci, lineas_utiles, rango_decimal
+from exercise import decimal_range, deep_flatten, fibonacci, useful_lines
 
 
 def test_fibonacci():
@@ -10,35 +10,35 @@ def test_fibonacci():
     assert isinstance(fibonacci(), types.GeneratorType)
 
 
-def test_lineas_utiles():
-    entrada = ["  a  ", "", "# comentario", "   ", "  # otro", "b\n"]
-    resultado = lineas_utiles(entrada)
-    assert isinstance(resultado, types.GeneratorType), "tiene que ser un generador"
-    assert list(resultado) == ["a", "b"]
+def test_useful_lines():
+    lines = ["  a  ", "", "# comment", "   ", "  # another", "b\n"]
+    result = useful_lines(lines)
+    assert isinstance(result, types.GeneratorType), "it must be a generator"
+    assert list(result) == ["a", "b"]
 
 
-def test_lineas_utiles_es_perezoso():
-    def fuente():
-        yield "uno"
-        raise AssertionError("se leyó de más")
+def test_useful_lines_is_lazy():
+    def source():
+        yield "one"
+        raise AssertionError("read too far")
 
-    assert next(lineas_utiles(fuente())) == "uno"
-
-
-def test_aplanar_profundo():
-    datos = [1, [2, (3, [4, [5]])], "ab", []]
-    assert list(aplanar_profundo(datos)) == [1, 2, 3, 4, 5, "ab"]
-    assert isinstance(aplanar_profundo([]), types.GeneratorType)
+    assert next(useful_lines(source())) == "one"
 
 
-def test_rango_decimal():
-    assert list(rango_decimal(0, 0.5, 0.1)) == [0.0, 0.1, 0.2, 0.3, 0.4]
-    assert list(rango_decimal(1, 1, 0.5)) == []
-    assert len(list(rango_decimal(0, 1, 0.01))) == 100
+def test_deep_flatten():
+    data = [1, [2, (3, [4, [5]])], "ab", []]
+    assert list(deep_flatten(data)) == [1, 2, 3, 4, 5, "ab"]
+    assert isinstance(deep_flatten([]), types.GeneratorType)
 
 
-def test_rango_decimal_paso_invalido():
-    gen = rango_decimal(0, 1, 0)
+def test_decimal_range():
+    assert list(decimal_range(0, 0.5, 0.1)) == [0.0, 0.1, 0.2, 0.3, 0.4]
+    assert list(decimal_range(1, 1, 0.5)) == []
+    assert len(list(decimal_range(0, 1, 0.01))) == 100
+
+
+def test_decimal_range_invalid_step():
+    gen = decimal_range(0, 1, 0)
     assert isinstance(gen, types.GeneratorType)
     with pytest.raises(ValueError):
         next(gen)

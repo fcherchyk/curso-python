@@ -1,49 +1,49 @@
 [[questions]]
-text = "Si `def f(): print(\"hola\"); yield 1`, ¿qué imprime `g = f()`?"
-options = ["`hola`", "Nada", "`1`", "`hola` y `1`"]
+text = "Given `def f(): print(\"hello\"); yield 1`, what does `g = f()` print?"
+options = ["`hello`", "Nothing", "`1`", "`hello` and `1`"]
 correct = 1
-explanation = "Llamar a una función generadora solo crea el generador. El cuerpo empieza a correr en el primer `next()`."
+explanation = "Calling a generator function only creates the generator. The body starts running on the first `next()`."
 
 [[questions]]
-text = "¿Qué hace `yield from sub`?"
+text = "What does `yield from sub` do?"
 options = [
-  "Devuelve `sub` entero como un solo valor",
-  "Produce uno por uno los elementos de `sub`",
-  "Convierte `sub` en lista",
-  "Termina el generador",
+  "Returns all of `sub` as a single value",
+  "Yields the elements of `sub` one by one",
+  "Turns `sub` into a list",
+  "Ends the generator",
 ]
 correct = 1
-explanation = "Delega en `sub` y produce cada uno de sus elementos. Equivale a `for x in sub: yield x`."
+explanation = "It delegates to `sub` and yields each of its elements. It's equivalent to `for x in sub: yield x`."
 
 [[questions]]
-text = "¿Por qué `sum(x * x for x in range(10**8))` usa memoria constante?"
+text = "Why does `sum(x * x for x in range(10**8))` use constant memory?"
 options = [
-  "Porque `sum` es una función built-in",
-  "Porque el generador produce un valor a la vez y nunca arma la lista completa",
-  "Porque Python comprime los enteros",
-  "No es cierto: usa la misma memoria que una lista",
+  "Because `sum` is a built-in function",
+  "Because the generator yields one value at a time and never builds the full list",
+  "Because Python compresses integers",
+  "It doesn't: it uses as much memory as a list",
 ]
 correct = 1
-explanation = "La generator expression es perezosa: `sum` pide un valor, lo acumula y pide el siguiente. En ningún momento existen los 10⁸ valores juntos."
+explanation = "The generator expression is lazy: `sum` asks for a value, adds it up and asks for the next. The 10⁸ values never exist all at once."
 
 [[questions]]
-text = "¿En qué caso conviene devolver una **lista** en lugar de un generador?"
+text = "When should you return a **list** instead of a generator?"
 options = [
-  "Cuando los datos son infinitos",
-  "Cuando vas a recorrer el resultado varias veces o necesitás `len()`",
-  "Cuando los datos no entran en memoria",
-  "Cuando querés procesar un archivo línea por línea",
+  "When the data is infinite",
+  "When you'll iterate over the result several times or need `len()`",
+  "When the data doesn't fit in memory",
+  "When you want to process a file line by line",
 ]
 correct = 1
-explanation = "Un generador se consume una vez y no tiene `len()`, índices ni slicing. Si necesitás eso, devolvé una lista."
+explanation = "A generator is consumed once and has no `len()`, indexing or slicing. If you need those, return a list."
 
 [[questions]]
-text = "Un generador abre un archivo con `with`. Si el consumidor hace `break` en la primera línea, ¿qué pasa con el archivo?"
+text = "A generator opens a file with `with`. If the consumer does `break` on the first line, what happens to the file?"
 options = [
-  "Queda abierto hasta que termine el programa",
-  "Se cierra cuando el generador se cierra o se destruye",
-  "Levanta `RuntimeError`",
-  "Se lee completo igual",
+  "It stays open until the program ends",
+  "It's closed when the generator is closed or destroyed",
+  "It raises `RuntimeError`",
+  "It gets read in full anyway",
 ]
 correct = 1
-explanation = "Al cerrarse el generador (`close()`, que se llama también al destruirlo), se ejecuta la salida del `with` y el archivo se cierra."
+explanation = "When the generator is closed (`close()`, which is also called when it's destroyed), the `with` block exits and the file is closed."

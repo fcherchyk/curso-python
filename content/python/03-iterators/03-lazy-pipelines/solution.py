@@ -2,29 +2,29 @@ import itertools
 from collections.abc import Iterable, Iterator
 
 
-def primeros_cuadrados_pares(numeros: Iterable[int], n: int) -> list[int]:
-    cuadrados = (x * x for x in numeros)
-    pares = (c for c in cuadrados if c % 2 == 0)
-    return list(itertools.islice(pares, n))
+def first_even_squares(numbers: Iterable[int], n: int) -> list[int]:
+    squares = (x * x for x in numbers)
+    evens = (s for s in squares if s % 2 == 0)
+    return list(itertools.islice(evens, n))
 
 
-def en_lotes(iterable: Iterable[int], n: int) -> Iterator[tuple[int, ...]]:
+def in_batches(iterable: Iterable[int], n: int) -> Iterator[tuple[int, ...]]:
     it = iter(iterable)
-    while lote := tuple(itertools.islice(it, n)):
-        yield lote
+    while batch := tuple(itertools.islice(it, n)):
+        yield batch
 
 
-def parsear_accesos(lineas: Iterable[str]) -> Iterator[tuple[str, int, int]]:
-    for linea in lineas:
+def parse_access_log(lines: Iterable[str]) -> Iterator[tuple[str, int, int]]:
+    for line in lines:
         try:
-            ip, _metodo, _ruta, status, bytes_ = linea.split()
+            ip, _method, _path, status, bytes_ = line.split()
             yield ip, int(status), int(bytes_)
-        except ValueError:  # cantidad de campos incorrecta o números inválidos
+        except ValueError:  # wrong number of fields or invalid numbers
             continue
 
 
-def bytes_por_status(lineas: Iterable[str]) -> dict[int, int]:
-    totales: dict[int, int] = {}
-    for _ip, status, bytes_ in parsear_accesos(lineas):
-        totales[status] = totales.get(status, 0) + bytes_
-    return dict(sorted(totales.items()))
+def bytes_by_status(lines: Iterable[str]) -> dict[int, int]:
+    totals: dict[int, int] = {}
+    for _ip, status, bytes_ in parse_access_log(lines):
+        totals[status] = totals.get(status, 0) + bytes_
+    return dict(sorted(totals.items()))

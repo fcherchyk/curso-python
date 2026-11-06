@@ -1,46 +1,46 @@
-"""Generadores.
+"""Generators.
 
-Todas las funciones tienen que ser GENERADORES (usar `yield`), no devolver listas.
+Every function must be a GENERATOR (use `yield`), not return a list.
 """
 
 from collections.abc import Iterable, Iterator
 
 
 def fibonacci() -> Iterator[int]:
-    """Generador infinito: 0, 1, 1, 2, 3, 5, ...
+    """Infinite generator: 0, 1, 1, 2, 3, 5, ...
 
-    Probalo con `itertools.islice(fibonacci(), 10)`.
+    Try it with `itertools.islice(fibonacci(), 10)`.
     """
     raise NotImplementedError("TODO")
 
 
-def lineas_utiles(lineas: Iterable[str]) -> Iterator[str]:
-    """Generá las líneas sin espacios a los costados, salteando las vacías y los
-    comentarios (las que empiezan con '#' después del strip).
+def useful_lines(lines: Iterable[str]) -> Iterator[str]:
+    """Yield the lines stripped of surrounding whitespace, skipping empty ones and
+    comments (lines that start with '#' after stripping).
     """
     raise NotImplementedError("TODO")
 
 
-def aplanar_profundo(anidado: Iterable[object]) -> Iterator[object]:
-    """Aplaná listas y tuplas anidadas a cualquier profundidad.
+def deep_flatten(nested: Iterable[object]) -> Iterator[object]:
+    """Flatten lists and tuples nested to any depth.
 
-    Los strings NO se abren (son iterables, pero se tratan como átomos).
+    Strings are NOT opened up (they are iterable, but are treated as atoms).
 
-    Pista: recursión + `yield from`.
+    Hint: recursion + `yield from`.
 
-    >>> list(aplanar_profundo([1, [2, (3, [4])], "ab"]))
+    >>> list(deep_flatten([1, [2, (3, [4])], "ab"]))
     [1, 2, 3, 4, 'ab']
     """
     raise NotImplementedError("TODO")
 
 
-def rango_decimal(inicio: float, fin: float, paso: float) -> Iterator[float]:
-    """Como `range` pero con floats: inicio, inicio+paso, ... mientras sea < fin.
+def decimal_range(start: float, stop: float, step: float) -> Iterator[float]:
+    """Like `range` but with floats: start, start+step, ... while < stop.
 
-    Para no acumular error de redondeo, calculá cada valor como `inicio + i * paso`
-    y redondeá a 10 decimales. Si paso <= 0, levantá ValueError (¡al llamar a next!).
+    To avoid accumulating rounding error, compute each value as `start + i * step`
+    and round to 10 decimals. If step <= 0, raise ValueError (when next is called!).
 
-    >>> list(rango_decimal(0, 0.5, 0.1))
+    >>> list(decimal_range(0, 0.5, 0.1))
     [0.0, 0.1, 0.2, 0.3, 0.4]
     """
     raise NotImplementedError("TODO")

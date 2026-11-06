@@ -1,41 +1,38 @@
 from collections.abc import Iterable, Iterator
-from typing import TypeVar
-
-T = TypeVar("T")
 
 
-class CuentaRegresiva:
+class Countdown:
     def __init__(self, n: int) -> None:
         self.n = n
 
     def __iter__(self) -> Iterator[int]:
-        # Un generador nuevo en cada llamada: se puede recorrer muchas veces.
+        # A new generator on every call: it can be iterated many times.
         yield from range(self.n, 0, -1)
 
 
-class Contador:
-    def __init__(self, inicio: int, fin: int) -> None:
-        self.actual = inicio
-        self.fin = fin
+class Counter:
+    def __init__(self, start: int, stop: int) -> None:
+        self.current = start
+        self.stop = stop
 
-    def __iter__(self) -> "Contador":
+    def __iter__(self) -> "Counter":
         return self
 
     def __next__(self) -> int:
-        if self.actual >= self.fin:
+        if self.current >= self.stop:
             raise StopIteration
-        valor = self.actual
-        self.actual += 1
-        return valor
+        value = self.current
+        self.current += 1
+        return value
 
 
-def primero(iterable: Iterable[T], default: T | None = None) -> T | None:
+def first[T](iterable: Iterable[T], default: T | None = None) -> T | None:
     return next(iter(iterable), default)
 
 
-def totales_y_porcentajes(montos: Iterable[float]) -> list[float]:
-    montos = list(montos)  # materializamos: vamos a recorrer dos veces
-    total = sum(montos)
+def totals_and_percentages(amounts: Iterable[float]) -> list[float]:
+    amounts = list(amounts)  # materialize: we are going to iterate twice
+    total = sum(amounts)
     if total == 0:
-        return [0.0] * len(montos)
-    return [round(m * 100 / total, 1) for m in montos]
+        return [0.0] * len(amounts)
+    return [round(a * 100 / total, 1) for a in amounts]

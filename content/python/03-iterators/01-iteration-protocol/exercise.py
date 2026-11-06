@@ -1,18 +1,15 @@
-"""El protocolo de iteración."""
+"""The iteration protocol."""
 
 from collections.abc import Iterable, Iterator
-from typing import TypeVar
-
-T = TypeVar("T")
 
 
-class CuentaRegresiva:
-    """Iterable que produce n, n-1, ..., 1.
+class Countdown:
+    """Iterable that yields n, n-1, ..., 1.
 
-    Tiene que poder recorrerse MÁS DE UNA VEZ: `__iter__` tiene que devolver un
-    iterador nuevo cada vez.
+    It must be iterable MORE THAN ONCE: `__iter__` has to return a new
+    iterator every time.
 
-    >>> list(CuentaRegresiva(3))
+    >>> list(Countdown(3))
     [3, 2, 1]
     """
 
@@ -23,41 +20,41 @@ class CuentaRegresiva:
         raise NotImplementedError("TODO")
 
 
-class Contador:
-    """Iterador "a mano" (sin generadores): produce inicio, inicio+1, ...
-    hasta `fin` (exclusive). Se consume una sola vez.
+class Counter:
+    """Hand-written iterator (no generators): yields start, start+1, ...
+    up to `stop` (exclusive). It can be consumed only once.
 
-    Implementá `__iter__` (devuelve self) y `__next__` (levanta StopIteration al terminar).
+    Implement `__iter__` (returns self) and `__next__` (raises StopIteration when done).
     """
 
-    def __init__(self, inicio: int, fin: int) -> None:
+    def __init__(self, start: int, stop: int) -> None:
         raise NotImplementedError("TODO")
 
-    def __iter__(self) -> "Contador":
+    def __iter__(self) -> "Counter":
         raise NotImplementedError("TODO")
 
     def __next__(self) -> int:
         raise NotImplementedError("TODO")
 
 
-def primero(iterable: Iterable[T], default: T | None = None) -> T | None:
-    """Primer elemento de cualquier iterable (incluso infinito), o `default` si está vacío.
+def first[T](iterable: Iterable[T], default: T | None = None) -> T | None:
+    """First element of any iterable (even an infinite one), or `default` if it is empty.
 
-    Pista: `next(iter(...), default)`.
+    Hint: `next(iter(...), default)`.
 
-    >>> primero(x for x in range(10) if x > 3)
+    >>> first(x for x in range(10) if x > 3)
     4
     """
     raise NotImplementedError("TODO")
 
 
-def totales_y_porcentajes(montos: Iterable[float]) -> list[float]:
-    """Porcentaje que representa cada monto sobre el total (redondeado a 1 decimal).
+def totals_and_percentages(amounts: Iterable[float]) -> list[float]:
+    """Percentage each amount represents of the total (rounded to 1 decimal).
 
-    ¡Ojo! `montos` puede ser un generador y necesitás recorrerlo dos veces.
-    Si el total es 0, devolvé una lista de ceros.
+    Careful! `amounts` may be a generator and you need to iterate over it twice.
+    If the total is 0, return a list of zeros.
 
-    >>> totales_y_porcentajes([1, 1, 2])
+    >>> totals_and_percentages([1, 1, 2])
     [25.0, 25.0, 50.0]
     """
     raise NotImplementedError("TODO")

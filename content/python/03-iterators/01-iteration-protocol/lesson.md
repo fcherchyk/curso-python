@@ -1,156 +1,156 @@
-# El protocolo de iteración
+# The iteration protocol
 
-Todo `for` de Python se apoya en dos métodos: `__iter__` y `__next__`. Conocerlos explica
-por qué un generador "se vacía" después del primer recorrido, por qué una lista se puede
-recorrer infinitas veces y cómo hacer que tus propias clases funcionen con `for`, `list()`,
-`sum()`, `in` y el desempaquetado.
+Every Python `for` loop relies on two methods: `__iter__` and `__next__`. Knowing them explains
+why a generator "runs dry" after the first pass, why a list can be iterated any number of
+times, and how to make your own classes work with `for`, `list()`, `sum()`, `in` and
+unpacking.
 
-## Iterable vs. iterador
+## Iterable vs. iterator
 
-Son dos roles distintos y conviene no mezclarlos:
+These are two different roles, and it pays to keep them apart:
 
-- Un **iterable** es algo que se *puede recorrer*: implementa `__iter__()`, que devuelve un
-  **iterador nuevo**. Ejemplos: `list`, `tuple`, `str`, `dict`, `set`, `range` o un archivo.
-- Un **iterador** es el que *lleva la cuenta* del recorrido: implementa `__next__()`, que
-  devuelve el siguiente elemento o levanta `StopIteration` cuando no quedan más. Además, su
-  `__iter__()` devuelve `self`.
+- An **iterable** is something you *can iterate over*: it implements `__iter__()`, which returns
+  a **new iterator**. Examples: `list`, `tuple`, `str`, `dict`, `set`, `range` or a file.
+- An **iterator** is what *keeps track* of the iteration: it implements `__next__()`, which
+  returns the next element or raises `StopIteration` when there are none left. Its
+  `__iter__()` also returns `self`.
 
 ```python
 nums = [10, 20]          # iterable
-it = iter(nums)          # llama a nums.__iter__() → un list_iterator
+it = iter(nums)          # calls nums.__iter__() → a list_iterator
 next(it)                 # 10
 next(it)                 # 20
 next(it)                 # StopIteration
-next(it, "fin")          # 'fin'  ← next con default no levanta
+next(it, "end")          # 'end'  ← next with a default doesn't raise
 ```
 
-## Qué hace realmente un `for`
+## What a `for` loop really does
 
 ```python
-for x in coleccion:
-    cuerpo(x)
+for x in collection:
+    body(x)
 ```
 
-es equivalente a:
+is equivalent to:
 
 ```python
-it = iter(coleccion)
+it = iter(collection)
 while True:
     try:
         x = next(it)
     except StopIteration:
         break
-    cuerpo(x)
+    body(x)
 ```
 
-Eso es todo el protocolo. Cualquier objeto que respete `__iter__`/`__next__` funciona en un
-`for`, en comprehensions, en `list(...)`, `sum(...)`, `zip(...)`, `in` y en el
-desempaquetado `a, b = obj`.
+That's the whole protocol. Any object that follows `__iter__`/`__next__` works in a
+`for` loop, in comprehensions, in `list(...)`, `sum(...)`, `zip(...)`, `in` and in
+unpacking `a, b = obj`.
 
-## La diferencia que importa: los iteradores se consumen
+## The difference that matters: iterators get consumed
 
-Un **iterable** entrega un iterador nuevo cada vez que le pedís uno, así que se puede
-recorrer muchas veces. Un **iterador** se devuelve a sí mismo, así que se recorre **una sola
-vez**:
+An **iterable** hands you a new iterator every time you ask for one, so it can be
+iterated many times. An **iterator** returns itself, so it can be iterated **only
+once**:
 
 ```python
 nums = [1, 2, 3]
 list(nums), list(nums)        # ([1, 2, 3], [1, 2, 3])
 
 it = iter(nums)
-list(it), list(it)            # ([1, 2, 3], [])   ← el segundo está vacío
+list(it), list(it)            # ([1, 2, 3], [])   ← the second one is empty
 
-gen = (x * 2 for x in nums)   # los generadores son iteradores
+gen = (x * 2 for x in nums)   # generators are iterators
 sum(gen), sum(gen)            # (12, 0)
 ```
 
-Este es un bug muy común: una función que recibe "algo iterable" y lo recorre dos veces (por
-ejemplo, para calcular el total y después cada porcentaje) funciona con listas y falla **en
-silencio** con generadores. Si necesitás dos pasadas, materializá al principio con
-`datos = list(datos)`, o pedí una `Sequence` en la anotación de tipo.
+This is a very common bug: a function that takes "something iterable" and iterates over it
+twice (say, to compute the total and then each percentage) works with lists and fails
+**silently** with generators. If you need two passes, materialize up front with
+`data = list(data)`, or ask for a `Sequence` in the type annotation.
 
-## Implementar un iterable propio
+## Implementing your own iterable
 
-La forma más simple y robusta es que `__iter__` sea un **generador** (una función con
-`yield`, capítulo siguiente). Cada llamada a `iter()` crea uno nuevo:
+The simplest and most robust approach is to make `__iter__` a **generator** (a function with
+`yield`, next chapter). Every call to `iter()` creates a new one:
 
 ```python
 class Playlist:
-    def __init__(self, canciones: list[str]) -> None:
-        self._canciones = canciones
+    def __init__(self, songs: list[str]) -> None:
+        self._songs = songs
 
     def __iter__(self):
-        for c in self._canciones:
-            yield c
-        # o directamente: return iter(self._canciones)
+        for s in self._songs:
+            yield s
+        # or simply: return iter(self._songs)
 
 p = Playlist(["a", "b"])
-list(p), list(p)        # (['a', 'b'], ['a', 'b'])  ✓ se puede recorrer muchas veces
+list(p), list(p)        # (['a', 'b'], ['a', 'b'])  ✓ can be iterated many times
 ```
 
-## Implementar un iterador "a mano"
+## Implementing an iterator by hand
 
-Para entender el protocolo (o cuando necesitás estado explícito), se puede escribir la clase
-iteradora completa:
+To understand the protocol (or when you need explicit state), you can write the full
+iterator class:
 
 ```python
-class Cuenta:
-    def __init__(self, inicio: int, fin: int) -> None:
-        self.actual = inicio
-        self.fin = fin
+class Count:
+    def __init__(self, start: int, stop: int) -> None:
+        self.current = start
+        self.stop = stop
 
     def __iter__(self):
-        return self              # un iterador es su propio iterable
+        return self              # an iterator is its own iterable
 
     def __next__(self) -> int:
-        if self.actual >= self.fin:
+        if self.current >= self.stop:
             raise StopIteration
-        valor = self.actual
-        self.actual += 1
-        return valor
+        value = self.current
+        self.current += 1
+        return value
 ```
 
-En la práctica casi nunca hace falta: los generadores hacen lo mismo con menos código.
-Pero cuando veas `__next__` en una librería, ya sabés qué está pasando.
+In practice you almost never need this: generators do the same with less code.
+But when you see `__next__` in a library, you'll know what's going on.
 
-## Iterables "fáciles": `__getitem__` y `__len__`
+## "Easy" iterables: `__getitem__` and `__len__`
 
-Por compatibilidad histórica, si una clase no tiene `__iter__` pero sí `__getitem__` con
-índices 0, 1, 2… hasta un `IndexError`, Python también puede iterarla. Hoy conviene
-implementar `__iter__` explícitamente: es más claro y funciona con cualquier fuente de datos.
+For historical compatibility, if a class has no `__iter__` but does have `__getitem__` taking
+indexes 0, 1, 2… until an `IndexError`, Python can iterate over it too. Today you should
+implement `__iter__` explicitly: it's clearer and works with any data source.
 
-## `iter()` con centinela
+## `iter()` with a sentinel
 
-`iter(funcion, centinela)` crea un iterador que llama a `funcion()` hasta que devuelve el
-centinela. Es muy útil para leer por bloques:
+`iter(function, sentinel)` creates an iterator that calls `function()` until it returns the
+sentinel. It's very handy for reading in chunks:
 
 ```python
 from functools import partial
 
-with open("grande.bin", "rb") as f:
-    for bloque in iter(partial(f.read, 4096), b""):
-        procesar(bloque)
+with open("big.bin", "rb") as f:
+    for chunk in iter(partial(f.read, 4096), b""):
+        process(chunk)
 ```
 
-## Herramientas que consumen iterables
+## Tools that consume iterables
 
 `list`, `tuple`, `set`, `dict`, `sum`, `min`, `max`, `any`, `all`, `sorted`, `"".join`,
-`enumerate`, `zip`, `map`, `filter`, `reversed` (este último necesita una secuencia o
-`__reversed__`) y todo `itertools`. Si tu clase implementa `__iter__`, funciona con todas.
+`enumerate`, `zip`, `map`, `filter`, `reversed` (this last one needs a sequence or
+`__reversed__`) and all of `itertools`. If your class implements `__iter__`, it works with all of them.
 
-## Resumen
+## Summary
 
-- Iterable: `__iter__` devuelve un iterador **nuevo**. Iterador: `__next__` más
-  `__iter__` que devuelve `self`.
-- Los iteradores (incluidos los generadores) se consumen una sola vez.
-- Si necesitás recorrer dos veces, materializá con `list()`.
-- Para tus clases, implementá `__iter__` como generador.
-- `next(it, default)` evita el `StopIteration`.
+- Iterable: `__iter__` returns a **new** iterator. Iterator: `__next__` plus an
+  `__iter__` that returns `self`.
+- Iterators (generators included) are consumed only once.
+- If you need to iterate twice, materialize with `list()`.
+- For your own classes, implement `__iter__` as a generator.
+- `next(it, default)` avoids the `StopIteration`.
 
-## Ejercicio
+## Exercise
 
-Una clase iterable que se puede recorrer muchas veces, un iterador escrito a mano y dos
-funciones que usan `next()` e `iter()`.
+An iterable class that can be iterated many times, a hand-written iterator and two
+functions that use `next()` and `iter()`.
 
-**Para profundizar:** [Iterator types](https://docs.python.org/3/library/stdtypes.html#iterator-types),
-*Fluent Python* (2.ª ed.), cap. 17.
+**Further reading:** [Iterator types](https://docs.python.org/3/library/stdtypes.html#iterator-types),
+*Fluent Python* (2nd ed.), ch. 17.

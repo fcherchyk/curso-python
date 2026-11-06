@@ -1,34 +1,34 @@
 [[questions]]
-text = "¿Cuántos grupos produce `groupby(\"aabaa\")`?"
+text = "How many groups does `groupby(\"aabaa\")` produce?"
 options = ["2", "3", "5", "1"]
 correct = 1
-explanation = "`groupby` agrupa solo elementos **consecutivos**: `aa`, `b` y `aa`. Para agrupar todas las `a` juntas hay que ordenar antes."
+explanation = "`groupby` only groups **consecutive** elements: `aa`, `b` and `aa`. To group all the `a`s together you have to sort first."
 
 [[questions]]
-text = "¿Qué devuelve `list(takewhile(lambda x: x < 3, [1, 2, 5, 1]))`?"
+text = "What does `list(takewhile(lambda x: x < 3, [1, 2, 5, 1]))` return?"
 options = ["`[1, 2, 1]`", "`[1, 2]`", "`[5, 1]`", "`[1, 2, 5]`"]
 correct = 1
-explanation = "`takewhile` corta en el primer elemento que no cumple la condición y ya no sigue mirando. No es un `filter`."
+explanation = "`takewhile` stops at the first element that fails the condition and doesn't look any further. It's not a `filter`."
 
 [[questions]]
-text = "¿Qué devuelve `list(accumulate([1, 2, 3]))`?"
+text = "What does `list(accumulate([1, 2, 3]))` return?"
 options = ["`[1, 2, 3]`", "`[1, 3, 6]`", "`6`", "`[6]`"]
 correct = 1
-explanation = "`accumulate` produce los resultados parciales: por defecto, las sumas acumuladas."
+explanation = "`accumulate` yields the partial results: by default, the running sums."
 
 [[questions]]
-text = "¿Cuántos elementos tiene `combinations(\"abcd\", 2)`?"
+text = "How many elements does `combinations(\"abcd\", 2)` have?"
 options = ["4", "6", "12", "16"]
 correct = 1
-explanation = "Son combinaciones sin orden ni repetición: C(4, 2) = 6. Las permutaciones serían 12 y el producto `product(\"abcd\", repeat=2)`, 16."
+explanation = "They're combinations without order or repetition: C(4, 2) = 6. Permutations would give 12, and `product(\"abcd\", repeat=2)` would give 16."
 
 [[questions]]
-text = "¿Qué hace `chain.from_iterable([[1, 2], [3]])`?"
+text = "What does `chain.from_iterable([[1, 2], [3]])` do?"
 options = [
-  "Devuelve `[[1, 2], [3]]`",
-  "Produce `1, 2, 3` de forma perezosa",
-  "Suma las listas internas",
-  "Levanta `TypeError`",
+  "Returns `[[1, 2], [3]]`",
+  "Yields `1, 2, 3` lazily",
+  "Adds up the inner lists",
+  "Raises `TypeError`",
 ]
 correct = 1
-explanation = "Aplana un nivel de forma perezosa, sin construir una lista intermedia."
+explanation = "It flattens one level lazily, without building an intermediate list."

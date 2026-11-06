@@ -1,48 +1,48 @@
-"""itertools: las piezas de lego."""
+"""itertools: the building blocks."""
 
 import itertools  # noqa: F401
 from collections import deque  # noqa: F401
 from collections.abc import Iterable, Iterator
 
 
-def ventanas(iterable: Iterable[int], n: int) -> Iterator[tuple[int, ...]]:
-    """Ventanas deslizantes de tamaño `n`. Tiene que ser perezoso.
+def windows(iterable: Iterable[int], n: int) -> Iterator[tuple[int, ...]]:
+    """Sliding windows of size `n`. It must be lazy.
 
-    Pista: `collections.deque(maxlen=n)`.
+    Hint: `collections.deque(maxlen=n)`.
 
-    >>> list(ventanas([1, 2, 3, 4], 3))
+    >>> list(windows([1, 2, 3, 4], 3))
     [(1, 2, 3), (2, 3, 4)]
     """
     raise NotImplementedError("TODO")
 
 
-def comprimir_repetidos(texto: str) -> list[tuple[str, int]]:
-    """Run-length encoding de caracteres consecutivos.
+def compress_runs(text: str) -> list[tuple[str, int]]:
+    """Run-length encoding of consecutive characters.
 
-    Pista: `itertools.groupby`.
+    Hint: `itertools.groupby`.
 
-    >>> comprimir_repetidos("aaabccaa")
+    >>> compress_runs("aaabccaa")
     [('a', 3), ('b', 1), ('c', 2), ('a', 2)]
     """
     raise NotImplementedError("TODO")
 
 
-def combinaciones_que_suman(nums: list[int], k: int, objetivo: int) -> list[tuple[int, ...]]:
-    """Todas las combinaciones de `k` elementos (en el orden de itertools) cuya suma
-    es `objetivo`.
+def combinations_that_sum(nums: list[int], k: int, target: int) -> list[tuple[int, ...]]:
+    """All combinations of `k` elements (in itertools order) whose sum
+    is `target`.
 
-    >>> combinaciones_que_suman([1, 2, 3, 4, 5], 2, 6)
+    >>> combinations_that_sum([1, 2, 3, 4, 5], 2, 6)
     [(1, 5), (2, 4)]
     """
     raise NotImplementedError("TODO")
 
 
-def saldos(inicial: float, movimientos: Iterable[float]) -> list[float]:
-    """Saldo después de cada movimiento, empezando por el inicial.
+def balances(initial: float, transactions: Iterable[float]) -> list[float]:
+    """Balance after each transaction, starting with the initial one.
 
-    Pista: `itertools.accumulate(..., initial=...)`.
+    Hint: `itertools.accumulate(..., initial=...)`.
 
-    >>> saldos(1000, [100, -30, 50])
+    >>> balances(1000, [100, -30, 50])
     [1000, 1100, 1070, 1120]
     """
     raise NotImplementedError("TODO")
