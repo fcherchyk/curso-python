@@ -1,49 +1,49 @@
 [[questions]]
-text = "Querés comparar la facturación de 8 sucursales. ¿Qué gráfico conviene?"
+text = "You want to compare the revenue of 8 branches. Which chart should you use?"
 options = [
-  "Líneas",
-  "Barras ordenadas por valor",
-  "Torta",
-  "Dispersión",
+  "Lines",
+  "Bars sorted by value",
+  "Pie",
+  "Scatter",
 ]
 correct = 1
-explanation = "Para comparar categorías sin orden natural, barras ordenadas. Una línea sugiere una continuidad inexistente y una torta con 8 porciones es ilegible."
+explanation = "To compare categories with no natural order, use sorted bars. A line suggests a continuity that doesn't exist, and a pie with 8 slices is unreadable."
 
 [[questions]]
-text = "¿Por qué el eje Y de un gráfico de barras debería empezar en 0?"
+text = "Why should the Y axis of a bar chart start at 0?"
 options = [
-  "Por estética",
-  "Porque el largo de la barra representa el valor: cortar el eje exagera las diferencias",
-  "Porque matplotlib lo exige",
-  "No importa",
+  "For looks",
+  "Because the length of the bar represents the value: cutting the axis exaggerates the differences",
+  "Because matplotlib requires it",
+  "It doesn't matter",
 ]
 correct = 1
-explanation = "Con el eje cortado, una diferencia del 2 % puede verse como el doble. En los gráficos de líneas no es tan crítico."
+explanation = "With a cut axis, a 2% difference can look like double. In line charts it's not as critical."
 
 [[questions]]
-text = "¿Para qué sirve `alpha=0.5` en un scatter con miles de puntos?"
+text = "What is `alpha=0.5` for in a scatter plot with thousands of points?"
 options = [
-  "Para achicar los puntos",
-  "Para hacerlos semitransparentes y ver dónde se concentran",
-  "Para cambiar el color",
-  "Para ordenarlos",
+  "To make the points smaller",
+  "To make them semi-transparent so you can see where they concentrate",
+  "To change the color",
+  "To sort them",
 ]
 correct = 1
-explanation = "Con transparencia, las zonas densas se ven más oscuras: así se evita que los puntos se tapen entre sí."
+explanation = "With transparency, dense areas look darker: that keeps points from hiding each other."
 
 [[questions]]
-text = "¿Qué muestra un histograma?"
+text = "What does a histogram show?"
 options = [
-  "La evolución en el tiempo",
-  "Cuántos valores caen en cada rango: la distribución",
-  "La relación entre dos variables",
-  "La proporción de cada categoría",
+  "The trend over time",
+  "How many values fall in each range: the distribution",
+  "The relationship between two variables",
+  "The share of each category",
 ]
 correct = 1
-explanation = "Agrupa los valores en intervalos (`bins`) y cuenta. La cantidad de bins cambia mucho la lectura."
+explanation = "It groups the values into intervals (`bins`) and counts them. The number of bins changes the reading a lot."
 
 [[questions]]
-text = "¿Dónde quedan las barras dibujadas con `ax.bar(...)` para inspeccionarlas?"
-options = ["En `ax.get_lines()`", "En `ax.patches` (y en el BarContainer devuelto)", "En `ax.texts`", "No se pueden inspeccionar"]
+text = "Where do the bars drawn with `ax.bar(...)` end up so you can inspect them?"
+options = ["In `ax.get_lines()`", "In `ax.patches` (and in the returned BarContainer)", "In `ax.texts`", "You can't inspect them"]
 correct = 1
-explanation = "Cada barra es un `Rectangle` en `ax.patches`. `get_height()` da su valor."
+explanation = "Each bar is a `Rectangle` in `ax.patches`. `get_height()` gives its value."

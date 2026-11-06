@@ -1,22 +1,22 @@
-# Graficar desde pandas y buenas prácticas
+# Plotting from pandas and good practices
 
-pandas trae métodos `.plot` que llaman a matplotlib por vos: con una línea pasás de una tabla a
-un gráfico. Lo que no hacen es pensar el gráfico. En este capítulo vemos los dos lados: cómo
-graficar rápido desde un DataFrame y cómo terminar el gráfico para que se entienda solo.
+pandas ships `.plot` methods that call matplotlib for you: one line takes you from a table to a
+chart. What they don't do is think the chart through. In this chapter we cover both sides: how to
+plot quickly from a DataFrame and how to finish the chart so it explains itself.
 
-## `.plot` de Series y DataFrame
+## `.plot` on Series and DataFrame
 
 ```python
-serie.plot()                      # línea: índice en X, valores en Y
-df.plot()                         # una línea por columna, con leyenda automática
-df.plot.bar()                     # barras agrupadas por fila
-serie.plot.barh()
-serie.plot.hist(bins=30)
-df.plot.scatter(x="precio", y="cantidad")
+series.plot()                     # line: index on X, values on Y
+df.plot()                         # one line per column, with an automatic legend
+df.plot.bar()                     # bars grouped by row
+series.plot.barh()
+series.plot.hist(bins=30)
+df.plot.scatter(x="price", y="quantity")
 ```
 
-Cada llamada devuelve el **Axes** donde dibujó. Para combinarlo con la API orientada a objetos,
-pasá tu propio `ax`:
+Each call returns the **Axes** it drew on. To combine it with the object-oriented API, pass your own
+`ax`:
 
 ```python
 fig, ax = plt.subplots(figsize=(8, 4))
@@ -24,73 +24,72 @@ df.plot(ax=ax)
 ax.set_title("...")
 ```
 
-Así seguís teniendo el control de la figura (tamaño, subplots, guardado) y pandas solo dibuja.
+That way you stay in control of the figure (size, subplots, saving) and pandas only draws.
 
-## La forma de los datos decide el gráfico
+## The shape of the data decides the chart
 
-`df.plot()` dibuja **una línea por columna**. Para tener una línea por sucursal, primero hay que
-dejar las sucursales como columnas. Esto es exactamente lo que hace `pivot_table`:
+`df.plot()` draws **one line per column**. To get one line per branch, you first need the branches
+as columns. That's exactly what `pivot_table` does:
 
 ```python
-mensual = (
-    ventas.assign(mes=ventas["fecha"].dt.to_period("M"), importe=ventas["cantidad"] * ventas["precio_unitario"])
-    .pivot_table(index="mes", columns="sucursal", values="importe", aggfunc="sum")
+monthly = (
+    sales.assign(month=sales["date"].dt.to_period("M"), amount=sales["quantity"] * sales["unit_price"])
+    .pivot_table(index="month", columns="branch", values="amount", aggfunc="sum")
 )
-mensual.plot(ax=ax, marker="o")
+monthly.plot(ax=ax, marker="o")
 ```
 
-El 80 % del trabajo de graficar con pandas es **dar forma a la tabla**: el índice va al eje X, cada
-columna es una serie y las etiquetas salen de los nombres.
+80% of the work of plotting with pandas is **shaping the table**: the index goes on the X axis, each
+column is a series and the labels come from the names.
 
-## Buenas prácticas
+## Good practices
 
-Un gráfico tiene que entenderse **sin que lo expliques**.
+A chart has to make sense **without you explaining it**.
 
-1. **Título que diga la conclusión** cuando la hay: "Sur lidera en marzo" comunica más que
-   "Ventas por sucursal".
-2. **Ejes con unidades**: "Importe ($)", "Latencia (ms)". Sin unidades, el número no significa
-   nada.
-3. **Menos tinta**: sacá los bordes superior y derecho (`ax.spines[["top", "right"]].set_visible(False)`)
-   y usá una grilla tenue solo en el eje que se lee (`ax.grid(axis="y", alpha=0.3)`).
-4. **Ordená** las categorías por valor.
-5. **Color con intención**: un color para todo y un color de acento para lo que querés
-   destacar. Evitá el arcoíris.
-6. **Accesibilidad**: alrededor del 8 % de los hombres tiene algún grado de daltonismo. Usá
-   paletas pensadas para eso (`viridis`, `cividis`, o el estilo `tableau-colorblind10`) y no
-   distingas series **solo** por el color: sumá marcadores o estilos de línea.
-7. **Números legibles**: `ax.yaxis.set_major_formatter(StrMethodFormatter("{x:,.0f}"))` pone
-   separadores de miles.
+1. **A title that states the conclusion** when there is one: "South leads in March" says more than
+   "Sales by branch".
+2. **Axes with units**: "Amount ($)", "Latency (ms)". Without units, the number means nothing.
+3. **Less ink**: remove the top and right spines (`ax.spines[["top", "right"]].set_visible(False)`)
+   and use a faint grid only on the axis people read (`ax.grid(axis="y", alpha=0.3)`).
+4. **Sort** categories by value.
+5. **Color with intent**: one color for everything and an accent color for what you want to
+   highlight. Avoid the rainbow.
+6. **Accessibility**: about 8% of men have some degree of color blindness. Use palettes designed
+   for it (`viridis`, `cividis`, or the `tableau-colorblind10` style) and don't distinguish series by
+   color **alone**: add markers or line styles.
+7. **Readable numbers**: `ax.yaxis.set_major_formatter(StrMethodFormatter("{x:,.0f}"))` adds
+   thousands separators.
 
 ```python
-plt.style.use("tableau-colorblind10")   # estilo global, apto para daltonismo
+plt.style.use("tableau-colorblind10")   # global style, colorblind-friendly
 ```
 
-## Una función para no repetirte
+## A function so you don't repeat yourself
 
-Las buenas prácticas se vuelven fáciles cuando están en una función:
+Good practices become easy when they live in a function:
 
 ```python
-def estilizar(ax, titulo, xlabel, ylabel):
-    ax.set(title=titulo, xlabel=xlabel, ylabel=ylabel)
+def style_axes(ax, title, xlabel, ylabel):
+    ax.set(title=title, xlabel=xlabel, ylabel=ylabel)
     ax.spines[["top", "right"]].set_visible(False)
     ax.grid(axis="y", alpha=0.3)
     return ax
 ```
 
-Si la aplicás a todos tus gráficos, los reportes salen consistentes sin esfuerzo.
+If you apply it to all your charts, your reports come out consistent with no effort.
 
-## Resumen
+## Summary
 
-- `serie.plot`/`df.plot` (y `.bar`, `.barh`, `.hist`, `.scatter`) devuelven el Axes; pasá
-  `ax=` para integrarlos con tu figura.
-- Dale forma a la tabla primero (`groupby`, `pivot_table`): índice → X, columnas → series.
-- Título con la conclusión, unidades en los ejes, menos tinta, categorías ordenadas.
-- Color con intención y apto para daltonismo; no dependas solo del color.
+- `series.plot`/`df.plot` (and `.bar`, `.barh`, `.hist`, `.scatter`) return the Axes; pass
+  `ax=` to integrate them with your figure.
+- Shape the table first (`groupby`, `pivot_table`): index → X, columns → series.
+- A title with the conclusion, units on the axes, less ink, sorted categories.
+- Color with intent and colorblind-friendly; don't rely on color alone.
 
-## Ejercicio
+## Exercise
 
-Un gráfico de líneas con una serie por sucursal armado con `pivot_table`, barras ordenadas por
-categoría y una función de estilo que aplica las buenas prácticas.
+A line chart with one series per branch built with `pivot_table`, bars sorted by category, and a
+style function that applies the good practices.
 
-**Para profundizar:** [pandas: Chart visualization](https://pandas.pydata.org/docs/user_guide/visualization.html),
-[Fundamentals of Data Visualization](https://clauswilke.com/dataviz/) (Claus Wilke, gratis online).
+**Further reading:** [pandas: Chart visualization](https://pandas.pydata.org/docs/user_guide/visualization.html),
+[Fundamentals of Data Visualization](https://clauswilke.com/dataviz/) (Claus Wilke, free online).

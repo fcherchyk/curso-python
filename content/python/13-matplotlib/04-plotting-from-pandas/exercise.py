@@ -1,4 +1,4 @@
-"""Graficar desde pandas. Cada función devuelve la figura (o el Axes, en estilizar)."""
+"""Plotting from pandas. Each function returns the figure (or the Axes, in style_axes)."""
 
 from pathlib import Path
 
@@ -7,33 +7,33 @@ import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-CSV = Path(__file__).parent / "ventas.csv"
+CSV = Path(__file__).parent / "sales.csv"
 
 
-def cargar() -> pd.DataFrame:
-    """Lee ventas.csv con `fecha` como datetime y agrega `importe` = cantidad * precio_unitario."""
-    ventas = pd.read_csv(CSV, parse_dates=["fecha"])
-    return ventas.assign(importe=ventas["cantidad"] * ventas["precio_unitario"])
+def load() -> pd.DataFrame:
+    """Reads sales.csv with `date` as datetime and adds `amount` = quantity * unit_price."""
+    sales = pd.read_csv(CSV, parse_dates=["date"])
+    return sales.assign(amount=sales["quantity"] * sales["unit_price"])
 
 
-def estilizar(ax: Axes, titulo: str, xlabel: str, ylabel: str) -> Axes:
-    """Pone título y etiquetas, oculta los bordes superior y derecho,
-    y activa la grilla solo en el eje Y. Devuelve el mismo ax.
+def style_axes(ax: Axes, title: str, xlabel: str, ylabel: str) -> Axes:
+    """Sets the title and labels, hides the top and right spines,
+    and turns on the grid only on the Y axis. Returns the same ax.
     """
     raise NotImplementedError("TODO")
 
 
-def lineas_por_sucursal(ventas: pd.DataFrame) -> Figure:
-    """Importe total por mes (index: período mensual) y sucursal (una columna cada una),
-    con pivot_table, graficado con df.plot(ax=ax, marker="o").
-    Estilizado con título "Importe mensual por sucursal", xlabel "Mes", ylabel "Importe ($)".
+def lines_by_branch(sales: pd.DataFrame) -> Figure:
+    """Total amount per month (index: monthly period) and branch (one column each),
+    with pivot_table, plotted with df.plot(ax=ax, marker="o").
+    Styled with title "Monthly amount by branch", xlabel "Month", ylabel "Amount ($)".
     """
     raise NotImplementedError("TODO")
 
 
-def barras_por_categoria(ventas: pd.DataFrame) -> Figure:
-    """Importe total por categoría, ordenado de menor a mayor, graficado con .plot.barh(ax=ax)
-    (la mayor queda arriba). Estilizado con título "Importe por categoría",
-    xlabel "Importe ($)", ylabel "" (vacío).
+def bars_by_category(sales: pd.DataFrame) -> Figure:
+    """Total amount per category, sorted from smallest to largest, plotted with .plot.barh(ax=ax)
+    (the largest ends up at the top). Styled with title "Amount by category",
+    xlabel "Amount ($)", ylabel "" (empty).
     """
     raise NotImplementedError("TODO")

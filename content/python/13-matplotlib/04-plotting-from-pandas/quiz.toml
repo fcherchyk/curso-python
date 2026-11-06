@@ -1,49 +1,49 @@
 [[questions]]
-text = "¿Qué devuelve `df.plot(ax=ax)`?"
-options = ["Una figura nueva", "El Axes donde dibujó", "El DataFrame", "None"]
+text = "What does `df.plot(ax=ax)` return?"
+options = ["A new figure", "The Axes it drew on", "The DataFrame", "None"]
 correct = 1
-explanation = "Los métodos `.plot` de pandas devuelven el Axes. Con `ax=` dibujan en uno tuyo, así controlás la figura."
+explanation = "pandas' `.plot` methods return the Axes. With `ax=` they draw on one of yours, so you stay in control of the figure."
 
 [[questions]]
-text = "Querés una línea por sucursal con los meses en el eje X. ¿Qué forma tiene que tener el DataFrame antes de `.plot()`?"
+text = "You want one line per branch with the months on the X axis. What shape must the DataFrame have before `.plot()`?"
 options = [
-  "Una fila por venta",
-  "Índice = mes y una columna por sucursal",
-  "Índice = sucursal y una columna por mes",
-  "Da igual: pandas lo resuelve",
+  "One row per sale",
+  "Index = month and one column per branch",
+  "Index = branch and one column per month",
+  "It doesn't matter: pandas figures it out",
 ]
 correct = 1
-explanation = "`df.plot()` pone el índice en X y dibuja una línea por columna. `pivot_table(index='mes', columns='sucursal', ...)` deja esa forma."
+explanation = "`df.plot()` puts the index on X and draws one line per column. `pivot_table(index='month', columns='branch', ...)` produces that shape."
 
 [[questions]]
-text = "¿Cuál es el mejor título para un gráfico de reporte?"
+text = "What's the best title for a report chart?"
 options = [
-  "'Gráfico 1'",
-  "'Ventas'",
-  "Uno que diga la conclusión, como 'Sur lidera las ventas de marzo'",
-  "Ninguno: el título distrae",
+  "'Chart 1'",
+  "'Sales'",
+  "One that states the conclusion, like 'South leads March sales'",
+  "None: the title is a distraction",
 ]
 correct = 2
-explanation = "Si el gráfico tiene un mensaje, el título lo dice, y el lector lo confirma en los datos."
+explanation = "If the chart has a message, the title says it, and the reader confirms it in the data."
 
 [[questions]]
-text = "¿Qué es una buena práctica de accesibilidad?"
+text = "Which of these is a good accessibility practice?"
 options = [
-  "Usar rojo y verde para diferenciar series",
-  "Usar una paleta apta para daltonismo y sumar marcadores o estilos de línea además del color",
-  "Usar muchos colores distintos",
-  "Evitar las leyendas",
+  "Using red and green to tell series apart",
+  "Using a colorblind-friendly palette and adding markers or line styles on top of color",
+  "Using lots of different colors",
+  "Avoiding legends",
 ]
 correct = 1
-explanation = "Rojo/verde es el par más problemático. `viridis`/`cividis`/`tableau-colorblind10`, junto con marcadores o estilos de línea, evitan depender solo del color."
+explanation = "Red/green is the most problematic pair. `viridis`/`cividis`/`tableau-colorblind10`, together with markers or line styles, keep you from relying on color alone."
 
 [[questions]]
-text = "¿Qué hace `ax.spines[['top', 'right']].set_visible(False)`?"
+text = "What does `ax.spines[['top', 'right']].set_visible(False)` do?"
 options = [
-  "Oculta los ejes X e Y",
-  "Saca los bordes superior y derecho del panel: menos tinta sin perder información",
-  "Rota las etiquetas",
-  "Oculta la grilla",
+  "Hides the X and Y axes",
+  "Removes the top and right borders of the panel: less ink without losing information",
+  "Rotates the labels",
+  "Hides the grid",
 ]
 correct = 1
-explanation = "Esos bordes no aportan datos. Quitarlos limpia el gráfico."
+explanation = "Those borders carry no data. Removing them cleans up the chart."

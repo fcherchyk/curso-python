@@ -1,49 +1,49 @@
 [[questions]]
-text = "¿Qué devuelve `plt.subplots(2, 3)`?"
+text = "What does `plt.subplots(2, 3)` return?"
 options = [
-  "Una figura y un único Axes",
-  "Una figura y un array 2x3 de Axes",
-  "Una lista de 6 figuras",
-  "Seis tuplas (fig, ax)",
+  "A figure and a single Axes",
+  "A figure and a 2x3 array of Axes",
+  "A list of 6 figures",
+  "Six (fig, ax) tuples",
 ]
 correct = 1
-explanation = "`fig, axs = plt.subplots(2, 3)`: `axs[f, c]` accede a cada panel y `axs.flat` los recorre."
+explanation = "`fig, axs = plt.subplots(2, 3)`: `axs[r, c]` accesses each panel and `axs.flat` iterates over them."
 
 [[questions]]
-text = "Comparás las ventas de 3 sucursales en 3 paneles. ¿Por qué usar `sharey=True`?"
+text = "You compare the sales of 3 branches in 3 panels. Why use `sharey=True`?"
 options = [
-  "Para que se dibuje más rápido",
-  "Para que todos tengan la misma escala Y y la comparación de magnitudes sea honesta",
-  "Para que compartan colores",
-  "Para poner una sola leyenda",
+  "So it draws faster",
+  "So they all have the same Y scale and the comparison of magnitudes is honest",
+  "So they share colors",
+  "To put a single legend",
 ]
 correct = 1
-explanation = "Con escalas independientes, un panel que vale 10 veces más puede verse igual que otro."
+explanation = "With independent scales, a panel worth 10 times more can look the same as another one."
 
 [[questions]]
-text = "Un precio que crece a una tasa constante del 10 % anual, ¿cómo se ve en escala logarítmica?"
-options = ["Como una curva exponencial", "Como una recta", "Como una parábola", "No se puede graficar"]
+text = "How does a price growing at a constant 10% per year look on a logarithmic scale?"
+options = ["Like an exponential curve", "Like a straight line", "Like a parabola", "It can't be plotted"]
 correct = 1
-explanation = "En escala log, multiplicaciones iguales ocupan distancias iguales, y un crecimiento compuesto constante queda como una recta."
+explanation = "On a log scale, equal multiplications take up equal distances, so constant compound growth shows up as a straight line."
 
 [[questions]]
-text = "¿Qué hace `ax.text(0.02, 0.95, 'nota', transform=ax.transAxes)`?"
+text = "What does `ax.text(0.02, 0.95, 'note', transform=ax.transAxes)` do?"
 options = [
-  "Pone el texto en el dato x=0.02, y=0.95",
-  "Pone el texto arriba a la izquierda del panel, sin importar la escala de los datos",
-  "Pone el texto fuera de la figura",
-  "Da error",
+  "Puts the text at the data point x=0.02, y=0.95",
+  "Puts the text at the top left of the panel, regardless of the data scale",
+  "Puts the text outside the figure",
+  "Raises an error",
 ]
 correct = 1
-explanation = "Con `transAxes`, las coordenadas son relativas al panel: (0, 0) es abajo a la izquierda y (1, 1) arriba a la derecha."
+explanation = "With `transAxes`, coordinates are relative to the panel: (0, 0) is the bottom left and (1, 1) the top right."
 
 [[questions]]
-text = "¿Por qué se desaconseja el doble eje Y (`twinx`)?"
+text = "Why is a dual Y axis (`twinx`) discouraged?"
 options = [
-  "Porque no existe en matplotlib",
-  "Porque, moviendo los rangos de cada eje, se puede sugerir cualquier correlación",
-  "Porque es lento",
-  "Porque no admite leyendas",
+  "Because it doesn't exist in matplotlib",
+  "Because, by moving each axis's range, you can suggest any correlation",
+  "Because it's slow",
+  "Because it doesn't support legends",
 ]
 correct = 1
-explanation = "Dos escalas arbitrarias en el mismo panel engañan con facilidad. Es mejor usar dos subplots con `sharex=True`."
+explanation = "Two arbitrary scales in the same panel mislead easily. It's better to use two subplots with `sharex=True`."

@@ -1,98 +1,98 @@
-# Tipos de gráfico: cuál usar y cuándo
+# Chart types: which one to use and when
 
-Elegir mal el tipo de gráfico es el error de visualización más común, y el más dañino: el
-gráfico "funciona" pero transmite otra cosa. La regla es empezar por la **pregunta** que querés
-responder y elegir el gráfico que la contesta de un vistazo.
+Picking the wrong chart type is the most common visualization mistake, and the most harmful: the
+chart "works" but conveys something else. The rule is to start from the **question** you want to
+answer and pick the chart that answers it at a glance.
 
-## La guía rápida
+## The quick guide
 
-| Pregunta                                    | Gráfico                    | matplotlib            |
-|---------------------------------------------|----------------------------|-----------------------|
-| ¿Cómo evoluciona algo en el tiempo?          | líneas                      | `ax.plot`             |
-| ¿Cómo se comparan categorías?               | barras (horizontales si los nombres son largos) | `ax.bar` / `ax.barh` |
-| ¿Hay relación entre dos variables?          | dispersión                  | `ax.scatter`          |
-| ¿Cómo se distribuyen los valores?            | histograma (o boxplot)      | `ax.hist` / `ax.boxplot` |
-| ¿Qué parte del total es cada uno?            | barras apiladas o al 100 %  | `ax.bar(..., bottom=)` |
+| Question                                    | Chart                       | matplotlib            |
+|---------------------------------------------|-----------------------------|-----------------------|
+| How does something change over time?        | lines                       | `ax.plot`             |
+| How do categories compare?                  | bars (horizontal if the names are long) | `ax.bar` / `ax.barh` |
+| Is there a relationship between two variables? | scatter                  | `ax.scatter`          |
+| How are the values distributed?             | histogram (or boxplot)      | `ax.hist` / `ax.boxplot` |
+| What part of the total is each one?         | stacked or 100% bars        | `ax.bar(..., bottom=)` |
 
-## Líneas: evolución
+## Lines: trends
 
 ```python
-ax.plot(fechas, precios)
-ax.plot(fechas, media_movil, linestyle="--", linewidth=1)
+ax.plot(dates, prices)
+ax.plot(dates, moving_average, linestyle="--", linewidth=1)
 ```
 
-Para datos **ordenados y continuos**, típicamente en el tiempo. No unas con líneas categorías
-sin orden (sucursales, productos): la línea sugiere una continuidad que no existe.
+For **ordered, continuous** data, typically over time. Don't connect unordered categories (branches,
+products) with lines: the line suggests a continuity that doesn't exist.
 
-## Barras: comparar categorías
+## Bars: comparing categories
 
 ```python
-ax.bar(categorias, valores)                       # verticales
-ax.barh(categorias, valores)                      # horizontales: mejor con nombres largos
-ax.bar_label(ax.containers[0], fmt="%.0f")        # el valor sobre cada barra
+ax.bar(categories, values)                        # vertical
+ax.barh(categories, values)                       # horizontal: better with long names
+ax.bar_label(ax.containers[0], fmt="%.0f")        # the value on each bar
 ```
 
-- **Ordená las barras** por valor (salvo que la categoría tenga un orden natural, como meses):
-  la comparación se vuelve inmediata.
-- **El eje Y de las barras empieza en 0.** Cortarlo exagera las diferencias y es la manera más
-  común de mentir con un gráfico.
-- Para barras agrupadas, se desplazan las posiciones X:
-  `ax.bar(x - w/2, a, w)` y `ax.bar(x + w/2, b, w)`.
+- **Sort the bars** by value (unless the category has a natural order, like months): the comparison
+  becomes immediate.
+- **The Y axis of a bar chart starts at 0.** Cutting it exaggerates the differences and is the most
+  common way to lie with a chart.
+- For grouped bars, shift the X positions:
+  `ax.bar(x - w/2, a, w)` and `ax.bar(x + w/2, b, w)`.
 
-## Dispersión: relación entre variables
+## Scatter: the relationship between variables
 
 ```python
-ax.scatter(publicidad, ventas, alpha=0.6, s=20)       # s = tamaño, alpha = transparencia
-ax.scatter(x, y, c=categoria_numerica, cmap="viridis")  # color por una tercera variable
+ax.scatter(advertising, sales, alpha=0.6, s=20)       # s = size, alpha = transparency
+ax.scatter(x, y, c=numeric_category, cmap="viridis")  # color by a third variable
 ```
 
-Con muchos puntos, `alpha` evita que se tapen. Si ves una forma (una recta, una curva, grupos),
-hay una relación. Ojo: **correlación no implica causalidad**.
+With many points, `alpha` keeps them from hiding each other. If you see a shape (a line, a curve,
+clusters), there's a relationship. Careful: **correlation does not imply causation**.
 
-## Histograma: distribución
+## Histogram: distribution
 
 ```python
-ax.hist(retornos, bins=30, edgecolor="white")
-ax.axvline(retornos.mean(), color="red", linestyle="--", label="media")
+ax.hist(returns, bins=30, edgecolor="white")
+ax.axvline(returns.mean(), color="red", linestyle="--", label="mean")
 ```
 
-Muestra **cuántos valores caen en cada rango**. La cantidad de `bins` cambia mucho la lectura:
-con pocos se esconde la forma y con muchos se ve ruido. Probá varias. El **boxplot**
-(`ax.boxplot`) resume la misma información (mediana, cuartiles y outliers) y sirve para comparar
-varias distribuciones lado a lado.
+It shows **how many values fall in each range**. The number of `bins` changes the reading a lot:
+with too few the shape is hidden, and with too many you see noise. Try several. The **boxplot**
+(`ax.boxplot`) summarizes the same information (median, quartiles and outliers) and is useful for
+comparing several distributions side by side.
 
-## ¿Y el gráfico de torta?
+## What about the pie chart?
 
-`ax.pie` existe, pero las personas comparan muy mal ángulos y áreas. Con más de 3 o 4 porciones,
-una barra horizontal ordenada comunica lo mismo, mejor.
+`ax.pie` exists, but people are very bad at comparing angles and areas. With more than 3 or 4
+slices, a sorted horizontal bar chart says the same thing, better.
 
-## Lo que devuelven los métodos
+## What the methods return
 
-Cada método de dibujo devuelve los *artists* que creó, y los Axes los guardan:
+Each drawing method returns the *artists* it created, and the Axes keep them:
 
 ```python
-barras = ax.bar(["a", "b"], [3, 5])        # BarContainer
-[b.get_height() for b in barras]            # [3, 5]
-ax.patches                                  # rectángulos (barras e histograma)
+bars = ax.bar(["a", "b"], [3, 5])           # BarContainer
+[b.get_height() for b in bars]              # [3, 5]
+ax.patches                                  # rectangles (bars and histogram)
 ax.collections                              # scatter (PathCollection)
-ax.get_lines()                              # líneas
+ax.get_lines()                              # lines
 ```
 
-Así se inspeccionan los gráficos en los tests de este módulo.
+That's how charts are inspected in this module's tests.
 
-## Resumen
+## Summary
 
-- Empezá por la pregunta: evolución → línea, comparación → barras, relación → dispersión,
-  distribución → histograma o boxplot.
-- Barras ordenadas, con el eje desde 0; `barh` con nombres largos; `bar_label` para los valores.
-- Dispersión con `alpha` cuando hay muchos puntos; correlación no es causalidad.
-- Histograma: probá varios `bins`.
-- Evitá las tortas con muchas porciones.
+- Start from the question: trend → line, comparison → bars, relationship → scatter,
+  distribution → histogram or boxplot.
+- Sorted bars, with the axis starting at 0; `barh` for long names; `bar_label` for the values.
+- Scatter with `alpha` when there are many points; correlation is not causation.
+- Histogram: try several `bins`.
+- Avoid pies with many slices.
 
-## Ejercicio
+## Exercise
 
-Barras ordenadas con etiquetas, dispersión con transparencia, un histograma con la línea de la
-media y una función que elige el tipo de gráfico según la pregunta.
+Sorted bars with labels, a scatter plot with transparency, a histogram with the mean line, and a
+function that picks the chart type based on the question.
 
-**Para profundizar:** [Plot types](https://matplotlib.org/stable/plot_types/index.html),
-[From Data to Viz](https://www.data-to-viz.com/) (cómo elegir el gráfico).
+**Further reading:** [Plot types](https://matplotlib.org/stable/plot_types/index.html),
+[From Data to Viz](https://www.data-to-viz.com/) (how to choose a chart).

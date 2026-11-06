@@ -4,50 +4,50 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import pytest
-from exercise import crecimiento_log, marcar_maximo, paneles
+from exercise import log_growth, mark_maximum, panels
 
 
 @pytest.fixture(autouse=True)
-def cerrar_figuras():
+def close_figures():
     yield
     plt.close("all")
 
 
-MESES = ["ene", "feb", "mar"]
-SERIES = {"Norte": [10, 12, 9], "Sur": [100, 120, 130], "Centro": [50, 40, 60]}
+MONTHS = ["jan", "feb", "mar"]
+SERIES = {"North": [10, 12, 9], "South": [100, 120, 130], "Central": [50, 40, 60]}
 
 
-def test_paneles():
-    fig = paneles(MESES, SERIES)
+def test_panels():
+    fig = panels(MONTHS, SERIES)
     assert len(fig.axes) == 3
-    assert fig.get_suptitle() == "Ventas por sucursal"
-    for ax, (nombre, valores) in zip(fig.axes, SERIES.items(), strict=True):
-        assert ax.get_title() == nombre
-        assert list(ax.get_lines()[0].get_ydata()) == valores
-    # en una fila: todos los paneles a la misma altura
+    assert fig.get_suptitle() == "Sales by branch"
+    for ax, (name, values) in zip(fig.axes, SERIES.items(), strict=True):
+        assert ax.get_title() == name
+        assert list(ax.get_lines()[0].get_ydata()) == values
+    # in one row: all panels at the same height
     assert len({round(ax.get_position().y0, 3) for ax in fig.axes}) == 1
-    # con sharey, los tres paneles tienen el mismo rango vertical
-    assert len({ax.get_ylim() for ax in fig.axes}) == 1, "usá sharey=True"
+    # with sharey, the three panels have the same vertical range
+    assert len({ax.get_ylim() for ax in fig.axes}) == 1, "use sharey=True"
 
 
-def test_crecimiento_log():
-    fig = crecimiento_log([2020, 2021, 2022], [100, 1000, 10000])
+def test_log_growth():
+    fig = log_growth([2020, 2021, 2022], [100, 1000, 10000])
     ax = fig.axes[0]
     assert ax.get_yscale() == "log"
-    assert ax.get_ylabel() == "Valor (escala log)"
+    assert ax.get_ylabel() == "Value (log scale)"
     assert list(ax.get_lines()[0].get_ydata()) == [100, 1000, 10000]
 
 
-def test_marcar_maximo():
+def test_mark_maximum():
     x, y = [1, 2, 3, 4], [5, 9, 7, 3]
-    fig = marcar_maximo(x, y)
+    fig = mark_maximum(x, y)
     ax = fig.axes[0]
-    anotaciones = [t for t in ax.texts if isinstance(t, matplotlib.text.Annotation)]
-    assert len(anotaciones) == 1, "usá ax.annotate"
-    nota = anotaciones[0]
-    assert nota.get_text() == "máximo"
-    assert tuple(nota.xy) == (2, 9)
-    assert nota.arrow_patch is not None, "agregá la flecha con arrowprops"
-    horizontales = [ln for ln in ax.get_lines() if list(ln.get_xdata()) == [0, 1]]
-    assert len(horizontales) == 1, "agregá ax.axhline en la media"
-    assert horizontales[0].get_ydata()[0] == pytest.approx(6)
+    annotations = [t for t in ax.texts if isinstance(t, matplotlib.text.Annotation)]
+    assert len(annotations) == 1, "use ax.annotate"
+    note = annotations[0]
+    assert note.get_text() == "maximum"
+    assert tuple(note.xy) == (2, 9)
+    assert note.arrow_patch is not None, "add the arrow with arrowprops"
+    horizontals = [ln for ln in ax.get_lines() if list(ln.get_xdata()) == [0, 1]]
+    assert len(horizontals) == 1, "add ax.axhline at the mean"
+    assert horizontals[0].get_ydata()[0] == pytest.approx(6)

@@ -1,102 +1,102 @@
-# Subplots, escalas y anotaciones
+# Subplots, scales and annotations
 
-Un gráfico casi nunca vive solo. Comparar varias series lado a lado, usar la escala correcta y
-señalar lo importante es lo que convierte un gráfico en un argumento.
+A chart almost never stands alone. Comparing several series side by side, using the right scale and
+pointing out what matters is what turns a chart into an argument.
 
-## Grillas de subplots
+## Subplot grids
 
 ```python
-fig, axs = plt.subplots(2, 2, figsize=(10, 6))   # axs es un array 2x2 de Axes
+fig, axs = plt.subplots(2, 2, figsize=(10, 6))   # axs is a 2x2 array of Axes
 axs[0, 0].plot(x, a)
 axs[1, 1].bar(cats, b)
 
-fig, (arriba, abajo) = plt.subplots(2, 1)        # desempaquetar si son pocos
-for ax, (nombre, serie) in zip(axs.flat, series.items()):   # recorrer la grilla
-    ax.plot(serie)
-    ax.set_title(nombre)
+fig, (top, bottom) = plt.subplots(2, 1)          # unpack if there are only a few
+for ax, (name, series) in zip(axs.flat, all_series.items()):   # iterate over the grid
+    ax.plot(series)
+    ax.set_title(name)
 ```
 
-- `axs.flat` recorre la grilla como si fuera una lista.
-- `squeeze=False` devuelve siempre un array 2D, incluso con 1x1: útil si la cantidad de
-  subplots es variable.
-- `fig.suptitle("...")` pone un título para toda la figura, y `layout="constrained"` (o
-  `fig.tight_layout()`) evita que se pisen los títulos y las etiquetas.
+- `axs.flat` iterates over the grid as if it were a list.
+- `squeeze=False` always returns a 2D array, even for 1x1: useful when the number of subplots
+  varies.
+- `fig.suptitle("...")` sets a title for the whole figure, and `layout="constrained"` (or
+  `fig.tight_layout()`) keeps titles and labels from overlapping.
 
-## Ejes compartidos
+## Shared axes
 
 ```python
-fig, axs = plt.subplots(3, 1, sharex=True)     # misma escala X: se alinean las fechas
-fig, axs = plt.subplots(1, 3, sharey=True)     # misma escala Y: comparación honesta
+fig, axs = plt.subplots(3, 1, sharex=True)     # same X scale: dates line up
+fig, axs = plt.subplots(1, 3, sharey=True)     # same Y scale: honest comparison
 ```
 
-Con `sharey=True`, todos los paneles tienen el mismo rango vertical. **Sin ejes compartidos,
-dos paneles pueden parecer iguales aunque uno valga 10 veces más que el otro.** Si el objetivo
-es comparar magnitudes, compartí el eje.
+With `sharey=True`, all panels have the same vertical range. **Without shared axes, two panels can
+look the same even if one is worth 10 times more than the other.** If the goal is to compare
+magnitudes, share the axis.
 
-## Escala logarítmica
+## Logarithmic scale
 
 ```python
 ax.set_yscale("log")
 ```
 
-En escala log, **distancias iguales son multiplicaciones iguales**: pasar de 10 a 100 ocupa lo
-mismo que pasar de 100 a 1000. Úsala cuando:
+On a log scale, **equal distances are equal multiplications**: going from 10 to 100 takes up the
+same space as going from 100 to 1000. Use it when:
 
-- Los datos abarcan varios órdenes de magnitud (población, ingresos, latencias).
-- Lo que importa es el **crecimiento porcentual**: un precio que crece a tasa constante se ve
-  como una recta. Por eso los gráficos de largo plazo de un índice bursátil van en log.
+- The data spans several orders of magnitude (population, income, latencies).
+- What matters is **percentage growth**: a price growing at a constant rate looks like a straight
+  line. That's why long-term charts of a stock index use a log scale.
 
-No sirve con valores ≤ 0. Avisá en la etiqueta del eje que la escala es logarítmica.
+It doesn't work with values ≤ 0. Say in the axis label that the scale is logarithmic.
 
-## Doble eje Y: con cuidado
+## Dual Y axis: handle with care
 
 ```python
-ax2 = ax.twinx()   # segundo eje Y, a la derecha
+ax2 = ax.twinx()   # second Y axis, on the right
 ```
 
-Dos escalas en el mismo panel permiten "fabricar" cualquier correlación moviendo los rangos.
-Casi siempre es mejor usar dos subplots con `sharex=True`.
+Two scales in the same panel let you "manufacture" any correlation by moving the ranges. Two
+subplots with `sharex=True` are almost always better.
 
-## Anotaciones
+## Annotations
 
 ```python
-ax.axhline(0, color="gray", linewidth=0.8)             # línea de referencia horizontal
-ax.axvspan(inicio, fin, alpha=0.2, color="red")        # sombrear un período
+ax.axhline(0, color="gray", linewidth=0.8)             # horizontal reference line
+ax.axvspan(start, end, alpha=0.2, color="red")         # shade a period
 ax.annotate(
-    "máximo",
-    xy=(x_max, y_max),               # el punto señalado
-    xytext=(x_max, y_max * 1.1),     # dónde va el texto
+    "maximum",
+    xy=(x_max, y_max),               # the point being marked
+    xytext=(x_max, y_max * 1.1),     # where the text goes
     arrowprops={"arrowstyle": "->"},
 )
-ax.text(0.02, 0.95, "n = 500", transform=ax.transAxes)  # coordenadas relativas al panel
+ax.text(0.02, 0.95, "n = 500", transform=ax.transAxes)  # coordinates relative to the panel
 ```
 
-`transform=ax.transAxes` hace que (0, 0) sea la esquina inferior izquierda del panel y (1, 1)
-la superior derecha, sin importar los datos. Sirve para notas fijas.
+`transform=ax.transAxes` makes (0, 0) the bottom-left corner of the panel and (1, 1) the top-right
+one, regardless of the data. It's useful for fixed notes.
 
-## Leyendas
+## Legends
 
 ```python
-ax.plot(x, a, label="Norte")
+ax.plot(x, a, label="North")
 ax.legend(loc="upper left", frameon=False)
-ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))   # afuera, a la derecha
+ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))   # outside, on the right
 ```
 
-Con pocas series, a veces es más claro etiquetar el final de cada línea con `ax.text` que usar
-una leyenda: el ojo no tiene que ir y volver.
+With only a few series, labeling the end of each line with `ax.text` is sometimes clearer than a
+legend: the eye doesn't have to go back and forth.
 
-## Resumen
+## Summary
 
-- `plt.subplots(f, c)` devuelve un array de Axes; recorrelo con `axs.flat`.
-- `sharex`/`sharey` para comparar con honestidad; `suptitle` y `layout="constrained"`.
-- Escala log para órdenes de magnitud y crecimiento porcentual.
-- Evitá `twinx`; preferí paneles con el eje X compartido.
-- `annotate`, `axhline`, `axvspan` y `text` con `transAxes` para señalar lo importante.
+- `plt.subplots(r, c)` returns an array of Axes; iterate over it with `axs.flat`.
+- `sharex`/`sharey` for honest comparisons; `suptitle` and `layout="constrained"`.
+- Log scale for orders of magnitude and percentage growth.
+- Avoid `twinx`; prefer panels with a shared X axis.
+- `annotate`, `axhline`, `axvspan` and `text` with `transAxes` to point out what matters.
 
-## Ejercicio
+## Exercise
 
-Una grilla de paneles con el eje Y compartido, un gráfico en escala log y una anotación en el
-máximo de una serie.
+A grid of panels with a shared Y axis, a log-scale chart and an annotation at the maximum of a
+series.
 
-**Para profundizar:** [Arranging multiple Axes](https://matplotlib.org/stable/users/explain/axes/arranging_axes.html),
+**Further reading:** [Arranging multiple Axes](https://matplotlib.org/stable/users/explain/axes/arranging_axes.html),
 [Annotations](https://matplotlib.org/stable/users/explain/text/annotations.html).

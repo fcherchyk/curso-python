@@ -1,33 +1,33 @@
-"""Tipos de gráfico. API orientada a objetos; cada función devuelve la figura."""
+"""Chart types. Object-oriented API; each function returns the figure."""
 
 import matplotlib.pyplot as plt  # noqa: F401
 import numpy as np  # noqa: F401
 from matplotlib.figure import Figure
 
 
-def barras_ordenadas(totales: dict[str, float], titulo: str) -> Figure:
-    """Barras HORIZONTALES (barh) ordenadas de forma que la MAYOR quede ARRIBA,
-    con el valor sobre cada barra (bar_label) y el título dado.
+def sorted_bars(totals: dict[str, float], title: str) -> Figure:
+    """HORIZONTAL bars (barh) sorted so the LARGEST ends up at the TOP,
+    with the value on each bar (bar_label) and the given title.
 
-    Pista: en barh, la primera barra va abajo; ordená de menor a mayor.
+    Hint: in barh, the first bar goes at the bottom; sort from smallest to largest.
     """
     raise NotImplementedError("TODO")
 
 
-def dispersion(x: list[float], y: list[float], xlabel: str, ylabel: str) -> Figure:
-    """Scatter con alpha=0.6 y las etiquetas de los ejes."""
+def scatter_plot(x: list[float], y: list[float], xlabel: str, ylabel: str) -> Figure:
+    """Scatter with alpha=0.6 and the axis labels."""
     raise NotImplementedError("TODO")
 
 
-def histograma(valores: np.ndarray, bins: int) -> Figure:
-    """Histograma con `bins` barras y una línea vertical punteada (axvline, "--") en la media,
-    con label "media" y leyenda.
+def histogram(values: np.ndarray, bins: int) -> Figure:
+    """Histogram with `bins` bars and a dashed vertical line (axvline, "--") at the mean,
+    with label "mean" and a legend.
     """
     raise NotImplementedError("TODO")
 
 
-def tipo_recomendado(pregunta: str) -> str:
-    """Según la pregunta: "evolucion" → "linea", "comparacion" → "barras",
-    "relacion" → "dispersion", "distribucion" → "histograma". Otra → ValueError.
+def recommended_chart(question: str) -> str:
+    """Based on the question: "trend" → "line", "comparison" → "bar",
+    "relationship" → "scatter", "distribution" → "histogram". Anything else → ValueError.
     """
     raise NotImplementedError("TODO")

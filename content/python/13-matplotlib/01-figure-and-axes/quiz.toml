@@ -1,49 +1,49 @@
 [[questions]]
-text = "¿Por qué se recomienda `fig, ax = plt.subplots()` y `ax.plot(...)` en lugar de `plt.plot(...)`?"
+text = "Why is `fig, ax = plt.subplots()` plus `ax.plot(...)` recommended over `plt.plot(...)`?"
 options = [
-  "Porque `plt.plot` está deprecado",
-  "Porque la API OO trabaja con objetos explícitos, sin depender del estado global de \"la figura actual\"",
-  "Porque es más rápido",
-  "Porque `plt.plot` no admite títulos",
+  "Because `plt.plot` is deprecated",
+  "Because the OO API works with explicit objects, without relying on the global state of \"the current figure\"",
+  "Because it's faster",
+  "Because `plt.plot` doesn't support titles",
 ]
 correct = 1
-explanation = "Con varios gráficos o dentro de funciones, el estado implícito de pyplot genera confusión. Con `ax` sabés exactamente a qué gráfico le hablás."
+explanation = "With several charts or inside functions, pyplot's implicit state gets confusing. With `ax` you know exactly which chart you're talking to."
 
 [[questions]]
-text = "¿Qué es un `Axes` en matplotlib?"
+text = "What is an `Axes` in matplotlib?"
 options = [
-  "El eje X o Y",
-  "Un gráfico individual dentro de la figura (con su área de dibujo, sus ejes, título y leyenda)",
-  "La ventana",
-  "Un tipo de línea",
+  "The X or Y axis",
+  "A single chart inside the figure (with its plotting area, axes, title and legend)",
+  "The window",
+  "A line type",
 ]
 correct = 1
-explanation = "Una Figure puede contener varios Axes. Cada eje X o Y es un *axis*, que es otra cosa."
+explanation = "A Figure can contain several Axes. Each X or Y axis is an *axis*, which is something else."
 
 [[questions]]
-text = "¿Qué necesita `ax.legend()` para mostrar nombres?"
+text = "What does `ax.legend()` need to show names?"
 options = [
-  "Nada",
-  "Que las series se hayan dibujado con `label=\"...\"`",
-  "Que exista un título",
-  "Que se llame antes de `plot`",
+  "Nothing",
+  "The series must have been drawn with `label=\"...\"`",
+  "A title must exist",
+  "It must be called before `plot`",
 ]
 correct = 1
-explanation = "La leyenda toma los `label` de cada línea o barra. Sin labels, queda vacía (y matplotlib avisa)."
+explanation = "The legend takes the `label` of each line or bar. Without labels it's empty (and matplotlib warns you)."
 
 [[questions]]
-text = "En un servidor sin pantalla (o en tests), ¿qué backend se usa?"
-options = ["`\"TkAgg\"`", "`\"Agg\"`", "`\"Qt5Agg\"`", "Ninguno: no se puede graficar"]
+text = "On a headless server (or in tests), which backend do you use?"
+options = ["`\"TkAgg\"`", "`\"Agg\"`", "`\"Qt5Agg\"`", "None: you can't plot"]
 correct = 1
-explanation = "`Agg` renderiza a imagen sin necesitar ventanas. Se activa con `matplotlib.use(\"Agg\")` o con `MPLBACKEND=Agg`."
+explanation = "`Agg` renders to an image without needing windows. You enable it with `matplotlib.use(\"Agg\")` or with `MPLBACKEND=Agg`."
 
 [[questions]]
-text = "¿Por qué conviene `plt.close(fig)` después de guardar?"
+text = "Why is it a good idea to call `plt.close(fig)` after saving?"
 options = [
-  "Para borrar el archivo",
-  "Para liberar la memoria: las figuras abiertas se acumulan (importante en bucles y servidores)",
-  "Para que el gráfico se guarde",
-  "No tiene efecto",
+  "To delete the file",
+  "To free memory: open figures pile up (important in loops and servers)",
+  "So the chart gets saved",
+  "It has no effect",
 ]
 correct = 1
-explanation = "pyplot mantiene una referencia a cada figura creada. Sin cerrarlas, un proceso que genera muchos gráficos consume cada vez más memoria."
+explanation = "pyplot keeps a reference to every figure it creates. If you don't close them, a process that generates many charts uses more and more memory."
