@@ -1,168 +1,168 @@
-# Plantillas y formularios
+# Templates and forms
 
-Django trae su propio **lenguaje de plantillas** y un sistema de **formularios** que valida datos,
-genera HTML y muestra errores, todo integrado con la protección **CSRF**. Es la parte de Django
-que más tiempo ahorra en apps con muchas pantallas de carga de datos.
+Django ships its own **template language** and a **forms** system that validates data, generates
+HTML and displays errors, all integrated with **CSRF** protection. It's the part of Django that
+saves the most time in apps with lots of data-entry screens.
 
-## El lenguaje de plantillas
+## The template language
 
-Es muy parecido a Jinja2, pero deliberadamente más limitado. La idea es que la lógica quede en
-la vista y no en la plantilla.
+It's very similar to Jinja2, but deliberately more limited. The idea is that logic stays in the
+view and not in the template.
 
 ```django
 {% extends "base.html" %}
-{% block contenido %}
-  <h1>{{ producto.nombre|upper }}</h1>
-  <p>{{ producto.precio|floatformat:2 }}</p>
+{% block content %}
+  <h1>{{ product.name|upper }}</h1>
+  <p>{{ product.price|floatformat:2 }}</p>
 
-  {% if productos %}
-    {% for p in productos %}
-      <li>{{ forloop.counter }}. {{ p.nombre }}</li>
+  {% if products %}
+    {% for p in products %}
+      <li>{{ forloop.counter }}. {{ p.name }}</li>
     {% empty %}
-      <li>No hay productos</li>
+      <li>No products</li>
     {% endfor %}
   {% endif %}
 
-  <a href="{% url 'detalle' producto.id %}">Ver</a>
-  {{ mensajes|length }} mensaje{{ mensajes|length|pluralize }}
+  <a href="{% url 'detail' product.id %}">View</a>
+  {{ messages|length }} message{{ messages|length|pluralize }}
 {% endblock %}
 ```
 
-Diferencias con Jinja2:
+Differences from Jinja2:
 
-- Las funciones **no se llaman con argumentos** en la plantilla: `{{ p.precio_con_iva }}` funciona
-  si es un método sin argumentos o una property, pero `{{ p.precio(2) }}` no existe.
-- Los filtros reciben **un** argumento con `:`, como `{{ texto|truncatechars:30 }}`.
-- `{% empty %}` dentro del `for` cubre la lista vacía, y `forloop.counter` es el índice.
-- `{% url 'nombre' args %}` invierte URLs, y `{% static 'css/app.css' %}` arma las rutas de los
-  estáticos.
-- **Autoescape** activado: `{{ x }}` escapa el HTML. `|safe` o `{% autoescape off %}` solo con
-  contenido de confianza.
+- Functions **can't be called with arguments** in the template: `{{ p.price_with_tax }}` works
+  if it's a method with no arguments or a property, but `{{ p.price(2) }}` doesn't exist.
+- Filters take **one** argument with `:`, as in `{{ text|truncatechars:30 }}`.
+- `{% empty %}` inside the `for` covers the empty list, and `forloop.counter` is the index.
+- `{% url 'name' args %}` reverses URLs, and `{% static 'css/app.css' %}` builds the paths to
+  static files.
+- **Autoescape** is on: `{{ x }}` escapes HTML. Use `|safe` or `{% autoescape off %}` only with
+  trusted content.
 
-### Renderizar desde una vista
+### Rendering from a view
 
 ```python
 from django.shortcuts import render, redirect, get_object_or_404
 
-def detalle(request, id):
-    producto = get_object_or_404(Producto, id=id)        # 404 si no existe
-    return render(request, "catalogo/detalle.html", {"producto": producto})
+def detail(request, id):
+    product = get_object_or_404(Product, id=id)          # 404 if it doesn't exist
+    return render(request, "catalog/detail.html", {"product": product})
 ```
 
-`render` busca la plantilla en las carpetas `templates/` de las apps y en las de `TEMPLATES["DIRS"]`,
-y le pasa el `request` (necesario para CSRF y para `request.user`). La convención es
-`templates/<app>/archivo.html`, para evitar choques de nombres entre apps.
+`render` looks for the template in the apps' `templates/` folders and in those of `TEMPLATES["DIRS"]`,
+and passes it the `request` (needed for CSRF and for `request.user`). The convention is
+`templates/<app>/file.html`, to avoid name clashes between apps.
 
-## Formularios: `forms.Form`
+## Forms: `forms.Form`
 
 ```python
 from django import forms
 
-class ContactoForm(forms.Form):
-    nombre = forms.CharField(max_length=50)
+class ContactForm(forms.Form):
+    name = forms.CharField(max_length=50)
     email = forms.EmailField()
-    mensaje = forms.CharField(widget=forms.Textarea, min_length=10)
+    message = forms.CharField(widget=forms.Textarea, min_length=10)
 
-    def clean_nombre(self):                    # validar/limpiar UN campo: clean_<campo>
-        return self.cleaned_data["nombre"].strip().title()
+    def clean_name(self):                      # validate/clean ONE field: clean_<field>
+        return self.cleaned_data["name"].strip().title()
 
-    def clean(self):                           # reglas entre campos
-        datos = super().clean()
-        if "spam" in datos.get("mensaje", "").lower():
-            raise forms.ValidationError("El mensaje parece spam")
-        return datos
+    def clean(self):                           # rules across fields
+        data = super().clean()
+        if "spam" in data.get("message", "").lower():
+            raise forms.ValidationError("The message looks like spam")
+        return data
 ```
 
-- Cada campo valida su tipo y sus restricciones (`max_length`, `min_length`, `required`, email…).
-- `clean_<campo>` valida o transforma un campo y devuelve el valor limpio.
-- `clean()` valida reglas que involucran varios campos. Sus errores son *non-field errors*.
-- `form.is_valid()` corre todo. Después, `form.cleaned_data` tiene los datos limpios y
-  `form.errors`, los errores por campo.
+- Each field validates its type and its constraints (`max_length`, `min_length`, `required`, email…).
+- `clean_<field>` validates or transforms one field and returns the cleaned value.
+- `clean()` validates rules involving several fields. Its errors are *non-field errors*.
+- `form.is_valid()` runs everything. Afterwards, `form.cleaned_data` holds the cleaned data and
+  `form.errors`, the errors per field.
 
-Es la misma idea que Pydantic (tipos, restricciones y validadores), con el agregado de que el
-form sabe **dibujarse en HTML**.
+It's the same idea as Pydantic (types, constraints and validators), with the bonus that the
+form knows **how to render itself as HTML**.
 
-### El patrón de la vista con formulario
+### The form view pattern
 
 ```python
-def contacto(request):
+def contact(request):
     if request.method == "POST":
-        form = ContactoForm(request.POST)          # formulario "ligado" a los datos
+        form = ContactForm(request.POST)           # form "bound" to the data
         if form.is_valid():
-            guardar(form.cleaned_data)
-            return redirect("gracias")             # PRG: redirect por nombre de URL
+            save(form.cleaned_data)
+            return redirect("thanks")              # PRG: redirect by URL name
     else:
-        form = ContactoForm()                      # formulario vacío
-    return render(request, "contacto.html", {"form": form})
+        form = ContactForm()                       # empty form
+    return render(request, "contact.html", {"form": form})
 ```
 
-Si el POST no valida, se vuelve a renderizar **el mismo form**, que ya tiene los valores cargados
-y los errores. En la plantilla, `{{ campo }}`, `{{ campo.errors }}` y `{{ form.non_field_errors }}`
-hacen el resto.
+If the POST doesn't validate, you re-render **the same form**, which already has the values filled
+in and the errors. In the template, `{{ field }}`, `{{ field.errors }}` and `{{ form.non_field_errors }}`
+do the rest.
 
-### `ModelForm`: formularios a partir de modelos
+### `ModelForm`: forms from models
 
 ```python
-class ProductoForm(forms.ModelForm):
+class ProductForm(forms.ModelForm):
     class Meta:
-        model = Producto
-        fields = ["nombre", "precio", "categoria"]
+        model = Product
+        fields = ["name", "price", "category"]
 
-form = ProductoForm(request.POST)
+form = ProductForm(request.POST)
 if form.is_valid():
-    producto = form.save()             # crea (o actualiza, con instance=...) el objeto
+    product = form.save()              # creates (or updates, with instance=...) the object
 ```
 
-Los campos, los tipos y la validación salen del modelo. Combinado con las vistas genéricas del
-próximo capítulo, un CRUD completo son muy pocas líneas.
+The fields, types and validation come from the model. Combined with the generic views in the
+next chapter, a full CRUD takes very few lines.
 
-## CSRF: por qué Django rechaza tus POST
+## CSRF: why Django rejects your POSTs
 
-*Cross-Site Request Forgery*: otro sitio hace que el navegador de tu usuario envíe un POST a tu
-app, y las cookies de sesión van incluidas. Django lo evita exigiendo un **token** secreto en
-cada POST:
+*Cross-Site Request Forgery*: another site makes your user's browser send a POST to your app,
+and the session cookies go along with it. Django prevents this by requiring a secret **token** on
+every POST:
 
 ```django
 <form method="post">
-  {% csrf_token %}           ← un input oculto con el token
+  {% csrf_token %}           ← a hidden input with the token
   ...
 </form>
 ```
 
-El `CsrfViewMiddleware` rechaza con **403** los POST sin el token correcto. Por eso hay que
-renderizar con `render(request, ...)`, que da acceso al token. Para APIs con tokens en headers
-(sin cookies), DRF maneja la exención.
+`CsrfViewMiddleware` rejects POSTs without the correct token with **403**. That's why you have to
+render with `render(request, ...)`, which gives access to the token. For APIs with tokens in
+headers (no cookies), DRF handles the exemption.
 
-## Testear formularios
+## Testing forms
 
 ```python
 def test_form():
-    form = ContactoForm(data={"nombre": "ana", "email": "x", "mensaje": "hola"})
+    form = ContactForm(data={"name": "alice", "email": "x", "message": "hi"})
     assert not form.is_valid()
     assert "email" in form.errors
 ```
 
-El `Client` de tests **no** chequea CSRF salvo que lo pidas con `Client(enforce_csrf_checks=True)`.
+The test `Client` does **not** check CSRF unless you ask for it with `Client(enforce_csrf_checks=True)`.
 
-## En los otros frameworks
+## In other frameworks
 
-- **Flask**: Jinja2 y validación a mano o con Flask-WTF (WTForms + CSRF).
-- **FastAPI**: Pydantic valida, pero no dibuja formularios; está pensado para APIs.
+- **Flask**: Jinja2, and validation by hand or with Flask-WTF (WTForms + CSRF).
+- **FastAPI**: Pydantic validates, but doesn't render forms; it's designed for APIs.
 
-## Resumen
+## Summary
 
-- Plantillas: `{{ }}` y `{% %}`, filtros con `|filtro:arg`, `{% empty %}`, `{% url %}` y autoescape.
-- `render(request, plantilla, contexto)`, `redirect("nombre")` y `get_object_or_404`.
-- `forms.Form`: campos con restricciones, `clean_<campo>` y `clean()`; `is_valid()` y
+- Templates: `{{ }}` and `{% %}`, filters with `|filter:arg`, `{% empty %}`, `{% url %}` and autoescape.
+- `render(request, template, context)`, `redirect("name")` and `get_object_or_404`.
+- `forms.Form`: fields with constraints, `clean_<field>` and `clean()`; `is_valid()` and
   `cleaned_data`.
-- Patrón GET/POST con PRG; `ModelForm` para formularios de modelos.
-- `{% csrf_token %}` en cada form con POST; sin el token, 403.
+- The GET/POST pattern with PRG; `ModelForm` for model forms.
+- `{% csrf_token %}` in every POST form; without the token, 403.
 
-## Ejercicio
+## Exercise
 
-Las plantillas están en `templates/` (con `{% csrf_token %}` y la muestra de errores). Escribí el
-formulario de contacto con sus validaciones y las vistas con el patrón Post/Redirect/Get.
+The templates are in `templates/` (with `{% csrf_token %}` and error display). Write the
+contact form with its validations and the views using the Post/Redirect/Get pattern.
 
-**Para profundizar:** [The Django template language](https://docs.djangoproject.com/en/stable/ref/templates/language/),
+**Further reading:** [The Django template language](https://docs.djangoproject.com/en/stable/ref/templates/language/),
 [Working with forms](https://docs.djangoproject.com/en/stable/topics/forms/),
 [CSRF protection](https://docs.djangoproject.com/en/stable/ref/csrf/).

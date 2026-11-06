@@ -1,44 +1,44 @@
 [[questions]]
-text = "¿Qué recibe una vista de función de Django como primer argumento?"
-options = ["Nada: el request es global", "El objeto `request`", "Los parámetros del query string", "La app"]
+text = "What does a Django function view receive as its first argument?"
+options = ["Nothing: the request is global", "The `request` object", "The query string parameters", "The app"]
 correct = 1
-explanation = "A diferencia de Flask, en Django el request se pasa explícitamente a la vista. Los parámetros de la ruta vienen después."
+explanation = "Unlike Flask, Django passes the request explicitly to the view. Path parameters come after it."
 
 [[questions]]
-text = "¿Para qué sirve `name=\"detalle\"` en `path(\"productos/<int:id>/\", views.detalle, name=\"detalle\")`?"
+text = "What is `name=\"detail\"` for in `path(\"products/<int:id>/\", views.detail, name=\"detail\")`?"
 options = [
-  "Para nombrar la función",
-  "Para poder generar la URL con `reverse(\"detalle\", args=[id])` o `{% url %}` sin escribirla a mano",
-  "Para el título de la página",
-  "Es obligatorio, sin otro efecto",
+  "To name the function",
+  "To build the URL with `reverse(\"detail\", args=[id])` or `{% url %}` instead of writing it by hand",
+  "For the page title",
+  "It is required and has no other effect",
 ]
 correct = 1
-explanation = "Las URLs con nombre se invierten. Si cambia la ruta, todos los links se actualizan."
+explanation = "Named URLs can be reversed. If the route changes, every link updates."
 
 [[questions]]
-text = "¿Por qué `JsonResponse([1, 2, 3])` levanta un error?"
+text = "Why does `JsonResponse([1, 2, 3])` raise an error?"
 options = [
-  "Porque JSON no soporta listas",
-  "Porque por defecto exige un dict; para otros tipos hay que pasar `safe=False`",
-  "Porque falta el status",
-  "Porque las listas se devuelven con `HttpResponse`",
+  "Because JSON doesn't support lists",
+  "Because by default it requires a dict; for other types you have to pass `safe=False`",
+  "Because the status is missing",
+  "Because lists are returned with `HttpResponse`",
 ]
 correct = 1
-explanation = "Es una protección histórica contra el JSON hijacking. Con `safe=False` acepta cualquier valor serializable."
+explanation = "It's a historical protection against JSON hijacking. With `safe=False` it accepts any serializable value."
 
 [[questions]]
-text = "¿Cuál es la diferencia entre un proyecto y una app en Django?"
+text = "What is the difference between a project and an app in Django?"
 options = [
-  "Son lo mismo",
-  "El proyecto tiene la configuración global y las URLs raíz; las apps agrupan modelos, vistas y URLs de cada área",
-  "La app es el servidor y el proyecto el código",
-  "El proyecto solo existe en producción",
+  "They are the same thing",
+  "The project holds the global configuration and the root URLs; apps group the models, views and URLs of each area",
+  "The app is the server and the project is the code",
+  "The project only exists in production",
 ]
 correct = 1
-explanation = "Un proyecto contiene varias apps activadas en `INSTALLED_APPS`. Cada app puede reutilizarse en otros proyectos."
+explanation = "A project contains several apps enabled in `INSTALLED_APPS`. Each app can be reused in other projects."
 
 [[questions]]
-text = "Una vista decorada con `@require_http_methods([\"GET\"])` recibe un POST. ¿Qué responde?"
+text = "A view decorated with `@require_http_methods([\"GET\"])` receives a POST. What does it respond?"
 options = ["404", "405 Method Not Allowed", "400", "200"]
 correct = 1
-explanation = "El decorador rechaza los métodos no permitidos con 405 sin ejecutar la vista."
+explanation = "The decorator rejects disallowed methods with 405 without running the view."

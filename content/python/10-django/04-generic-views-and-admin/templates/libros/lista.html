@@ -1,9 +1,0 @@
-<h1>Libros</h1>
-<ul>
-{% for libro in libros %}
-  <li><a href="{% url 'detalle' libro.pk %}">{{ libro.titulo }}</a> ({{ libro.anio }})</li>
-{% empty %}
-  <li>No hay libros</li>
-{% endfor %}
-</ul>
-{% if page_obj %}<p class="pagina">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</p>{% endif %}

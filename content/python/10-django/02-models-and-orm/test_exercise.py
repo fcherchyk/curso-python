@@ -15,75 +15,75 @@ import pytest
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from exercise import (
-    Categoria,
-    Producto,
-    activos_hasta,
-    aumentar_precios,
-    buscar,
-    listado,
-    stock_por_categoria,
+    Category,
+    Product,
+    active_up_to,
+    listing,
+    raise_prices,
+    search,
+    stock_by_category,
 )
 
 
 @pytest.fixture(autouse=True)
-def datos():
+def data():
     with connection.schema_editor() as editor:
-        editor.create_model(Categoria)
-        editor.create_model(Producto)
-    almacen = Categoria.objects.create(nombre="Almacén")
-    bebidas = Categoria.objects.create(nombre="Bebidas")
-    Categoria.objects.create(nombre="Vacía")
-    for nombre, precio, stock, activo, cat in [
-        ("Yerba", "3500", 10, True, almacen),
-        ("Azúcar", "1200", 5, True, almacen),
-        ("Fideos", "900", 0, False, almacen),
-        ("Agua", "800", 20, True, bebidas),
-        ("Vino", "7000", 3, True, bebidas),
+        editor.create_model(Category)
+        editor.create_model(Product)
+    pantry = Category.objects.create(name="Pantry")
+    drinks = Category.objects.create(name="Drinks")
+    Category.objects.create(name="Empty")
+    for name, price, stock, active, cat in [
+        ("Mate", "3500", 10, True, pantry),
+        ("Sugar", "1200", 5, True, pantry),
+        ("Pasta", "900", 0, False, pantry),
+        ("Water", "800", 20, True, drinks),
+        ("Wine", "7000", 3, True, drinks),
     ]:
-        Producto.objects.create(
-            nombre=nombre, precio=Decimal(precio), stock=stock, activo=activo, categoria=cat
+        Product.objects.create(
+            name=name, price=Decimal(price), stock=stock, active=active, category=cat
         )
     yield
     with connection.schema_editor() as editor:
-        editor.delete_model(Producto)
-        editor.delete_model(Categoria)
+        editor.delete_model(Product)
+        editor.delete_model(Category)
 
 
-def test_activos_hasta():
-    assert activos_hasta(Decimal("3500")) == ["Agua", "Azúcar", "Yerba"]
-    assert activos_hasta(Decimal("100")) == []
+def test_active_up_to():
+    assert active_up_to(Decimal("3500")) == ["Water", "Sugar", "Mate"]
+    assert active_up_to(Decimal("100")) == []
 
 
-def test_buscar_por_nombre_o_categoria():
-    assert buscar("AGU") == ["Agua"]
-    assert buscar("bebi") == ["Agua", "Vino"]
-    assert buscar("zúc") == ["Azúcar"]
+def test_search_by_name_or_category():
+    assert search("WAT") == ["Water"]
+    assert search("drin") == ["Water", "Wine"]
+    assert search("uga") == ["Sugar"]
 
 
-def test_stock_por_categoria():
-    assert stock_por_categoria() == {"Almacén": 15, "Bebidas": 23}
+def test_stock_by_category():
+    assert stock_by_category() == {"Pantry": 15, "Drinks": 23}
 
 
-def test_aumentar_precios():
-    assert aumentar_precios("Bebidas", 10) == 2
-    assert Producto.objects.get(nombre="Agua").precio == Decimal("880.00")
-    assert Producto.objects.get(nombre="Yerba").precio == Decimal("3500.00")
+def test_raise_prices():
+    assert raise_prices("Drinks", 10) == 2
+    assert Product.objects.get(name="Water").price == Decimal("880.00")
+    assert Product.objects.get(name="Mate").price == Decimal("3500.00")
 
 
-def test_aumentar_precios_en_una_consulta():
-    with CaptureQueriesContext(connection) as consultas:
-        aumentar_precios("Almacén", 50)
-    assert len(consultas) == 1, "usá F() + update(): una sola consulta UPDATE"
+def test_raise_prices_in_one_query():
+    with CaptureQueriesContext(connection) as queries:
+        raise_prices("Pantry", 50)
+    assert len(queries) == 1, "use F() + update(): a single UPDATE query"
 
 
-def test_listado_sin_n_mas_1():
-    with CaptureQueriesContext(connection) as consultas:
-        res = listado()
+def test_listing_without_n_plus_1():
+    with CaptureQueriesContext(connection) as queries:
+        res = listing()
     assert res == [
-        "Agua (Bebidas)",
-        "Azúcar (Almacén)",
-        "Fideos (Almacén)",
-        "Vino (Bebidas)",
-        "Yerba (Almacén)",
+        "Mate (Pantry)",
+        "Pasta (Pantry)",
+        "Sugar (Pantry)",
+        "Water (Drinks)",
+        "Wine (Drinks)",
     ]
-    assert len(consultas) == 1, f"{len(consultas)} consultas: usá select_related"
+    assert len(queries) == 1, f"{len(queries)} queries: use select_related"

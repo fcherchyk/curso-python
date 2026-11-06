@@ -1,15 +1,15 @@
-"""Vistas basadas en clases y el admin.
+"""Class-based views and the admin.
 
-El modelo Libro ya está. Escribí:
+The Book model is already here. Write:
 
-1. LibroLista (ListView): plantilla "libros/lista.html", variable `libros`, orden por título,
-   paginate_by=3 y, si viene ?q=texto, filtrar por título (icontains).
-2. LibroDetalle (DetailView): plantilla "libros/detalle.html", variable `libro`.
-3. LibroCrear (CreateView): campos titulo, autor y anio; plantilla "libros/form.html";
-   después de guardar redirige a la lista (reverse_lazy).
-4. URLs: "libros/" name="lista", "libros/<int:pk>/" name="detalle", "libros/nuevo/" name="crear".
-5. Admin: registrá Libro con list_display = ["titulo", "autor", "anio"],
-   search_fields = ["titulo", "autor"] y list_filter = ["anio"].
+1. BookList (ListView): template "books/list.html", variable `books`, ordered by title,
+   paginate_by=3 and, if ?q=text is present, filter by title (icontains).
+2. BookDetail (DetailView): template "books/detail.html", variable `book`.
+3. BookCreate (CreateView): fields title, author and year; template "books/form.html";
+   after saving it redirects to the list (reverse_lazy).
+4. URLs: "books/" name="list", "books/<int:pk>/" name="detail", "books/new/" name="create".
+5. Admin: register Book with list_display = ["title", "author", "year"],
+   search_fields = ["title", "author"] and list_filter = ["year"].
 """
 
 from django.contrib import admin  # noqa: F401
@@ -18,16 +18,16 @@ from django.urls import path, reverse_lazy  # noqa: F401
 from django.views.generic import CreateView, DetailView, ListView  # noqa: F401
 
 
-class Libro(models.Model):
-    titulo = models.CharField(max_length=200)
-    autor = models.CharField(max_length=100)
-    anio = models.PositiveIntegerField()
+class Book(models.Model):
+    title = models.CharField(max_length=200)
+    author = models.CharField(max_length=100)
+    year = models.PositiveIntegerField()
 
     class Meta:
-        app_label = "biblioteca"
+        app_label = "library"
 
     def __str__(self) -> str:
-        return self.titulo
+        return self.title
 
 
 urlpatterns: list = []

@@ -7,58 +7,58 @@ from rest_framework.routers import DefaultRouter
 from rest_framework.views import APIView
 
 
-class Tarea(models.Model):
-    titulo = models.CharField(max_length=100)
-    hecha = models.BooleanField(default=False)
-    creada = models.DateTimeField(auto_now_add=True)
+class Task(models.Model):
+    title = models.CharField(max_length=100)
+    done = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        app_label = "tareas"
+        app_label = "tasks"
 
 
-class TareaSerializer(serializers.ModelSerializer):
+class TaskSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Tarea
-        fields = ["id", "titulo", "hecha", "creada"]
-        read_only_fields = ["id", "creada"]
+        model = Task
+        fields = ["id", "title", "done", "created"]
+        read_only_fields = ["id", "created"]
 
-    def validate_titulo(self, valor: str) -> str:
-        valor = valor.strip()
-        if valor.lower() == "todo":
-            raise serializers.ValidationError("Poné un título descriptivo")
-        return valor
+    def validate_title(self, value: str) -> str:
+        value = value.strip()
+        if value.lower() == "todo":
+            raise serializers.ValidationError("Use a descriptive title")
+        return value
 
 
-class TareaViewSet(viewsets.ModelViewSet):
-    queryset = Tarea.objects.order_by("id")
-    serializer_class = TareaSerializer
+class TaskViewSet(viewsets.ModelViewSet):
+    queryset = Task.objects.order_by("id")
+    serializer_class = TaskSerializer
 
     def get_queryset(self):  # type: ignore[no-untyped-def]
         qs = super().get_queryset()
-        hecha = self.request.query_params.get("hecha")
-        if hecha is not None:
-            qs = qs.filter(hecha=hecha == "true")
+        done = self.request.query_params.get("done")
+        if done is not None:
+            qs = qs.filter(done=done == "true")
         return qs
 
     @action(detail=True, methods=["post"])
-    def completar(self, request, pk=None):  # type: ignore[no-untyped-def]
-        tarea = self.get_object()
-        tarea.hecha = True
-        tarea.save(update_fields=["hecha"])
-        return Response(self.get_serializer(tarea).data)
+    def complete(self, request, pk=None):  # type: ignore[no-untyped-def]
+        task = self.get_object()
+        task.done = True
+        task.save(update_fields=["done"])
+        return Response(self.get_serializer(task).data)
 
 
-class Estadisticas(APIView):
+class Stats(APIView):
     def get(self, request):  # type: ignore[no-untyped-def]
-        total = Tarea.objects.count()
-        hechas = Tarea.objects.filter(hecha=True).count()
-        return Response({"total": total, "hechas": hechas, "pendientes": total - hechas})
+        total = Task.objects.count()
+        done = Task.objects.filter(done=True).count()
+        return Response({"total": total, "done": done, "pending": total - done})
 
 
 router = DefaultRouter()
-router.register("tareas", TareaViewSet)
+router.register("tasks", TaskViewSet)
 
 urlpatterns = [
-    path("api/estadisticas/", Estadisticas.as_view()),
+    path("api/stats/", Stats.as_view()),
     path("api/", include(router.urls)),
 ]

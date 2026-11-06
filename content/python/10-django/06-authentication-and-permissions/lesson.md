@@ -1,136 +1,136 @@
-# Autenticación y permisos
+# Authentication and permissions
 
-Implementar login de forma segura (hash de contraseñas, sesiones, protección contra fijación de
-sesión, permisos) es difícil y fácil de hacer mal. Django lo trae resuelto en
-`django.contrib.auth`: modelo de usuario, hashing con algoritmos modernos, login y logout
-basados en la sesión, decoradores y mixins para proteger vistas, y un sistema de permisos y
-grupos integrado con el admin.
+Implementing login securely (password hashing, sessions, protection against session fixation,
+permissions) is hard and easy to get wrong. Django ships it solved in
+`django.contrib.auth`: a user model, hashing with modern algorithms, session-based login and
+logout, decorators and mixins to protect views, and a permissions and groups system integrated
+with the admin.
 
-## El modelo `User`
+## The `User` model
 
 ```python
 from django.contrib.auth import get_user_model
 
-User = get_user_model()            # nunca importes User directamente (puede ser uno propio)
+User = get_user_model()            # never import User directly (it may be a custom one)
 
-u = User.objects.create_user("ana", email="ana@x.com", password="clave-segura-123")
-u.password                         # 'pbkdf2_sha256$...' ← HASH, nunca el texto plano
-u.check_password("clave-segura-123")   # True
-u.set_password("otra")             # hashea; después hay que hacer u.save()
+u = User.objects.create_user("alice", email="alice@x.com", password="secure-password-123")
+u.password                         # 'pbkdf2_sha256$...' ← a HASH, never the plain text
+u.check_password("secure-password-123")   # True
+u.set_password("other")            # hashes; then you need u.save()
 User.objects.create_superuser("admin", password="...")
 ```
 
-- **Nunca** guardes ni compares contraseñas en texto plano. `create_user` y `set_password`
-  hashean con PBKDF2 por defecto (o Argon2/bcrypt si los configurás), con *salt* e iteraciones.
-- `is_active`, `is_staff` (puede entrar al admin) e `is_superuser` (todos los permisos).
-- **Consejo de oro**: en un proyecto nuevo, definí un usuario propio desde el día uno
-  (`class Usuario(AbstractUser)` + `AUTH_USER_MODEL = "cuentas.Usuario"`). Cambiarlo después es
-  muy doloroso.
+- **Never** store or compare passwords in plain text. `create_user` and `set_password`
+  hash with PBKDF2 by default (or Argon2/bcrypt if you configure them), with a *salt* and iterations.
+- `is_active`, `is_staff` (can access the admin) and `is_superuser` (all permissions).
+- **Golden rule**: in a new project, define your own user from day one
+  (`class Account(AbstractUser)` + `AUTH_USER_MODEL = "accounts.Account"`). Changing it later is
+  very painful.
 
-## Login y logout
+## Login and logout
 
 ```python
 from django.contrib.auth import authenticate, login, logout
 
 def login_view(request):
-    usuario = authenticate(request, username=request.POST["username"],
-                           password=request.POST["password"])
-    if usuario is None:
-        return JsonResponse({"error": "credenciales inválidas"}, status=400)
-    login(request, usuario)          # guarda el id en la sesión (y rota la sesión)
-    return redirect("notas")
+    user = authenticate(request, username=request.POST["username"],
+                        password=request.POST["password"])
+    if user is None:
+        return JsonResponse({"error": "invalid credentials"}, status=400)
+    login(request, user)             # stores the id in the session (and rotates the session)
+    return redirect("notes")
 
 def logout_view(request):
-    logout(request)                  # borra la sesión
+    logout(request)                  # clears the session
     ...
 ```
 
-- `authenticate` verifica las credenciales con los *backends* configurados y devuelve el usuario
-  o `None`. **No** dice si falló el usuario o la contraseña, a propósito.
-- `login` asocia el usuario a la sesión (necesita `SessionMiddleware` y
-  `AuthenticationMiddleware`). Después, en **cualquier** vista, `request.user` es el usuario y
-  `request.user.is_authenticated` vale `True`.
-- Django también trae vistas listas: `LoginView`, `LogoutView`, `PasswordResetView`…
-  (`path("cuentas/", include("django.contrib.auth.urls"))`).
+- `authenticate` checks the credentials against the configured *backends* and returns the user
+  or `None`. It does **not** say whether the username or the password was wrong, on purpose.
+- `login` attaches the user to the session (it needs `SessionMiddleware` and
+  `AuthenticationMiddleware`). After that, in **any** view, `request.user` is the user and
+  `request.user.is_authenticated` is `True`.
+- Django also ships ready-made views: `LoginView`, `LogoutView`, `PasswordResetView`…
+  (`path("accounts/", include("django.contrib.auth.urls"))`).
 
-## Proteger vistas
+## Protecting views
 
 ```python
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 
-@login_required                                    # sin login → redirect a LOGIN_URL?next=...
-def mis_notas(request): ...
+@login_required                                    # not logged in → redirect to LOGIN_URL?next=...
+def my_notes(request): ...
 
-@permission_required("notas.delete_nota", raise_exception=True)    # sin permiso → 403
-def borrar(request, id): ...
+@permission_required("notes.delete_note", raise_exception=True)    # no permission → 403
+def delete(request, id): ...
 
-class NotaLista(LoginRequiredMixin, ListView): ...                 # en CBV, como mixin
+class NoteList(LoginRequiredMixin, ListView): ...                  # in CBVs, as a mixin
 ```
 
-### Autorización a nivel de objeto
+### Object-level authorization
 
-`login_required` responde a "¿quién sos?". Pero la pregunta más común es "¿**esta** nota es
-tuya?", y eso lo resolvés en la vista:
+`login_required` answers "who are you?". But the more common question is "is **this** note
+yours?", and you answer that in the view:
 
 ```python
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 
-nota = get_object_or_404(Nota, id=id)
-if nota.autor != request.user and not request.user.is_staff:
+note = get_object_or_404(Note, id=id)
+if note.author != request.user and not request.user.is_staff:
     raise PermissionDenied                      # → 403
 ```
 
-Otra forma, muy común, es **filtrar el queryset por usuario**:
-`Nota.objects.filter(autor=request.user)`. Así otro usuario directamente recibe un 404 y ni se
-entera de que la nota existe.
+Another very common approach is to **filter the queryset by user**:
+`Note.objects.filter(author=request.user)`. That way another user simply gets a 404 and never
+learns the note exists.
 
-## Permisos y grupos
+## Permissions and groups
 
-Por cada modelo, Django crea los permisos `add_`, `change_`, `delete_` y `view_<modelo>`. Se
-asignan a usuarios o, mejor, a **grupos** (por ejemplo "Editores") desde el admin.
-`user.has_perm("app.delete_nota")` los consulta, y los permisos propios se declaran en
+For each model, Django creates the permissions `add_`, `change_`, `delete_` and `view_<model>`. They
+are assigned to users or, better, to **groups** (for example "Editors") from the admin.
+`user.has_perm("app.delete_note")` checks them, and custom permissions are declared in
 `Meta.permissions`.
 
-## En los otros frameworks
+## In other frameworks
 
-| Necesidad                     | Django                              | Flask                     | FastAPI                                 |
+| Need                          | Django                              | Flask                     | FastAPI                                 |
 |-------------------------------|-------------------------------------|---------------------------|-----------------------------------------|
-| Usuarios y hashing            | `contrib.auth` incluido             | Flask-Login + werkzeug.security | a mano o librerías (passlib, pwdlib) |
-| Sesión                        | `login()` + middleware              | Flask-Login               | tokens JWT u OAuth2 (`OAuth2PasswordBearer`) |
-| Proteger vistas               | `@login_required`, mixins           | `@login_required` de Flask-Login | `Depends(usuario_actual)`         |
-| Permisos                      | permisos + grupos + admin           | a mano                    | a mano (dependencias)                   |
-| APIs                          | DRF: `IsAuthenticated`, tokens      | a mano                    | dependencias                             |
+| Users and hashing             | `contrib.auth` included             | Flask-Login + werkzeug.security | by hand or libraries (passlib, pwdlib) |
+| Session                       | `login()` + middleware              | Flask-Login               | JWT tokens or OAuth2 (`OAuth2PasswordBearer`) |
+| Protecting views              | `@login_required`, mixins           | Flask-Login's `@login_required` | `Depends(current_user)`           |
+| Permissions                   | permissions + groups + admin        | by hand                   | by hand (dependencies)                  |
+| APIs                          | DRF: `IsAuthenticated`, tokens      | by hand                   | dependencies                            |
 
-## Testear con usuarios
+## Testing with users
 
 ```python
-def test_mis_notas(client):                      # pytest-django, o django.test.Client
-    usuario = User.objects.create_user("ana", password="x")
-    client.force_login(usuario)                  # sin pasar por el formulario de login
-    r = client.get("/notas/")
+def test_my_notes(client):                       # pytest-django, or django.test.Client
+    user = User.objects.create_user("alice", password="x")
+    client.force_login(user)                     # without going through the login form
+    r = client.get("/notes/")
 ```
 
-`force_login` evita repetir el login en cada test. En los tests conviene un hasher rápido
-(`PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]`): PBKDF2 es lento a
-propósito.
+`force_login` saves you from repeating the login in every test. In tests, use a fast hasher
+(`PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]`): PBKDF2 is slow on
+purpose.
 
-## Resumen
+## Summary
 
-- `get_user_model()`, `create_user` y `check_password`: las contraseñas siempre hasheadas.
-- `authenticate` + `login`/`logout`; después, `request.user` en todas las vistas.
-- `@login_required` (redirige al login) y `LoginRequiredMixin`; `permission_required` para
-  permisos.
-- Autorización por objeto: compará el dueño o filtrá el queryset por `request.user`;
+- `get_user_model()`, `create_user` and `check_password`: passwords are always hashed.
+- `authenticate` + `login`/`logout`; afterwards, `request.user` in every view.
+- `@login_required` (redirects to the login) and `LoginRequiredMixin`; `permission_required` for
+  permissions.
+- Object-level authorization: compare the owner or filter the queryset by `request.user`;
   `PermissionDenied` → 403.
-- Permisos automáticos por modelo y grupos desde el admin; `force_login` en los tests.
+- Automatic per-model permissions and groups from the admin; `force_login` in tests.
 
-## Ejercicio
+## Exercise
 
-Registro de usuarios, login y logout con sesión, notas privadas por usuario protegidas con
-`login_required` y borrado solo para el dueño o el staff.
+User registration, session-based login and logout, private per-user notes protected with
+`login_required`, and deletion only for the owner or staff.
 
-**Para profundizar:** [User authentication in Django](https://docs.djangoproject.com/en/stable/topics/auth/default/),
+**Further reading:** [User authentication in Django](https://docs.djangoproject.com/en/stable/topics/auth/default/),
 [Password management](https://docs.djangoproject.com/en/stable/topics/auth/passwords/),
 [Customizing authentication](https://docs.djangoproject.com/en/stable/topics/auth/customizing/).

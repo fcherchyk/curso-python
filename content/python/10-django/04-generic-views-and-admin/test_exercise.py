@@ -31,69 +31,69 @@ import pytest
 from django.contrib import admin
 from django.db import connection
 from django.test import Client
-from exercise import Libro
+from exercise import Book
 
-LIBROS = [
-    ("Rayuela", "Cortázar", 1963),
+BOOKS = [
+    ("Hopscotch", "Cortazar", 1963),
     ("Ficciones", "Borges", 1944),
-    ("El túnel", "Sabato", 1948),
-    ("Bestiario", "Cortázar", 1951),
-    ("El Aleph", "Borges", 1949),
+    ("The Tunnel", "Sabato", 1948),
+    ("Bestiary", "Cortazar", 1951),
+    ("The Aleph", "Borges", 1949),
 ]
 
 
 @pytest.fixture(autouse=True)
-def datos():
+def data():
     with connection.schema_editor() as editor:
-        editor.create_model(Libro)
-    for titulo, autor, anio in LIBROS:
-        Libro.objects.create(titulo=titulo, autor=autor, anio=anio)
+        editor.create_model(Book)
+    for title, author, year in BOOKS:
+        Book.objects.create(title=title, author=author, year=year)
     yield
     with connection.schema_editor() as editor:
-        editor.delete_model(Libro)
+        editor.delete_model(Book)
 
 
-def titulos(html: str) -> list[str]:
-    return re.findall(r'<a href="/libros/\d+/">([^<]+)</a>', html)
+def titles(html: str) -> list[str]:
+    return re.findall(r'<a href="/books/\d+/">([^<]+)</a>', html)
 
 
-def test_lista_ordenada_y_paginada():
+def test_list_ordered_and_paginated():
     c = Client()
-    html = c.get("/libros/").content.decode()
-    assert titulos(html) == ["Bestiario", "El Aleph", "El túnel"]
-    assert "Página 1 de 2" in html
-    assert titulos(c.get("/libros/", {"page": 2}).content.decode()) == ["Ficciones", "Rayuela"]
+    html = c.get("/books/").content.decode()
+    assert titles(html) == ["Bestiary", "Ficciones", "Hopscotch"]
+    assert "Page 1 of 2" in html
+    assert titles(c.get("/books/", {"page": 2}).content.decode()) == ["The Aleph", "The Tunnel"]
 
 
-def test_lista_con_busqueda():
-    html = Client().get("/libros/", {"q": "EL "}).content.decode()
-    assert titulos(html) == ["El Aleph", "El túnel"]
-    html = Client().get("/libros/", {"q": "zzz"}).content.decode()
-    assert "No hay libros" in html
+def test_list_with_search():
+    html = Client().get("/books/", {"q": "THE "}).content.decode()
+    assert titles(html) == ["The Aleph", "The Tunnel"]
+    html = Client().get("/books/", {"q": "zzz"}).content.decode()
+    assert "No books" in html
 
 
-def test_detalle():
-    libro = Libro.objects.get(titulo="Ficciones")
-    html = Client().get(f"/libros/{libro.pk}/").content.decode()
+def test_detail():
+    book = Book.objects.get(title="Ficciones")
+    html = Client().get(f"/books/{book.pk}/").content.decode()
     assert "<h1>Ficciones</h1>" in html and "Borges" in html
-    assert Client().get("/libros/999/").status_code == 404
+    assert Client().get("/books/999/").status_code == 404
 
 
-def test_crear_valida_y_redirige():
+def test_create_validates_and_redirects():
     c = Client()
-    assert c.get("/libros/nuevo/").status_code == 200
-    r = c.post("/libros/nuevo/", {"titulo": "Zama", "autor": "Di Benedetto", "anio": 1956})
+    assert c.get("/books/new/").status_code == 200
+    r = c.post("/books/new/", {"title": "Zama", "author": "Di Benedetto", "year": 1956})
     assert r.status_code == 302
-    assert r.headers["Location"] == "/libros/"
-    assert Libro.objects.filter(titulo="Zama").exists()
-    r = c.post("/libros/nuevo/", {"titulo": "", "autor": "X", "anio": "no"})
-    assert r.status_code == 200, "con errores re-renderiza el formulario"
-    assert Libro.objects.count() == 6
+    assert r.headers["Location"] == "/books/"
+    assert Book.objects.filter(title="Zama").exists()
+    r = c.post("/books/new/", {"title": "", "author": "X", "year": "no"})
+    assert r.status_code == 200, "with errors it re-renders the form"
+    assert Book.objects.count() == 6
 
 
-def test_admin_registrado():
-    assert admin.site.is_registered(Libro)
-    modelo_admin = admin.site._registry[Libro]
-    assert list(modelo_admin.list_display) == ["titulo", "autor", "anio"]
-    assert list(modelo_admin.search_fields) == ["titulo", "autor"]
-    assert list(modelo_admin.list_filter) == ["anio"]
+def test_admin_registered():
+    assert admin.site.is_registered(Book)
+    model_admin = admin.site._registry[Book]
+    assert list(model_admin.list_display) == ["title", "author", "year"]
+    assert list(model_admin.search_fields) == ["title", "author"]
+    assert list(model_admin.list_filter) == ["year"]

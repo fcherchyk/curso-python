@@ -1,115 +1,114 @@
-# Vistas basadas en clases y el admin
+# Class-based views and the admin
 
-Los listados, los detalles, las altas, las ediciones y los borrados se repiten en casi toda app.
-Django los resuelve con **vistas genéricas basadas en clases** (CBV): heredás de `ListView`,
-`DetailView` o `CreateView`, configurás dos o tres atributos y listo. Y para la gestión interna
-de los datos trae algo único entre los frameworks: el **admin**, un backoffice completo que se
-genera a partir de tus modelos.
+Lists, details, creates, edits and deletes repeat in almost every app. Django solves them with
+**generic class-based views** (CBVs): you inherit from `ListView`, `DetailView` or `CreateView`,
+set two or three attributes and you're done. And for managing data internally it ships something
+unique among frameworks: the **admin**, a complete back office generated from your models.
 
-## De función a clase
+## From function to class
 
 ```python
-# Vista de función
-def lista(request):
-    libros = Libro.objects.order_by("titulo")
-    return render(request, "libros/lista.html", {"libros": libros})
+# Function view
+def book_list(request):
+    books = Book.objects.order_by("title")
+    return render(request, "books/list.html", {"books": books})
 
-# La misma vista, genérica
+# The same view, generic
 from django.views.generic import ListView
 
-class LibroLista(ListView):
-    model = Libro
-    ordering = ["titulo"]
-    template_name = "libros/lista.html"
-    context_object_name = "libros"
+class BookList(ListView):
+    model = Book
+    ordering = ["title"]
+    template_name = "books/list.html"
+    context_object_name = "books"
 ```
 
 ```python
-urlpatterns = [path("libros/", LibroLista.as_view(), name="lista")]
+urlpatterns = [path("books/", BookList.as_view(), name="list")]
 ```
 
-`as_view()` convierte la clase en una función de vista. Cada request crea una instancia nueva:
-nada de estado compartido.
+`as_view()` turns the class into a view function. Each request creates a new instance:
+no shared state.
 
-## Las genéricas principales
+## The main generic views
 
-| Clase          | Para qué                        | Atributos clave                               |
+| Class          | What for                        | Key attributes                                |
 |----------------|---------------------------------|-----------------------------------------------|
-| `ListView`     | listado (con paginación)        | `model`, `queryset`, `ordering`, `paginate_by` |
-| `DetailView`   | un objeto por `pk` o `slug`     | `model`, `context_object_name`                |
-| `CreateView`   | formulario de alta              | `model`, `fields`, `success_url`              |
-| `UpdateView`   | formulario de edición           | ídem                                          |
-| `DeleteView`   | confirmación y borrado          | `success_url`                                 |
-| `TemplateView` | una plantilla estática          | `template_name`                               |
-| `RedirectView` | redirección                     | `url` o `pattern_name`                        |
+| `ListView`     | list (with pagination)          | `model`, `queryset`, `ordering`, `paginate_by` |
+| `DetailView`   | one object by `pk` or `slug`    | `model`, `context_object_name`                |
+| `CreateView`   | create form                     | `model`, `fields`, `success_url`              |
+| `UpdateView`   | edit form                       | same                                          |
+| `DeleteView`   | confirmation and deletion       | `success_url`                                 |
+| `TemplateView` | a static template               | `template_name`                               |
+| `RedirectView` | redirect                        | `url` or `pattern_name`                       |
 
-Sin `template_name`, Django busca `<app>/<modelo>_list.html`, `<app>/<modelo>_detail.html` o
-`<app>/<modelo>_form.html`.
+Without `template_name`, Django looks for `<app>/<model>_list.html`, `<app>/<model>_detail.html` or
+`<app>/<model>_form.html`.
 
-### Personalizar: sobrescribir métodos
+### Customizing: overriding methods
 
-Las CBV están armadas con métodos que se pueden sobrescribir:
+CBVs are built from methods you can override:
 
 ```python
-class LibroLista(ListView):
-    model = Libro
+class BookList(ListView):
+    model = Book
     paginate_by = 10
 
     def get_queryset(self):
         qs = super().get_queryset()
         if q := self.request.GET.get("q"):
-            qs = qs.filter(titulo__icontains=q)
+            qs = qs.filter(title__icontains=q)
         return qs
 
     def get_context_data(self, **kwargs):
-        contexto = super().get_context_data(**kwargs)
-        contexto["busqueda"] = self.request.GET.get("q", "")
-        return contexto
+        context = super().get_context_data(**kwargs)
+        context["search"] = self.request.GET.get("q", "")
+        return context
 ```
 
-- `get_queryset()` decide **qué objetos** se muestran: filtros, búsqueda o solo los del usuario.
-- `get_context_data()` agrega variables a la plantilla.
-- `self.request`, `self.kwargs` (los parámetros de la URL) y `self.object` están disponibles.
-- Con `paginate_by`, la plantilla recibe `page_obj` y `paginator`, y la página se elige con
+- `get_queryset()` decides **which objects** are shown: filters, search or only the user's own.
+- `get_context_data()` adds variables to the template.
+- `self.request`, `self.kwargs` (the URL parameters) and `self.object` are available.
+- With `paginate_by`, the template receives `page_obj` and `paginator`, and the page is chosen with
   `?page=2`.
 
-### Crear con validación incluida
+### Creating with validation included
 
 ```python
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView
 
-class LibroCrear(CreateView):
-    model = Libro
-    fields = ["titulo", "autor", "anio"]          # arma un ModelForm por vos
-    template_name = "libros/form.html"
-    success_url = reverse_lazy("lista")           # adónde redirigir después de guardar
+class BookCreate(CreateView):
+    model = Book
+    fields = ["title", "author", "year"]          # builds a ModelForm for you
+    template_name = "books/form.html"
+    success_url = reverse_lazy("list")            # where to redirect after saving
 ```
 
-GET muestra el formulario; POST valida, guarda y redirige (PRG); y si es inválido, vuelve a
-mostrar el form con errores. Es todo el patrón del capítulo anterior en cinco líneas.
-`reverse_lazy` en lugar de `reverse`, porque al definir la clase las URLs todavía no están
-cargadas.
+GET shows the form; POST validates, saves and redirects (PRG); and if it's invalid, it shows the
+form again with errors. That's the whole pattern from the previous chapter in five lines.
+`reverse_lazy` instead of `reverse`, because when the class is defined the URLs aren't loaded
+yet.
 
-Para comportamientos transversales existen los **mixins**: `LoginRequiredMixin` (próximo
-capítulo), `PermissionRequiredMixin` y los tuyos propios.
+For cross-cutting behavior there are **mixins**: `LoginRequiredMixin` (next chapter),
+`PermissionRequiredMixin` and your own.
 
-### ¿Funciones o clases?
+### Functions or classes?
 
-Las CBV brillan en el CRUD estándar. Para lógica muy particular, una vista de función suele ser
-más clara: no hay que conocer qué métodos sobrescribir. Las dos son idiomáticas.
+CBVs shine in standard CRUD. For very specific logic, a function view is usually clearer: you
+don't need to know which methods to override. Both are idiomatic.
 
-## El admin
+## The admin
 
 ```python
 from django.contrib import admin
 
-@admin.register(Libro)
-class LibroAdmin(admin.ModelAdmin):
-    list_display = ["titulo", "autor", "anio"]       # columnas del listado
-    search_fields = ["titulo", "autor"]               # caja de búsqueda
-    list_filter = ["anio"]                            # filtros laterales
-    ordering = ["titulo"]
+@admin.register(Book)
+class BookAdmin(admin.ModelAdmin):
+    list_display = ["title", "author", "year"]       # list columns
+    search_fields = ["title", "author"]               # search box
+    list_filter = ["year"]                            # side filters
+    ordering = ["title"]
     list_per_page = 50
 ```
 
@@ -118,37 +117,38 @@ uv run python manage.py createsuperuser
 # → http://127.0.0.1:8000/admin/
 ```
 
-Con eso tenés listado, búsqueda, filtros, alta, edición, borrado, historial y permisos por
-usuario, sin escribir ni una plantilla. Se puede personalizar mucho más: `readonly_fields`,
-`inlines` para editar relacionados en la misma pantalla, acciones en lote con `actions`, etc.
+With that you get listing, search, filters, create, edit, delete, history and per-user
+permissions, without writing a single template. You can customize it much further:
+`readonly_fields`, `inlines` to edit related objects on the same screen, bulk actions with
+`actions`, etc.
 
-El admin está pensado para el **equipo interno**, no para los usuarios finales de tu producto.
+The admin is meant for the **internal team**, not for your product's end users.
 
-## En los otros frameworks
+## In other frameworks
 
-- **Flask**: no hay CBV equivalentes (existen `MethodView`), y el admin se consigue con
+- **Flask**: there are no equivalent CBVs (there's `MethodView`), and you get an admin with
   Flask-Admin.
-- **FastAPI**: los routers y las dependencias cumplen ese rol para APIs; para un panel, librerías
-  como SQLAdmin.
+- **FastAPI**: routers and dependencies play that role for APIs; for a panel, libraries
+  like SQLAdmin.
 
-Ninguno trae algo tan completo como el admin de Django, y es una de las razones más fuertes
-para elegirlo.
+None of them ships anything as complete as the Django admin, and it's one of the strongest
+reasons to choose it.
 
-## Resumen
+## Summary
 
-- `ListView`, `DetailView`, `CreateView`, `UpdateView` y `DeleteView` + `as_view()`.
-- Configurás atributos (`model`, `fields`, `template_name`, `paginate_by`, `success_url`) y
-  sobrescribís `get_queryset`/`get_context_data` para personalizar.
-- `reverse_lazy` en los atributos de clase.
-- `@admin.register(Modelo)` + `ModelAdmin` (`list_display`, `search_fields`, `list_filter`) da un
-  backoffice completo.
+- `ListView`, `DetailView`, `CreateView`, `UpdateView` and `DeleteView` + `as_view()`.
+- You set attributes (`model`, `fields`, `template_name`, `paginate_by`, `success_url`) and
+  override `get_queryset`/`get_context_data` to customize.
+- `reverse_lazy` in class attributes.
+- `@admin.register(Model)` + `ModelAdmin` (`list_display`, `search_fields`, `list_filter`) gives you a
+  complete back office.
 
-## Ejercicio
+## Exercise
 
-Un CRUD de libros con vistas genéricas: listado con búsqueda y paginación, detalle, alta con
-redirección y el registro en el admin. Las plantillas están en `templates/libros/`.
+A books CRUD with generic views: a list with search and pagination, a detail, a create with
+redirect and the admin registration. The templates are in `templates/books/`.
 
-**Para profundizar:** [Class-based views](https://docs.djangoproject.com/en/stable/topics/class-based-views/),
+**Further reading:** [Class-based views](https://docs.djangoproject.com/en/stable/topics/class-based-views/),
 [Generic display views](https://docs.djangoproject.com/en/stable/ref/class-based-views/generic-display/),
 [The Django admin site](https://docs.djangoproject.com/en/stable/ref/contrib/admin/),
-[Classy CBV](https://ccbv.co.uk/) (referencia de todos los métodos).
+[Classy CBV](https://ccbv.co.uk/) (a reference of every method).

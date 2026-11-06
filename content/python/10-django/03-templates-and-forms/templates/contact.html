@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Contact{% endblock %}
+{% block content %}
+<h1>Contact</h1>
+{% if form.non_field_errors %}<div class="general-errors">{{ form.non_field_errors }}</div>{% endif %}
+<form method="post" action="{% url 'contact' %}">
+  {% csrf_token %}
+  {% for field in form %}
+  <p>
+    {{ field.label_tag }} {{ field }}
+    {% for error in field.errors %}<span class="error" data-field="{{ field.name }}">{{ error }}</span>{% endfor %}
+  </p>
+  {% endfor %}
+  <button>Send</button>
+</form>
+{% endblock %}

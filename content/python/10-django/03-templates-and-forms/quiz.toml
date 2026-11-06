@@ -1,49 +1,49 @@
 [[questions]]
-text = "En un `forms.Form`, ¿para qué sirve un método `clean_email`?"
+text = "In a `forms.Form`, what is a `clean_email` method for?"
 options = [
-  "Para borrar el campo email",
-  "Para validar y/o transformar solo el campo `email`, devolviendo el valor limpio",
-  "Para validar todos los campos",
-  "Para dibujar el campo en HTML",
+  "To delete the email field",
+  "To validate and/or transform only the `email` field, returning the cleaned value",
+  "To validate all the fields",
+  "To render the field as HTML",
 ]
 correct = 1
-explanation = "`clean_<campo>` corre después de la validación propia del campo. Para reglas entre campos está `clean()`."
+explanation = "`clean_<field>` runs after the field's own validation. For rules across fields there's `clean()`."
 
 [[questions]]
-text = "Un POST con datos inválidos en la vista de un formulario. ¿Qué es lo idiomático?"
+text = "A POST with invalid data hits a form view. What is the idiomatic response?"
 options = [
-  "Redirigir a la misma página",
-  "Volver a renderizar el mismo form (ligado a los datos), que ya trae los valores y los errores",
-  "Devolver un JSON con los errores",
-  "Levantar `Http404`",
+  "Redirect to the same page",
+  "Re-render the same form (bound to the data), which already carries the values and the errors",
+  "Return a JSON with the errors",
+  "Raise `Http404`",
 ]
 correct = 1
-explanation = "El form ligado conserva lo cargado y expone `errors`. El redirect se usa solo cuando el POST fue exitoso (PRG)."
+explanation = "The bound form keeps what was entered and exposes `errors`. The redirect is used only when the POST succeeded (PRG)."
 
 [[questions]]
-text = "¿Qué pasa con un POST sin `{% csrf_token %}` cuando está activo `CsrfViewMiddleware`?"
-options = ["Se procesa normalmente", "Django responde 403", "Responde 400", "Se ignora el body"]
+text = "What happens to a POST without `{% csrf_token %}` when `CsrfViewMiddleware` is active?"
+options = ["It's processed normally", "Django responds 403", "It responds 400", "The body is ignored"]
 correct = 1
-explanation = "El middleware exige el token en los métodos que modifican (POST, PUT, DELETE…). Sin él, rechaza con 403 Forbidden."
+explanation = "The middleware requires the token on modifying methods (POST, PUT, DELETE…). Without it, it rejects with 403 Forbidden."
 
 [[questions]]
-text = "¿Qué hace `{% empty %}` dentro de un `{% for %}` en una plantilla de Django?"
+text = "What does `{% empty %}` do inside a `{% for %}` in a Django template?"
 options = [
-  "Vacía la lista",
-  "Define qué mostrar cuando la lista está vacía",
-  "Corta el bucle",
-  "Es un error",
+  "Empties the list",
+  "Defines what to show when the list is empty",
+  "Breaks out of the loop",
+  "It's an error",
 ]
 correct = 1
-explanation = "Es el equivalente al `{% else %}` del `for` de Jinja2."
+explanation = "It's the equivalent of `{% else %}` in Jinja2's `for`."
 
 [[questions]]
-text = "¿Por qué no podés escribir `{{ producto.precio_con_descuento(10) }}` en una plantilla de Django?"
+text = "Why can't you write `{{ product.discounted_price(10) }}` in a Django template?"
 options = [
-  "Por un bug",
-  "Porque el lenguaje de plantillas no permite llamar funciones con argumentos: esa lógica va en la vista o en un filtro",
-  "Porque falta `|safe`",
-  "Sí se puede",
+  "Because of a bug",
+  "Because the template language doesn't allow calling functions with arguments: that logic goes in the view or in a filter",
+  "Because `|safe` is missing",
+  "Actually you can",
 ]
 correct = 1
-explanation = "Es una restricción deliberada: las plantillas se mantienen simples. Se calcula en la vista o se escribe un filtro o template tag."
+explanation = "It's a deliberate restriction: templates stay simple. Compute it in the view or write a filter or template tag."

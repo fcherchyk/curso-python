@@ -1,49 +1,49 @@
 [[questions]]
-text = "¿Cuándo consulta la base `qs = Producto.objects.filter(activo=True).order_by(\"precio\")`?"
+text = "When does `qs = Product.objects.filter(active=True).order_by(\"price\")` query the database?"
 options = [
-  "Inmediatamente, al llamar a `filter`",
-  "Recién cuando se evalúa: al iterarlo, convertirlo a lista, llamar a `len()`, etc.",
-  "Al llamar a `order_by`",
-  "Nunca, hasta llamar a `.execute()`",
+  "Immediately, when `filter` is called",
+  "Only when it is evaluated: when you iterate it, convert it to a list, call `len()`, etc.",
+  "When `order_by` is called",
+  "Never, until you call `.execute()`",
 ]
 correct = 1
-explanation = "Los QuerySets son perezosos: encadenar filtros solo arma la consulta, que se ejecuta cuando se necesitan los datos."
+explanation = "QuerySets are lazy: chaining filters only builds the query, which runs when the data is needed."
 
 [[questions]]
-text = "¿Qué hace `Producto.objects.filter(categoria__nombre=\"Almacén\")`?"
+text = "What does `Product.objects.filter(category__name=\"Pantry\")` do?"
 options = [
-  "Busca un campo llamado `categoria__nombre`",
-  "Cruza la FK hacia Categoria y filtra por su nombre (JOIN)",
-  "Levanta un error de sintaxis",
-  "Filtra productos cuyo nombre es Almacén",
+  "Looks up a field called `category__name`",
+  "Follows the FK to Category and filters by its name (JOIN)",
+  "Raises a syntax error",
+  "Filters products whose name is Pantry",
 ]
 correct = 1
-explanation = "El doble guion bajo atraviesa relaciones y también separa los lookups (`precio__lte`)."
+explanation = "The double underscore traverses relationships and also separates lookups (`price__lte`)."
 
 [[questions]]
-text = "¿Por qué `update(precio=F(\"precio\") * 1.1)` es mejor que recorrer los objetos y hacer `save()`?"
+text = "Why is `update(price=F(\"price\") * 1.1)` better than looping over the objects and calling `save()`?"
 options = [
-  "Porque `save()` no funciona con decimales",
-  "Porque se hace en una sola consulta SQL, en la base, sin condiciones de carrera",
-  "Porque `F` valida los precios",
-  "No hay diferencia",
+  "Because `save()` doesn't work with decimals",
+  "Because it runs as a single SQL query, in the database, with no race conditions",
+  "Because `F` validates the prices",
+  "There's no difference",
 ]
 correct = 1
-explanation = "`F` referencia el valor actual de la columna, así que el cálculo ocurre en SQL. Traer, modificar y guardar es lento y puede pisar cambios concurrentes."
+explanation = "`F` references the column's current value, so the calculation happens in SQL. Fetching, modifying and saving is slow and can overwrite concurrent changes."
 
 [[questions]]
-text = "Recorrés 100 productos y accedés a `p.categoria.nombre`. ¿Qué conviene?"
+text = "You loop over 100 products and access `p.category.name`. What should you use?"
 options = [
-  "`prefetch_related(\"categoria\")`",
-  "`select_related(\"categoria\")` (un JOIN para la FK)",
-  "Nada, Django ya lo optimiza",
+  "`prefetch_related(\"category\")`",
+  "`select_related(\"category\")` (a JOIN for the FK)",
+  "Nothing, Django already optimizes it",
   "`values()`",
 ]
 correct = 1
-explanation = "`select_related` resuelve FKs y one-to-one con un JOIN. `prefetch_related` es para relaciones de \"muchos\" (FK inversa y many-to-many)."
+explanation = "`select_related` resolves FKs and one-to-one with a JOIN. `prefetch_related` is for \"many\" relationships (reverse FK and many-to-many)."
 
 [[questions]]
-text = "¿Qué levanta `Producto.objects.get(nombre=\"inexistente\")`?"
-options = ["Devuelve `None`", "`Producto.DoesNotExist`", "`KeyError`", "`Http404`"]
+text = "What does `Product.objects.get(name=\"missing\")` raise?"
+options = ["It returns `None`", "`Product.DoesNotExist`", "`KeyError`", "`Http404`"]
 correct = 1
-explanation = "`get` espera exactamente un resultado. Para \"el primero o None\" está `.filter(...).first()`, y en vistas, `get_object_or_404`."
+explanation = "`get` expects exactly one result. For \"the first one or None\" there's `.filter(...).first()`, and in views, `get_object_or_404`."

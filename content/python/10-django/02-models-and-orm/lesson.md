@@ -1,157 +1,157 @@
-# Modelos y el ORM de Django
+# Models and the Django ORM
 
-El ORM es el corazón de Django: definís **modelos** (clases) y Django genera las tablas, las
-migraciones, el admin y los formularios a partir de ellos. Las consultas se escriben con una API
-encadenable y perezosa, los **QuerySets**, que cubre desde un `filter` simple hasta agregaciones y
-expresiones que se calculan en la base de datos.
+The ORM is the heart of Django: you define **models** (classes) and Django generates the tables,
+migrations, admin and forms from them. Queries are written with a chainable, lazy API, the
+**QuerySets**, which covers everything from a simple `filter` to aggregations and expressions
+computed in the database.
 
-## Modelos
+## Models
 
 ```python
 from django.db import models
 
-class Categoria(models.Model):
-    nombre = models.CharField(max_length=50, unique=True)
+class Category(models.Model):
+    name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
-        return self.nombre
+        return self.name
 
-class Producto(models.Model):
-    nombre = models.CharField(max_length=100)
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
+class Product(models.Model):
+    name = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default=0)
-    activo = models.BooleanField(default=True)
-    categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name="productos")
-    creado = models.DateTimeField(auto_now_add=True)
+    active = models.BooleanField(default=True)
+    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="products")
+    created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["nombre"]
+        ordering = ["name"]
 ```
 
-- Cada clase es una tabla y cada atributo `models.XField`, una columna. El `id` autoincremental
-  se agrega solo.
-- `ForeignKey` necesita `on_delete`: `CASCADE` (borra los hijos), `PROTECT` (impide borrar),
-  `SET_NULL`…
-- `related_name` define el acceso inverso: `categoria.productos.all()`.
-- Para dinero, `DecimalField`, nunca `FloatField`.
-- `__str__` define cómo se ve el objeto en el admin y en la consola.
+- Each class is a table and each `models.XField` attribute is a column. The autoincrementing
+  `id` is added for you.
+- `ForeignKey` requires `on_delete`: `CASCADE` (deletes the children), `PROTECT` (prevents
+  deletion), `SET_NULL`…
+- `related_name` defines the reverse accessor: `category.products.all()`.
+- For money, `DecimalField`, never `FloatField`.
+- `__str__` defines how the object looks in the admin and in the console.
 
-## Migraciones
+## Migrations
 
 ```bash
-uv run python manage.py makemigrations     # genera un archivo con los cambios del modelo
-uv run python manage.py migrate            # los aplica a la base
+uv run python manage.py makemigrations     # generates a file with the model changes
+uv run python manage.py migrate            # applies them to the database
 ```
 
-Las migraciones son código versionado (`catalogo/migrations/0001_initial.py`) y van a git.
-Django detecta los cambios solo: agregar un campo, renombrar o crear un índice.
+Migrations are versioned code (`catalog/migrations/0001_initial.py`) and go into git.
+Django detects changes on its own: adding a field, renaming one or creating an index.
 
-## QuerySets: consultas encadenables y perezosas
+## QuerySets: chainable, lazy queries
 
 ```python
-Producto.objects.all()
-Producto.objects.filter(activo=True, precio__lte=5000)      # AND
-Producto.objects.exclude(stock=0)
-Producto.objects.filter(categoria__nombre="Almacén")         # cruza la FK con __
-Producto.objects.order_by("-precio", "nombre")               # - = descendente
-Producto.objects.get(id=3)              # UNO: levanta DoesNotExist o MultipleObjectsReturned
-Producto.objects.filter(...).first()    # el primero o None
-Producto.objects.count(), .exists()
-Producto.objects.values("nombre", "precio")      # dicts en lugar de objetos
-Producto.objects.values_list("nombre", flat=True)
+Product.objects.all()
+Product.objects.filter(active=True, price__lte=5000)        # AND
+Product.objects.exclude(stock=0)
+Product.objects.filter(category__name="Pantry")              # follows the FK with __
+Product.objects.order_by("-price", "name")                   # - = descending
+Product.objects.get(id=3)              # ONE: raises DoesNotExist or MultipleObjectsReturned
+Product.objects.filter(...).first()    # the first one or None
+Product.objects.count(), .exists()
+Product.objects.values("name", "price")          # dicts instead of objects
+Product.objects.values_list("name", flat=True)
 ```
 
-Los **lookups** van después de un doble guion bajo: `exact`, `iexact`, `contains`, `icontains`,
+**Lookups** go after a double underscore: `exact`, `iexact`, `contains`, `icontains`,
 `in`, `gt`, `gte`, `lt`, `lte`, `startswith`, `isnull`, `range`, `year`…
 
-Un QuerySet es **perezoso**: no consulta la base hasta que lo recorrés, lo convertís en lista,
-lo rebanás con paso o llamás a `len()`. Por eso se pueden encadenar `filter` sin costo.
+A QuerySet is **lazy**: it doesn't hit the database until you iterate it, convert it to a list,
+slice it with a step or call `len()`. That's why you can chain `filter` calls at no cost.
 
-### OR y NOT: `Q`
+### OR and NOT: `Q`
 
 ```python
 from django.db.models import Q
 
-Producto.objects.filter(Q(nombre__icontains="yer") | Q(categoria__nombre__icontains="yer"))
-Producto.objects.filter(~Q(stock=0))
+Product.objects.filter(Q(name__icontains="mat") | Q(category__name__icontains="mat"))
+Product.objects.filter(~Q(stock=0))
 ```
 
-## Agregaciones y anotaciones
+## Aggregations and annotations
 
 ```python
 from django.db.models import Count, Sum, Avg
 
-Producto.objects.aggregate(total=Sum("stock"), promedio=Avg("precio"))
-# {'total': 120, 'promedio': Decimal('4500.00')}
+Product.objects.aggregate(total=Sum("stock"), average=Avg("price"))
+# {'total': 120, 'average': Decimal('4500.00')}
 
-Categoria.objects.annotate(cantidad=Count("productos"))        # un campo calculado por fila
-Producto.objects.values("categoria__nombre").annotate(stock=Sum("stock"))   # GROUP BY
+Category.objects.annotate(count=Count("products"))            # one computed field per row
+Product.objects.values("category__name").annotate(stock=Sum("stock"))   # GROUP BY
 ```
 
-## Actualizar en la base: `F` y `update`
+## Updating in the database: `F` and `update`
 
 ```python
 from django.db.models import F
 
-Producto.objects.filter(categoria__nombre="Almacén").update(precio=F("precio") * 1.10)
+Product.objects.filter(category__name="Pantry").update(price=F("price") * 1.10)
 ```
 
-`F("precio")` hace referencia al valor **en la base**: el cálculo se hace en SQL, en una sola
-consulta y sin condiciones de carrera. La alternativa de traer cada objeto, modificarlo y hacer
-`save()` es más lenta y puede pisar cambios concurrentes.
+`F("price")` refers to the value **in the database**: the calculation happens in SQL, in a single
+query and with no race conditions. The alternative of fetching each object, modifying it and
+calling `save()` is slower and can overwrite concurrent changes.
 
-## Crear, modificar y borrar
+## Creating, modifying and deleting
 
 ```python
-cat = Categoria.objects.create(nombre="Almacén")
-p = Producto(nombre="Yerba", precio="3500", categoria=cat)
-p.save()                          # INSERT (o UPDATE si ya tiene id)
+cat = Category.objects.create(name="Pantry")
+p = Product(name="Mate", price="3500", category=cat)
+p.save()                          # INSERT (or UPDATE if it already has an id)
 p.stock = 10
-p.save(update_fields=["stock"])   # solo ese campo
+p.save(update_fields=["stock"])   # only that field
 p.delete()
-obj, creado = Categoria.objects.get_or_create(nombre="Bebidas")
+obj, created = Category.objects.get_or_create(name="Drinks")
 ```
 
-## El problema N+1 y `select_related` / `prefetch_related`
+## The N+1 problem and `select_related` / `prefetch_related`
 
 ```python
-for p in Producto.objects.all():
-    print(p.categoria.nombre)          # ¡una consulta por producto!
+for p in Product.objects.all():
+    print(p.category.name)             # one query per product!
 ```
 
 ```python
-Producto.objects.select_related("categoria")          # JOIN: para FK y one-to-one
-Categoria.objects.prefetch_related("productos")       # 2 consultas: para relaciones "muchos"
+Product.objects.select_related("category")            # JOIN: for FK and one-to-one
+Category.objects.prefetch_related("products")         # 2 queries: for "many" relationships
 ```
 
-Es el mismo problema que viste con SQLAlchemy y es el error de rendimiento más común en Django.
-`django-debug-toolbar` y, en los tests, `assertNumQueries` ayudan a detectarlo.
+It's the same problem you saw with SQLAlchemy, and it's the most common performance bug in Django.
+`django-debug-toolbar` and, in tests, `assertNumQueries` help you catch it.
 
-## En los otros frameworks
+## In other frameworks
 
 | Django                                        | SQLAlchemy 2.0                                     |
 |-----------------------------------------------|----------------------------------------------------|
-| `Producto.objects.filter(precio__lte=5)`       | `select(Producto).where(Producto.precio <= 5)`     |
+| `Product.objects.filter(price__lte=5)`        | `select(Product).where(Product.price <= 5)`        |
 | `Q(a) \| Q(b)`                                 | `or_(a, b)`                                        |
-| `F("precio") * 1.1`                           | `Producto.precio * 1.1`                            |
+| `F("price") * 1.1`                            | `Product.price * 1.1`                              |
 | `select_related` / `prefetch_related`         | `joinedload` / `selectinload`                      |
-| migraciones incorporadas                      | Alembic                                            |
-| active record (`p.save()`)                     | unit of work (`session.add` + `commit`)            |
+| built-in migrations                           | Alembic                                            |
+| active record (`p.save()`)                    | unit of work (`session.add` + `commit`)            |
 
-## Resumen
+## Summary
 
-- Modelos = tablas; `ForeignKey` con `on_delete` y `related_name`; `DecimalField` para dinero.
-- `makemigrations` y `migrate`; las migraciones van a git.
-- QuerySets perezosos: `filter`, `exclude`, `order_by`, lookups con `__` y `Q` para OR y NOT.
-- `aggregate` y `annotate` para calcular en la base; `F` + `update` para modificar en masa.
-- `select_related`/`prefetch_related` contra el N+1.
+- Models = tables; `ForeignKey` with `on_delete` and `related_name`; `DecimalField` for money.
+- `makemigrations` and `migrate`; migrations go into git.
+- Lazy QuerySets: `filter`, `exclude`, `order_by`, lookups with `__` and `Q` for OR and NOT.
+- `aggregate` and `annotate` to compute in the database; `F` + `update` for bulk changes.
+- `select_related`/`prefetch_related` against N+1.
 
-## Ejercicio
+## Exercise
 
-Los modelos ya están. Escribí funciones de consulta: filtros combinados, búsqueda con `Q`,
-agregación por categoría, un aumento de precios con `F` y un listado sin N+1 (los tests cuentan
-las consultas).
+The models are already there. Write query functions: combined filters, a search with `Q`,
+an aggregation by category, a price increase with `F` and a listing without N+1 (the tests count
+the queries).
 
-**Para profundizar:** [Models](https://docs.djangoproject.com/en/stable/topics/db/models/),
+**Further reading:** [Models](https://docs.djangoproject.com/en/stable/topics/db/models/),
 [Making queries](https://docs.djangoproject.com/en/stable/topics/db/queries/),
 [Aggregation](https://docs.djangoproject.com/en/stable/topics/db/aggregation/).

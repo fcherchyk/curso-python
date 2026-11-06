@@ -1,158 +1,157 @@
-# Django: arquitectura, URLs y vistas
+# Django: architecture, URLs and views
 
-Django es el framework "con baterías incluidas": trae ORM, migraciones, admin, formularios,
-autenticación, plantillas, caché, internacionalización y seguridad, todo integrado y con
-convenciones fuertes. Donde Flask te deja elegir cada pieza y FastAPI se especializa en APIs,
-Django te da **una forma de hacer todo**. Es ideal para aplicaciones grandes con mucho modelo de
-datos y un backoffice.
+Django is the "batteries included" framework: it ships an ORM, migrations, an admin, forms,
+authentication, templates, caching, internationalization and security, all integrated and with
+strong conventions. Where Flask lets you pick every piece and FastAPI specializes in APIs,
+Django gives you **one way to do everything**. It's ideal for large applications with a big data
+model and a back office.
 
-## Proyecto y apps
+## Projects and apps
 
 ```bash
 uv add django
-uv run django-admin startproject tienda .       # el PROYECTO: configuración global
-uv run python manage.py startapp catalogo        # una APP: una funcionalidad
+uv run django-admin startproject shop .         # the PROJECT: global configuration
+uv run python manage.py startapp catalog         # an APP: one feature
 uv run python manage.py runserver                # http://127.0.0.1:8000
 ```
 
 ```
-tienda/
-├── manage.py               ← CLI del proyecto (runserver, migrate, shell, test…)
-├── tienda/
-│   ├── settings.py         ← TODA la configuración
-│   └── urls.py             ← URLs raíz
-└── catalogo/               ← una app
-    ├── models.py           ← modelos (ORM)
-    ├── views.py            ← vistas
-    ├── urls.py             ← URLs de la app (lo creás vos)
-    ├── admin.py            ← registro en el admin
-    ├── templates/catalogo/ ← plantillas
+shop/
+├── manage.py               ← project CLI (runserver, migrate, shell, test…)
+├── shop/
+│   ├── settings.py         ← ALL the configuration
+│   └── urls.py             ← root URLs
+└── catalog/                ← an app
+    ├── models.py           ← models (ORM)
+    ├── views.py            ← views
+    ├── urls.py             ← the app's URLs (you create it)
+    ├── admin.py            ← admin registration
+    ├── templates/catalog/  ← templates
     └── tests.py
 ```
 
-Un **proyecto** contiene varias **apps**, que se activan en `INSTALLED_APPS`. Una app agrupa
-modelos, vistas y URLs de un área (catálogo, pedidos, usuarios) y se puede reutilizar.
+A **project** contains several **apps**, which are enabled in `INSTALLED_APPS`. An app groups the
+models, views and URLs of one area (catalog, orders, users) and can be reused.
 
-> En los ejercicios del curso no hay un proyecto completo: los tests configuran Django con
-> `settings.configure(...)` y tu `ejercicio.py` hace de `urls.py`, `views.py` y `models.py`. El
-> código que escribís es el mismo que irías repartiendo en esos archivos.
+> The course exercises don't have a full project: the tests configure Django with
+> `settings.configure(...)` and your `exercise.py` acts as `urls.py`, `views.py` and `models.py`. The
+> code you write is the same code you would spread across those files.
 
 ## MTV: Model, Template, View
 
-Django llama a su arquitectura **MTV**:
+Django calls its architecture **MTV**:
 
-- **Model**: los datos y su lógica (ORM).
-- **Template**: la presentación (HTML).
-- **View**: recibe el request, usa los modelos y devuelve una respuesta. Cumple el rol del
-  "controller" de MVC.
+- **Model**: the data and its logic (ORM).
+- **Template**: the presentation (HTML).
+- **View**: receives the request, uses the models and returns a response. It plays the role of
+  the MVC "controller".
 
-## Vistas de función
+## Function views
 
-Una vista es una función que **recibe `request`** (explícito, no global como en Flask) y
-**devuelve un `HttpResponse`**:
+A view is a function that **receives `request`** (explicitly, not a global like in Flask) and
+**returns an `HttpResponse`**:
 
 ```python
 from django.http import HttpResponse, JsonResponse, Http404
 from django.views.decorators.http import require_http_methods
 
-def inicio(request):
-    return HttpResponse("Hola, Django")
+def home(request):
+    return HttpResponse("Hello, Django")
 
-def detalle(request, id: int):
-    producto = PRODUCTOS.get(id)
-    if producto is None:
-        raise Http404("producto inexistente")      # se levanta, como en FastAPI
-    return JsonResponse(producto)
+def detail(request, id: int):
+    product = PRODUCTS.get(id)
+    if product is None:
+        raise Http404("product not found")         # raised, like in FastAPI
+    return JsonResponse(product)
 
-@require_http_methods(["GET", "POST"])             # otro método → 405
-def productos(request):
+@require_http_methods(["GET", "POST"])             # any other method → 405
+def products(request):
     if request.method == "POST":
-        datos = json.loads(request.body)
+        data = json.loads(request.body)
         ...
-        return JsonResponse(nuevo, status=201)
-    return JsonResponse(list(PRODUCTOS.values()), safe=False)   # safe=False para listas
+        return JsonResponse(new, status=201)
+    return JsonResponse(list(PRODUCTS.values()), safe=False)   # safe=False for lists
 ```
 
-El request tiene `request.method`, `request.GET` (query string), `request.POST` (formulario),
-`request.body` (el body crudo, por ejemplo JSON), `request.headers`, `request.user` y
+The request has `request.method`, `request.GET` (query string), `request.POST` (form),
+`request.body` (the raw body, for example JSON), `request.headers`, `request.user` and
 `request.session`.
 
-`JsonResponse` exige un dict. Para devolver una lista hace falta `safe=False`, una protección
-heredada contra un viejo ataque de JSON hijacking.
+`JsonResponse` requires a dict. To return a list you need `safe=False`, a protection inherited
+from an old JSON hijacking attack.
 
 ## URLs: `urlpatterns`
 
 ```python
-# catalogo/urls.py
+# catalog/urls.py
 from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("", views.inicio, name="inicio"),
-    path("productos/", views.productos, name="productos"),
-    path("productos/<int:id>/", views.detalle, name="detalle"),
-    path("saludo/<str:nombre>/", views.saludo, name="saludo"),
+    path("", views.home, name="home"),
+    path("products/", views.products, name="products"),
+    path("products/<int:id>/", views.detail, name="detail"),
+    path("greet/<str:name>/", views.greet, name="greet"),
 ]
 
-# tienda/urls.py (raíz)
+# shop/urls.py (root)
 from django.urls import include, path
-urlpatterns = [path("catalogo/", include("catalogo.urls")), path("admin/", admin.site.urls)]
+urlpatterns = [path("catalog/", include("catalog.urls")), path("admin/", admin.site.urls)]
 ```
 
-- Converters: `str`, `int`, `slug`, `uuid` y `path`. Si no matchea, **404**.
-- Convención: las rutas **terminan en `/`**. Con `APPEND_SLASH`, Django redirige `/productos` →
-  `/productos/`.
-- `include` arma la jerarquía de URLs por app, como los blueprints y routers.
-- `name=` permite **invertir** la URL: `reverse("detalle", args=[3])` → `"/productos/3/"`, y en
-  plantillas `{% url 'detalle' 3 %}`. Nunca escribas URLs a mano.
+- Converters: `str`, `int`, `slug`, `uuid` and `path`. If nothing matches, **404**.
+- Convention: routes **end in `/`**. With `APPEND_SLASH`, Django redirects `/products` →
+  `/products/`.
+- `include` builds the URL hierarchy per app, like blueprints and routers.
+- `name=` lets you **reverse** the URL: `reverse("detail", args=[3])` → `"/products/3/"`, and in
+  templates `{% url 'detail' 3 %}`. Never write URLs by hand.
 
-## CSRF y APIs
+## CSRF and APIs
 
-Django protege por defecto los POST de formularios contra **CSRF** (lo vemos con formularios).
-Para un endpoint JSON que no usa cookies de sesión, se marca con `@csrf_exempt`. Para APIs en
-serio, Django REST Framework maneja todo eso (capítulo 5). El cliente de testing **no** chequea
-CSRF por defecto.
+By default Django protects form POSTs against **CSRF** (we'll see it with forms). A JSON endpoint
+that doesn't use session cookies is marked with `@csrf_exempt`. For serious APIs, Django REST
+Framework handles all of that (chapter 5). The test client does **not** check CSRF by default.
 
-## Testear con el `Client`
+## Testing with the `Client`
 
 ```python
 from django.test import Client
 
-def test_detalle():
+def test_detail():
     c = Client()
-    r = c.get("/productos/1/")
+    r = c.get("/products/1/")
     assert r.status_code == 200
-    assert r.json()["nombre"] == "yerba"
-    r = c.post("/productos/", data={"nombre": "té"}, content_type="application/json")
+    assert r.json()["name"] == "mate"
+    r = c.post("/products/", data={"name": "tea"}, content_type="application/json")
 ```
 
-Con `content_type="application/json"`, el `data` se manda como JSON. Sin eso, se manda como
-formulario.
+With `content_type="application/json"`, `data` is sent as JSON. Without it, it's sent as a
+form.
 
-## Comparación
+## Comparison
 
-| Concepto        | Flask                     | FastAPI                    | Django                                 |
+| Concept         | Flask                     | FastAPI                    | Django                                 |
 |-----------------|---------------------------|----------------------------|----------------------------------------|
-| Request         | `request` global          | parámetros tipados         | primer argumento `request`             |
-| Rutas           | decorador en la vista     | decorador en la vista      | lista `urlpatterns` separada            |
-| 404             | `abort(404)`              | `raise HTTPException(404)` | `raise Http404`                         |
-| JSON            | devolver un dict          | devolver un dict o modelo  | `JsonResponse(...)`                     |
-| Nombre de URL   | nombre de la función      | nombre de la función       | `name=` en `path`                       |
-| Configuración   | `app.config`              | `Settings` / dependencias  | `settings.py`                           |
+| Request         | global `request`          | typed parameters           | first argument `request`               |
+| Routes          | decorator on the view     | decorator on the view      | separate `urlpatterns` list            |
+| 404             | `abort(404)`              | `raise HTTPException(404)` | `raise Http404`                        |
+| JSON            | return a dict             | return a dict or model     | `JsonResponse(...)`                    |
+| URL name        | function name             | function name              | `name=` in `path`                      |
+| Configuration   | `app.config`              | `Settings` / dependencies  | `settings.py`                          |
 
-## Resumen
+## Summary
 
-- Un proyecto con varias apps; `settings.py` centraliza la configuración y `manage.py` es la CLI.
-- MTV: los modelos, las plantillas y las vistas (funciones `request → HttpResponse`).
-- `urlpatterns` con `path(ruta, vista, name=...)`, converters e `include` para las apps.
-- `raise Http404`, `JsonResponse` (con `safe=False` para listas) y `@require_http_methods`.
-- `reverse("nombre")` en lugar de escribir URLs a mano; `django.test.Client` para testear.
+- One project with several apps; `settings.py` centralizes the configuration and `manage.py` is the CLI.
+- MTV: models, templates and views (functions `request → HttpResponse`).
+- `urlpatterns` with `path(route, view, name=...)`, converters and `include` for apps.
+- `raise Http404`, `JsonResponse` (with `safe=False` for lists) and `@require_http_methods`.
+- `reverse("name")` instead of writing URLs by hand; `django.test.Client` for testing.
 
-## Ejercicio
+## Exercise
 
-Las vistas y las URLs de un catálogo en memoria: texto, saludo, listado y alta en JSON, detalle
-con 404, métodos restringidos y URLs con nombre.
+The views and URLs of an in-memory catalog: plain text, a greeting, listing and creating in JSON,
+a detail with 404, restricted methods and named URLs.
 
-**Para profundizar:** [Writing your first Django app](https://docs.djangoproject.com/en/stable/intro/tutorial01/),
+**Further reading:** [Writing your first Django app](https://docs.djangoproject.com/en/stable/intro/tutorial01/),
 [URL dispatcher](https://docs.djangoproject.com/en/stable/topics/http/urls/),
 [Request and response objects](https://docs.djangoproject.com/en/stable/ref/request-response/).

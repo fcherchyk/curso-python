@@ -15,17 +15,17 @@ django.setup()
 
 import pytest
 from django.db import connection
-from exercise import Tarea
+from exercise import Task
 from rest_framework.test import APIClient
 
 
 @pytest.fixture(autouse=True)
-def tablas():
+def tables():
     with connection.schema_editor() as editor:
-        editor.create_model(Tarea)
+        editor.create_model(Task)
     yield
     with connection.schema_editor() as editor:
-        editor.delete_model(Tarea)
+        editor.delete_model(Task)
 
 
 @pytest.fixture
@@ -33,51 +33,51 @@ def api():
     return APIClient()
 
 
-def crear(api, titulo):
-    return api.post("/api/tareas/", {"titulo": titulo}, format="json")
+def create(api, title):
+    return api.post("/api/tasks/", {"title": title}, format="json")
 
 
-def test_crear(api):
-    r = crear(api, "  comprar yerba ")
+def test_create(api):
+    r = create(api, "  buy mate ")
     assert r.status_code == 201
-    datos = r.json()
-    assert datos["titulo"] == "comprar yerba"
-    assert datos["hecha"] is False
-    assert {"id", "creada"} <= set(datos)
+    data = r.json()
+    assert data["title"] == "buy mate"
+    assert data["done"] is False
+    assert {"id", "created"} <= set(data)
 
 
-def test_validacion(api):
-    r = crear(api, " ToDo ")
+def test_validation(api):
+    r = create(api, " ToDo ")
     assert r.status_code == 400
-    assert r.json() == {"titulo": ["Poné un título descriptivo"]}
-    r = api.post("/api/tareas/", {"titulo": "x", "id": 99, "creada": "2000-01-01"}, format="json")
-    assert r.json()["id"] != 99, "id es de solo lectura"
+    assert r.json() == {"title": ["Use a descriptive title"]}
+    r = api.post("/api/tasks/", {"title": "x", "id": 99, "created": "2000-01-01"}, format="json")
+    assert r.json()["id"] != 99, "id is read-only"
 
 
-def test_listar_detalle_y_borrar(api):
+def test_list_detail_and_delete(api):
     for t in ["a", "b"]:
-        crear(api, t)
-    assert [t["titulo"] for t in api.get("/api/tareas/").json()] == ["a", "b"]
-    id_b = api.get("/api/tareas/").json()[1]["id"]
-    assert api.get(f"/api/tareas/{id_b}/").json()["titulo"] == "b"
-    assert api.patch(f"/api/tareas/{id_b}/", {"hecha": True}, format="json").json()["hecha"]
-    assert api.delete(f"/api/tareas/{id_b}/").status_code == 204
-    assert api.get(f"/api/tareas/{id_b}/").status_code == 404
+        create(api, t)
+    assert [t["title"] for t in api.get("/api/tasks/").json()] == ["a", "b"]
+    id_b = api.get("/api/tasks/").json()[1]["id"]
+    assert api.get(f"/api/tasks/{id_b}/").json()["title"] == "b"
+    assert api.patch(f"/api/tasks/{id_b}/", {"done": True}, format="json").json()["done"]
+    assert api.delete(f"/api/tasks/{id_b}/").status_code == 204
+    assert api.get(f"/api/tasks/{id_b}/").status_code == 404
 
 
-def test_filtro_y_accion_completar(api):
-    ids = [crear(api, t).json()["id"] for t in ["a", "b", "c"]]
-    r = api.post(f"/api/tareas/{ids[1]}/completar/")
+def test_filter_and_complete_action(api):
+    ids = [create(api, t).json()["id"] for t in ["a", "b", "c"]]
+    r = api.post(f"/api/tasks/{ids[1]}/complete/")
     assert r.status_code == 200
-    assert r.json()["hecha"] is True
-    assert [t["titulo"] for t in api.get("/api/tareas/", {"hecha": "true"}).json()] == ["b"]
-    assert [t["titulo"] for t in api.get("/api/tareas/", {"hecha": "false"}).json()] == ["a", "c"]
-    assert api.post("/api/tareas/999/completar/").status_code == 404
+    assert r.json()["done"] is True
+    assert [t["title"] for t in api.get("/api/tasks/", {"done": "true"}).json()] == ["b"]
+    assert [t["title"] for t in api.get("/api/tasks/", {"done": "false"}).json()] == ["a", "c"]
+    assert api.post("/api/tasks/999/complete/").status_code == 404
 
 
-def test_estadisticas(api):
-    ids = [crear(api, t).json()["id"] for t in ["a", "b", "c"]]
-    api.post(f"/api/tareas/{ids[0]}/completar/")
-    r = api.get("/api/estadisticas/")
+def test_stats(api):
+    ids = [create(api, t).json()["id"] for t in ["a", "b", "c"]]
+    api.post(f"/api/tasks/{ids[0]}/complete/")
+    r = api.get("/api/stats/")
     assert r.status_code == 200
-    assert r.json() == {"total": 3, "hechas": 1, "pendientes": 2}
+    assert r.json() == {"total": 3, "done": 1, "pending": 2}

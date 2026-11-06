@@ -1,54 +1,54 @@
 [[questions]]
-text = "Después de `User.objects.create_user(\"ana\", password=\"secreta\")`, ¿qué hay en `u.password`?"
+text = "After `User.objects.create_user(\"alice\", password=\"secret\")`, what is in `u.password`?"
 options = [
-  "`\"secreta\"`",
-  "Un hash como `pbkdf2_sha256$...` (con salt e iteraciones)",
+  "`\"secret\"`",
+  "A hash like `pbkdf2_sha256$...` (with salt and iterations)",
   "`None`",
-  "La contraseña cifrada de forma reversible",
+  "The password encrypted in a reversible way",
 ]
 correct = 1
-explanation = "Django guarda solo el hash. Se verifica con `check_password`; la contraseña original no se puede recuperar."
+explanation = "Django stores only the hash. You verify it with `check_password`; the original password can't be recovered."
 
 [[questions]]
-text = "¿Qué hace `@login_required` con un usuario anónimo?"
+text = "What does `@login_required` do with an anonymous user?"
 options = [
-  "Responde 403",
-  "Redirige a `LOGIN_URL` con `?next=` apuntando a la página pedida",
-  "Responde 401",
-  "Muestra la vista igual",
+  "Responds 403",
+  "Redirects to `LOGIN_URL` with `?next=` pointing to the requested page",
+  "Responds 401",
+  "Shows the view anyway",
 ]
 correct = 1
-explanation = "Redirige al login y, con `next`, después del login vuelve a donde quería ir. Para APIs suele preferirse un 401 o 403."
+explanation = "It redirects to the login and, thanks to `next`, after logging in the user goes back where they wanted to go. For APIs a 401 or 403 is usually preferred."
 
 [[questions]]
-text = "¿Por qué conviene `get_user_model()` en lugar de importar `django.contrib.auth.models.User`?"
+text = "Why is `get_user_model()` better than importing `django.contrib.auth.models.User`?"
 options = [
-  "Por rendimiento",
-  "Porque el proyecto puede usar un modelo de usuario propio (`AUTH_USER_MODEL`)",
-  "Porque `User` está deprecado",
-  "No hay diferencia",
+  "For performance",
+  "Because the project may use its own user model (`AUTH_USER_MODEL`)",
+  "Because `User` is deprecated",
+  "There's no difference",
 ]
 correct = 1
-explanation = "Si el proyecto define su propio usuario, importar `User` directamente apunta al modelo equivocado."
+explanation = "If the project defines its own user, importing `User` directly points to the wrong model."
 
 [[questions]]
-text = "Un usuario logueado intenta borrar una nota que no es suya. ¿Qué es lo correcto?"
+text = "A logged-in user tries to delete a note that isn't theirs. What's the right response?"
 options = [
-  "Redirigir al login",
-  "403 (`PermissionDenied`), o filtrar por dueño y responder 404",
-  "Borrarla igual",
+  "Redirect to the login",
+  "403 (`PermissionDenied`), or filter by owner and respond 404",
+  "Delete it anyway",
   "500",
 ]
 correct = 1
-explanation = "Está autenticado pero no autorizado sobre ese objeto. Filtrar el queryset por `request.user` evita además revelar que la nota existe."
+explanation = "They're authenticated but not authorized on that object. Filtering the queryset by `request.user` also avoids revealing that the note exists."
 
 [[questions]]
-text = "¿Qué hace `client.force_login(usuario)` en un test?"
+text = "What does `client.force_login(user)` do in a test?"
 options = [
-  "Cambia la contraseña del usuario",
-  "Inicia sesión con ese usuario sin pasar por el formulario de login",
-  "Crea un superusuario",
-  "Desactiva la autenticación",
+  "Changes the user's password",
+  "Logs in as that user without going through the login form",
+  "Creates a superuser",
+  "Disables authentication",
 ]
 correct = 1
-explanation = "Arma la sesión directamente. Ahorra tiempo y evita depender de la vista de login en cada test."
+explanation = "It sets up the session directly. It saves time and avoids depending on the login view in every test."

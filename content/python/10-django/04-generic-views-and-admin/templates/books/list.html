@@ -1,0 +1,9 @@
+<h1>Books</h1>
+<ul>
+{% for book in books %}
+  <li><a href="{% url 'detail' book.pk %}">{{ book.title }}</a> ({{ book.year }})</li>
+{% empty %}
+  <li>No books</li>
+{% endfor %}
+</ul>
+{% if page_obj %}<p class="page">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>{% endif %}

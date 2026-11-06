@@ -23,71 +23,71 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.db import connection
 from django.test import Client
-from exercise import Nota, registrar
+from exercise import Note, register
 
 User = get_user_model()
-call_command("migrate", verbosity=0)  # tablas de auth, contenttypes y sessions
+call_command("migrate", verbosity=0)  # auth, contenttypes and sessions tables
 
 
 @pytest.fixture(autouse=True)
-def tablas():
+def tables():
     with connection.schema_editor() as editor:
-        editor.create_model(Nota)
+        editor.create_model(Note)
     yield
     with connection.schema_editor() as editor:
-        editor.delete_model(Nota)
+        editor.delete_model(Note)
     User.objects.all().delete()
 
 
-def logueado(username: str, staff: bool = False) -> Client:
+def logged_in(username: str, staff: bool = False) -> Client:
     u = User.objects.create_user(username, password="x", is_staff=staff)
     c = Client()
     c.force_login(u)
     return c
 
 
-def test_registrar_hashea():
-    u = registrar("ana", "clave-segura")
-    assert u.password != "clave-segura"
-    assert u.check_password("clave-segura")
-    with pytest.raises(ValueError, match="usuario existente"):
-        registrar("ana", "otra")
+def test_register_hashes():
+    u = register("alice", "secure-password")
+    assert u.password != "secure-password"
+    assert u.check_password("secure-password")
+    with pytest.raises(ValueError, match="user already exists"):
+        register("alice", "other")
 
 
-def test_login_y_logout():
-    User.objects.create_user("ana", password="clave")
+def test_login_and_logout():
+    User.objects.create_user("alice", password="secret")
     c = Client()
-    r = c.post("/login/", {"username": "ana", "password": "mala"})
+    r = c.post("/login/", {"username": "alice", "password": "wrong"})
     assert r.status_code == 400
-    assert r.json() == {"error": "credenciales inválidas"}
-    assert c.post("/login/", {"username": "ana", "password": "clave"}).status_code == 204
-    assert c.get("/notas/").status_code == 200, "después del login, la sesión lo identifica"
+    assert r.json() == {"error": "invalid credentials"}
+    assert c.post("/login/", {"username": "alice", "password": "secret"}).status_code == 204
+    assert c.get("/notes/").status_code == 200, "after login, the session identifies the user"
     assert c.post("/logout/").status_code == 204
-    assert c.get("/notas/").status_code == 302
+    assert c.get("/notes/").status_code == 302
 
 
-def test_notas_requiere_login():
-    r = Client().get("/notas/")
+def test_notes_requires_login():
+    r = Client().get("/notes/")
     assert r.status_code == 302
-    assert r.headers["Location"] == "/login/?next=/notas/"
+    assert r.headers["Location"] == "/login/?next=/notes/"
 
 
-def test_notas_privadas_por_usuario():
-    ana, beto = logueado("ana"), logueado("beto")
-    r = ana.post("/notas/", {"texto": "de ana"})
+def test_notes_private_per_user():
+    alice, bob = logged_in("alice"), logged_in("bob")
+    r = alice.post("/notes/", {"text": "from alice"})
     assert r.status_code == 201
-    assert r.json()["texto"] == "de ana"
-    beto.post("/notas/", {"texto": "de beto"})
-    assert [n["texto"] for n in ana.get("/notas/").json()] == ["de ana"]
-    assert [n["texto"] for n in beto.get("/notas/").json()] == ["de beto"]
+    assert r.json()["text"] == "from alice"
+    bob.post("/notes/", {"text": "from bob"})
+    assert [n["text"] for n in alice.get("/notes/").json()] == ["from alice"]
+    assert [n["text"] for n in bob.get("/notes/").json()] == ["from bob"]
 
 
-def test_borrar_solo_dueno_o_staff():
-    ana, beto, jefa = logueado("ana"), logueado("beto"), logueado("jefa", staff=True)
-    id_ana = ana.post("/notas/", {"texto": "x"}).json()["id"]
-    assert beto.delete(f"/notas/{id_ana}/").status_code == 403
-    assert jefa.delete(f"/notas/{id_ana}/").status_code == 204
-    id2 = ana.post("/notas/", {"texto": "y"}).json()["id"]
-    assert ana.delete(f"/notas/{id2}/").status_code == 204
-    assert ana.delete("/notas/999/").status_code == 404
-    assert Nota.objects.count() == 0
+def test_delete_only_owner_or_staff():
+    alice, bob, carol = logged_in("alice"), logged_in("bob"), logged_in("carol", staff=True)
+    alice_id = alice.post("/notes/", {"text": "x"}).json()["id"]
+    assert bob.delete(f"/notes/{alice_id}/").status_code == 403
+    assert carol.delete(f"/notes/{alice_id}/").status_code == 204
+    id2 = alice.post("/notes/", {"text": "y"}).json()["id"]
+    assert alice.delete(f"/notes/{id2}/").status_code == 204
+    assert alice.delete("/notes/999/").status_code == 404
+    assert Note.objects.count() == 0

@@ -1,16 +1,16 @@
-"""Modelos y el ORM de Django.
+"""Models and the Django ORM.
 
-Los modelos ya están (este archivo hace de models.py). Escribí las consultas:
+The models are already here (this file acts as models.py). Write the queries:
 
-- activos_hasta(maximo) → nombres de productos ACTIVOS con precio <= maximo, del más barato
-                          al más caro.
-- buscar(texto)        → nombres (orden alfabético) de productos cuyo nombre O el nombre de su
-                          categoría contengan `texto`, sin importar mayúsculas (Q + icontains).
-- stock_por_categoria() → {nombre_categoria: stock total}, solo categorías con productos
-                          (values + annotate(Sum)).
-- aumentar_precios(categoria, porcentaje) → aumenta en la BASE (F + update) el precio de los
-                          productos de esa categoría; devuelve cuántos actualizó.
-- listado() → ["Producto (Categoría)", ...] ordenado por producto, en UNA sola consulta
+- active_up_to(max_price) → names of ACTIVE products with price <= max_price, from cheapest
+                            to most expensive.
+- search(text)            → names (alphabetical order) of products whose name OR the name of
+                            their category contains `text`, case-insensitive (Q + icontains).
+- stock_by_category()     → {category_name: total stock}, only categories with products
+                            (values + annotate(Sum)).
+- raise_prices(category, percent) → raises IN THE DATABASE (F + update) the price of the
+                            products in that category; returns how many it updated.
+- listing() → ["Product (Category)", ...] ordered by product, in ONE single query
               (select_related).
 """
 
@@ -20,46 +20,46 @@ from django.db import models
 from django.db.models import F, Q, Sum  # noqa: F401
 
 
-class Categoria(models.Model):
-    nombre = models.CharField(max_length=50, unique=True)
+class Category(models.Model):
+    name = models.CharField(max_length=50, unique=True)
 
     class Meta:
-        app_label = "catalogo"
+        app_label = "catalog"
 
     def __str__(self) -> str:
-        return self.nombre
+        return self.name
 
 
-class Producto(models.Model):
-    nombre = models.CharField(max_length=100)
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
+class Product(models.Model):
+    name = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default=0)
-    activo = models.BooleanField(default=True)
-    categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name="productos")
+    active = models.BooleanField(default=True)
+    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="products")
 
     class Meta:
-        app_label = "catalogo"
-        ordering = ["nombre"]
+        app_label = "catalog"
+        ordering = ["name"]
 
     def __str__(self) -> str:
-        return self.nombre
+        return self.name
 
 
-def activos_hasta(maximo: Decimal) -> list[str]:
+def active_up_to(max_price: Decimal) -> list[str]:
     raise NotImplementedError("TODO")
 
 
-def buscar(texto: str) -> list[str]:
+def search(text: str) -> list[str]:
     raise NotImplementedError("TODO")
 
 
-def stock_por_categoria() -> dict[str, int]:
+def stock_by_category() -> dict[str, int]:
     raise NotImplementedError("TODO")
 
 
-def aumentar_precios(categoria: str, porcentaje: int) -> int:
+def raise_prices(category: str, percent: int) -> int:
     raise NotImplementedError("TODO")
 
 
-def listado() -> list[str]:
+def listing() -> list[str]:
     raise NotImplementedError("TODO")

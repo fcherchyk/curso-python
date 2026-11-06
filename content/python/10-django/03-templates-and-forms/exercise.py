@@ -1,31 +1,31 @@
-"""Plantillas y formularios.
+"""Templates and forms.
 
-1. ContactoForm (forms.Form):
-   - nombre: CharField(max_length=50); clean_nombre → sin espacios alrededor y en Title Case
+1. ContactForm (forms.Form):
+   - name: CharField(max_length=50); clean_name → no surrounding spaces and in Title Case
    - email: EmailField()
-   - mensaje: CharField(widget=forms.Textarea, min_length=10)
-   - clean(): si el mensaje contiene "spam" (sin importar mayúsculas) →
-     ValidationError("El mensaje parece spam")
+   - message: CharField(widget=forms.Textarea, min_length=10)
+   - clean(): if the message contains "spam" (case-insensitive) →
+     ValidationError("The message looks like spam")
 
-2. Vista contacto (URL "contacto/", name="contacto"):
-   - GET → render "contacto.html" con un form vacío
-   - POST válido → MENSAJES.append(form.cleaned_data) y redirect a "gracias"
-   - POST inválido → re-render del form ligado (status 200)
+2. contact view (URL "contact/", name="contact"):
+   - GET → render "contact.html" with an empty form
+   - valid POST → MESSAGES.append(form.cleaned_data) and redirect to "thanks"
+   - invalid POST → re-render the bound form (status 200)
 
-3. Vista gracias (URL "gracias/", name="gracias"):
-   → render "gracias.html" con nombre = nombre del último mensaje (o None) y total = len(MENSAJES)
+3. thanks view (URL "thanks/", name="thanks"):
+   → render "thanks.html" with name = name from the last message (or None) and total = len(MESSAGES)
 
-Las plantillas están en templates/ (ver la lección).
+The templates are in templates/ (see the lesson).
 """
 
 from django import forms  # noqa: F401
 from django.shortcuts import redirect, render  # noqa: F401
 from django.urls import path  # noqa: F401
 
-MENSAJES: list[dict[str, str]] = []
+MESSAGES: list[dict[str, str]] = []
 
 
-class ContactoForm(forms.Form):
+class ContactForm(forms.Form):
     pass
 
 

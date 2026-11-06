@@ -1,44 +1,44 @@
 [[questions]]
-text = "¿Qué método sobrescribís en una `ListView` para filtrar según `?q=` del request?"
+text = "Which method do you override in a `ListView` to filter by the request's `?q=`?"
 options = ["`get_context_data`", "`get_queryset`", "`as_view`", "`dispatch`"]
 correct = 1
-explanation = "`get_queryset` decide qué objetos se listan. `get_context_data` agrega variables a la plantilla."
+explanation = "`get_queryset` decides which objects are listed. `get_context_data` adds variables to the template."
 
 [[questions]]
-text = "¿Por qué `success_url = reverse_lazy(\"lista\")` y no `reverse(\"lista\")`?"
+text = "Why `success_url = reverse_lazy(\"list\")` and not `reverse(\"list\")`?"
 options = [
-  "Porque `reverse` está deprecado",
-  "Porque el atributo se evalúa al definir la clase, antes de que las URLs estén cargadas; `reverse_lazy` lo resuelve recién al usarse",
-  "Porque es más rápido",
-  "No hay diferencia",
+  "Because `reverse` is deprecated",
+  "Because the attribute is evaluated when the class is defined, before the URLs are loaded; `reverse_lazy` resolves it only when it's used",
+  "Because it's faster",
+  "There's no difference",
 ]
 correct = 1
-explanation = "`reverse` en un atributo de clase puede fallar por import circular o porque las URLs no están listas. `reverse_lazy` difiere la resolución."
+explanation = "`reverse` in a class attribute can fail because of a circular import or because the URLs aren't ready. `reverse_lazy` defers the resolution."
 
 [[questions]]
-text = "Una `CreateView` recibe un POST con datos inválidos. ¿Qué hace?"
+text = "A `CreateView` receives a POST with invalid data. What does it do?"
 options = [
-  "Responde 400 en JSON",
-  "Vuelve a renderizar el formulario con los errores",
-  "Redirige a `success_url`",
-  "Levanta una excepción",
+  "Responds 400 in JSON",
+  "Re-renders the form with the errors",
+  "Redirects to `success_url`",
+  "Raises an exception",
 ]
 correct = 1
-explanation = "Implementa el patrón completo: si es válido, guarda y redirige; si no, re-renderiza el form con los errores (`form_invalid`)."
+explanation = "It implements the full pattern: if valid, it saves and redirects; if not, it re-renders the form with the errors (`form_invalid`)."
 
 [[questions]]
-text = "Con `paginate_by = 10` en una `ListView`, ¿cómo se pide la segunda página?"
-options = ["`/libros/2/`", "`/libros/?page=2`", "`/libros/?pagina=2`", "No se puede"]
+text = "With `paginate_by = 10` in a `ListView`, how do you request the second page?"
+options = ["`/books/2/`", "`/books/?page=2`", "`/books/?p=2`", "You can't"]
 correct = 1
-explanation = "El parámetro por defecto es `page`. La plantilla recibe `page_obj` y `paginator` para armar la navegación."
+explanation = "The default parameter is `page`. The template receives `page_obj` and `paginator` to build the navigation."
 
 [[questions]]
-text = "¿Qué controla `list_display` en un `ModelAdmin`?"
+text = "What does `list_display` control in a `ModelAdmin`?"
 options = [
-  "Los campos del formulario de edición",
-  "Las columnas que se ven en el listado del admin",
-  "Los permisos",
-  "El orden de las URLs",
+  "The fields of the edit form",
+  "The columns shown in the admin list",
+  "The permissions",
+  "The order of the URLs",
 ]
 correct = 1
-explanation = "`list_display` define las columnas; `search_fields`, la búsqueda; y `list_filter`, los filtros laterales."
+explanation = "`list_display` defines the columns; `search_fields`, the search; and `list_filter`, the side filters."

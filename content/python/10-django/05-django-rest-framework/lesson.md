@@ -1,169 +1,169 @@
 # Django REST Framework
 
-Django nació para apps que devuelven HTML. Para **APIs REST**, el estándar de facto es **Django
-REST Framework (DRF)**: agrega serializers (validación y conversión, como Pydantic), vistas y
-viewsets para APIs, routers que generan las URLs, autenticación, permisos, paginación y una
-API navegable desde el navegador. Si ya tenés un proyecto Django, es la forma natural de
-exponer una API.
+Django was born for apps that return HTML. For **REST APIs**, the de facto standard is **Django
+REST Framework (DRF)**: it adds serializers (validation and conversion, like Pydantic), views and
+viewsets for APIs, routers that generate the URLs, authentication, permissions, pagination and a
+browsable API you can use from the browser. If you already have a Django project, it's the natural
+way to expose an API.
 
 ```bash
 uv add djangorestframework
 # settings.py → INSTALLED_APPS += ["rest_framework"]
 ```
 
-## Serializers: modelos ↔ JSON, con validación
+## Serializers: models ↔ JSON, with validation
 
 ```python
 from rest_framework import serializers
 
-class TareaSerializer(serializers.ModelSerializer):
+class TaskSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Tarea
-        fields = ["id", "titulo", "hecha", "creada"]
-        read_only_fields = ["id", "creada"]
+        model = Task
+        fields = ["id", "title", "done", "created"]
+        read_only_fields = ["id", "created"]
 
-    def validate_titulo(self, valor: str) -> str:          # validate_<campo>
-        if valor.strip().lower() == "todo":
-            raise serializers.ValidationError("Poné un título descriptivo")
-        return valor.strip()
+    def validate_title(self, value: str) -> str:           # validate_<field>
+        if value.strip().lower() == "todo":
+            raise serializers.ValidationError("Use a descriptive title")
+        return value.strip()
 
-    def validate(self, datos):                               # reglas entre campos
+    def validate(self, data):                                # rules across fields
         ...
-        return datos
+        return data
 ```
 
-Cumple las dos direcciones:
+It works in both directions:
 
 ```python
-# objeto → dict (para responder)
-TareaSerializer(tarea).data                  # {"id": 1, "titulo": "...", ...}
-TareaSerializer(qs, many=True).data          # lista
+# object → dict (to respond)
+TaskSerializer(task).data                    # {"id": 1, "title": "...", ...}
+TaskSerializer(qs, many=True).data           # list
 
-# dict → objeto validado (para crear o actualizar)
-s = TareaSerializer(data=request.data)
-s.is_valid(raise_exception=True)             # 400 con los errores si falla
-tarea = s.save()                             # create() o update()
+# dict → validated object (to create or update)
+s = TaskSerializer(data=request.data)
+s.is_valid(raise_exception=True)             # 400 with the errors if it fails
+task = s.save()                              # create() or update()
 ```
 
-Es el equivalente de los schemas de Pydantic más el `ModelForm` de Django. Los
-`read_only_fields` se devuelven, pero se ignoran si vienen en el request (como el `id`).
+It's the equivalent of Pydantic schemas plus Django's `ModelForm`. The
+`read_only_fields` are returned, but ignored if they come in the request (like the `id`).
 
-## Vistas: de `APIView` a `ViewSet`
+## Views: from `APIView` to `ViewSet`
 
-### `APIView`: control total
+### `APIView`: full control
 
 ```python
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-class Estadisticas(APIView):
+class Stats(APIView):
     def get(self, request):
-        return Response({"total": Tarea.objects.count()})
+        return Response({"total": Task.objects.count()})
 ```
 
-`Response` negocia el formato (JSON o la API navegable) y `request.data` trae el body ya
-parseado, sea JSON o formulario.
+`Response` negotiates the format (JSON or the browsable API) and `request.data` holds the already
+parsed body, whether JSON or form.
 
-### `ModelViewSet`: CRUD completo en pocas líneas
+### `ModelViewSet`: full CRUD in a few lines
 
 ```python
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-class TareaViewSet(viewsets.ModelViewSet):
-    queryset = Tarea.objects.order_by("id")
-    serializer_class = TareaSerializer
+class TaskViewSet(viewsets.ModelViewSet):
+    queryset = Task.objects.order_by("id")
+    serializer_class = TaskSerializer
 
     def get_queryset(self):
         qs = super().get_queryset()
-        hecha = self.request.query_params.get("hecha")
-        if hecha is not None:
-            qs = qs.filter(hecha=hecha == "true")
+        done = self.request.query_params.get("done")
+        if done is not None:
+            qs = qs.filter(done=done == "true")
         return qs
 
     @action(detail=True, methods=["post"])
-    def completar(self, request, pk=None):        # POST /tareas/{pk}/completar/
-        tarea = self.get_object()                 # 404 si no existe
-        tarea.hecha = True
-        tarea.save()
-        return Response(self.get_serializer(tarea).data)
+    def complete(self, request, pk=None):         # POST /tasks/{pk}/complete/
+        task = self.get_object()                  # 404 if it doesn't exist
+        task.done = True
+        task.save()
+        return Response(self.get_serializer(task).data)
 ```
 
-Un `ModelViewSet` da `list`, `create`, `retrieve`, `update`, `partial_update` y `destroy`, con
-validación, códigos de estado correctos (201, 204, 400, 404) y todo lo demás. `@action` agrega
-endpoints extra al recurso.
+A `ModelViewSet` gives you `list`, `create`, `retrieve`, `update`, `partial_update` and `destroy`,
+with validation, correct status codes (201, 204, 400, 404) and everything else. `@action` adds
+extra endpoints to the resource.
 
-### Routers: las URLs se generan solas
+### Routers: the URLs generate themselves
 
 ```python
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
-router.register("tareas", TareaViewSet)
+router.register("tasks", TaskViewSet)
 urlpatterns = [path("api/", include(router.urls))]
 ```
 
-| Método y URL                        | Acción del viewset |
+| Method and URL                      | Viewset action     |
 |-------------------------------------|--------------------|
-| `GET /api/tareas/`                  | `list`             |
-| `POST /api/tareas/`                 | `create`           |
-| `GET /api/tareas/{pk}/`             | `retrieve`         |
-| `PUT` / `PATCH /api/tareas/{pk}/`   | `update` / `partial_update` |
-| `DELETE /api/tareas/{pk}/`          | `destroy`          |
-| `POST /api/tareas/{pk}/completar/`  | `@action`          |
+| `GET /api/tasks/`                   | `list`             |
+| `POST /api/tasks/`                  | `create`           |
+| `GET /api/tasks/{pk}/`              | `retrieve`         |
+| `PUT` / `PATCH /api/tasks/{pk}/`    | `update` / `partial_update` |
+| `DELETE /api/tasks/{pk}/`           | `destroy`          |
+| `POST /api/tasks/{pk}/complete/`    | `@action`          |
 
-## Autenticación, permisos, paginación y filtros
+## Authentication, permissions, pagination and filters
 
-Se configuran globalmente en `settings.REST_FRAMEWORK` o por vista:
+They're configured globally in `settings.REST_FRAMEWORK` or per view:
 
 ```python
 from rest_framework.permissions import IsAuthenticated
 
-class TareaViewSet(viewsets.ModelViewSet):
+class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     # authentication_classes = [TokenAuthentication, SessionAuthentication]
     # pagination_class = PageNumberPagination
 ```
 
-Lo vemos en el próximo capítulo junto con los usuarios de Django.
+We cover this in the next chapter along with Django's users.
 
-## Testear con `APIClient`
+## Testing with `APIClient`
 
 ```python
 from rest_framework.test import APIClient
 
 c = APIClient()
-r = c.post("/api/tareas/", {"titulo": "comprar"}, format="json")
+r = c.post("/api/tasks/", {"title": "shopping"}, format="json")
 assert r.status_code == 201
-assert r.json()["hecha"] is False
-c.force_authenticate(user=usuario)        # autenticar sin pasar por el login
+assert r.json()["done"] is False
+c.force_authenticate(user=user)           # authenticate without going through login
 ```
 
-## Comparación
+## Comparison
 
 | DRF                              | FastAPI                                    |
 |----------------------------------|--------------------------------------------|
-| `ModelSerializer`                | modelos Pydantic (Crear, Publica…)         |
-| `validate_<campo>` / `validate`  | `field_validator` / `model_validator`      |
-| `ModelViewSet` + router          | endpoints escritos uno por uno, con `APIRouter` |
-| `permission_classes`             | dependencias (`Depends(solo_admin)`)       |
-| API navegable                    | `/docs` (OpenAPI)                          |
-| sincrónico, ORM de Django        | async, a elección (SQLAlchemy, etc.)       |
+| `ModelSerializer`                | Pydantic models (Create, Public…)          |
+| `validate_<field>` / `validate`  | `field_validator` / `model_validator`      |
+| `ModelViewSet` + router          | endpoints written one by one, with `APIRouter` |
+| `permission_classes`             | dependencies (`Depends(admin_only)`)       |
+| browsable API                    | `/docs` (OpenAPI)                          |
+| synchronous, Django ORM          | async, your choice (SQLAlchemy, etc.)      |
 
-## Resumen
+## Summary
 
-- Serializers: objeto ↔ JSON, con validación (`validate_<campo>`, `validate`) y
+- Serializers: object ↔ JSON, with validation (`validate_<field>`, `validate`) and
   `read_only_fields`.
-- `APIView` para control total; `ModelViewSet` para el CRUD estándar; `@action` para los extras.
-- `DefaultRouter` genera las URLs del recurso.
-- `request.data`, `query_params` y `Response`.
-- `APIClient` para testear (`format="json"`, `force_authenticate`).
+- `APIView` for full control; `ModelViewSet` for standard CRUD; `@action` for the extras.
+- `DefaultRouter` generates the resource's URLs.
+- `request.data`, `query_params` and `Response`.
+- `APIClient` for testing (`format="json"`, `force_authenticate`).
 
-## Ejercicio
+## Exercise
 
-Una API de tareas con DRF: un serializer con validación, un viewset con filtro y una acción
-extra, un router y una vista de estadísticas.
+A tasks API with DRF: a serializer with validation, a viewset with a filter and an extra
+action, a router and a stats view.
 
-**Para profundizar:** [DRF Tutorial](https://www.django-rest-framework.org/tutorial/quickstart/),
+**Further reading:** [DRF Tutorial](https://www.django-rest-framework.org/tutorial/quickstart/),
 [Serializers](https://www.django-rest-framework.org/api-guide/serializers/),
 [ViewSets](https://www.django-rest-framework.org/api-guide/viewsets/).
