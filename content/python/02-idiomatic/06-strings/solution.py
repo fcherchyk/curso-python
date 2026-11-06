@@ -1,31 +1,31 @@
 import re
 from urllib.parse import urlencode
 
-# Intercambia separadores: formato inglés -> argentino.
-_A_FORMATO_AR = str.maketrans({",": ".", ".": ","})
+# Swaps separators: US/English format -> Argentine format.
+_TO_AR_FORMAT = str.maketrans({",": ".", ".": ","})
 
 
-def formatear_pesos(monto: float) -> str:
-    return "$ " + f"{monto:,.2f}".translate(_A_FORMATO_AR)
+def format_pesos(amount: float) -> str:
+    return "$ " + f"{amount:,.2f}".translate(_TO_AR_FORMAT)
 
 
-def slug(titulo: str) -> str:
-    return "-".join(re.findall(r"\w+", titulo.lower()))
+def slug(title: str) -> str:
+    return "-".join(re.findall(r"\w+", title.lower()))
 
 
-def parsear_opciones(texto: str) -> dict[str, str]:
-    opciones = {}
-    for segmento in texto.split(";"):
-        if not segmento.strip():
+def parse_options(text: str) -> dict[str, str]:
+    options = {}
+    for segment in text.split(";"):
+        if not segment.strip():
             continue
-        clave, _, valor = segmento.partition("=")
-        opciones[clave.strip()] = valor.strip()
-    return opciones
+        key, _, value = segment.partition("=")
+        options[key.strip()] = value.strip()
+    return options
 
 
-def construir_url(host: str, *segmentos: str, https: bool = True, **query: str | int) -> str:
-    esquema = "https" if https else "http"
-    url = f"{esquema}://{host}/" + "/".join(segmentos)
+def build_url(host: str, *segments: str, https: bool = True, **query: str | int) -> str:
+    scheme = "https" if https else "http"
+    url = f"{scheme}://{host}/" + "/".join(segments)
     if query:
         url += "?" + urlencode(query)
     return url

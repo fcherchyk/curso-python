@@ -1,39 +1,39 @@
 [[questions]]
-text = "¿Qué devuelve `list(zip([1, 2, 3], \"ab\"))`?"
+text = "What does `list(zip([1, 2, 3], \"ab\"))` return?"
 options = [
   "`[(1, 'a'), (2, 'b'), (3, None)]`",
   "`[(1, 'a'), (2, 'b')]`",
-  "Levanta `ValueError`",
+  "Raises `ValueError`",
   "`[(1, 2, 3), ('a', 'b')]`",
 ]
 correct = 1
-explanation = "Sin `strict`, `zip` corta en la secuencia más corta sin avisar. Con `strict=True` levantaría `ValueError`."
+explanation = "Without `strict`, `zip` stops at the shortest sequence without warning. With `strict=True` it would raise `ValueError`."
 
 [[questions]]
-text = "¿Qué imprime `for i, x in enumerate(\"ab\", start=1): print(i, x)`?"
-options = ["`0 a` y `1 b`", "`1 a` y `2 b`", "`1 b`", "`a 1` y `b 2`"]
+text = "What does `for i, x in enumerate(\"ab\", start=1): print(i, x)` print?"
+options = ["`0 a` and `1 b`", "`1 a` and `2 b`", "`1 b`", "`a 1` and `b 2`"]
 correct = 1
-explanation = "`start` cambia desde qué número empieza a contar. No saltea elementos."
+explanation = "`start` changes the number counting starts from. It doesn't skip elements."
 
 [[questions]]
-text = "¿Cuánto vale `all([])`?"
-options = ["`False`", "`True`", "`None`", "Levanta `ValueError`"]
+text = "What is the value of `all([])`?"
+options = ["`False`", "`True`", "`None`", "Raises `ValueError`"]
 correct = 1
-explanation = "En una colección vacía no hay ningún elemento que sea falso, así que `all` devuelve `True`. En cambio, `any([])` devuelve `False`."
+explanation = "An empty collection has no falsy element, so `all` returns `True`. On the other hand, `any([])` returns `False`."
 
 [[questions]]
-text = "Tenés `pares = [(\"a\", 1), (\"b\", 2)]`. ¿Qué expresión devuelve `('a', 'b')` y `(1, 2)`?"
-options = ["`zip(pares)`", "`zip(*pares)`", "`dict(pares)`", "`enumerate(pares)`"]
+text = "You have `pairs = [(\"a\", 1), (\"b\", 2)]`. Which expression gives you `('a', 'b')` and `(1, 2)`?"
+options = ["`zip(pairs)`", "`zip(*pairs)`", "`dict(pairs)`", "`enumerate(pairs)`"]
 correct = 1
-explanation = "`zip(*pares)` pasa cada par como un argumento separado y `zip` los agrupa por posición: es la operación inversa de `zip`."
+explanation = "`zip(*pairs)` passes each pair as a separate argument and `zip` groups them by position: it's the inverse of `zip`."
 
 [[questions]]
-text = "¿Por qué `pairwise(xs)` es preferible a `zip(xs, xs[1:])`?"
+text = "Why is `pairwise(xs)` preferable to `zip(xs, xs[1:])`?"
 options = [
-  "Porque devuelve listas en lugar de tuplas",
-  "Porque funciona con cualquier iterable (incluidos generadores) y no copia la secuencia",
-  "Porque incluye el último elemento emparejado con `None`",
-  "Porque es la única forma que respeta el orden",
+  "Because it returns lists instead of tuples",
+  "Because it works with any iterable (generators included) and doesn't copy the sequence",
+  "Because it includes the last element paired with `None`",
+  "Because it's the only form that preserves order",
 ]
 correct = 1
-explanation = "`xs[1:]` necesita una secuencia que se pueda recortar y además crea una copia. `pairwise` trabaja sobre cualquier iterable de forma perezosa."
+explanation = "`xs[1:]` needs a sequence that can be sliced, and it also creates a copy. `pairwise` works lazily on any iterable."

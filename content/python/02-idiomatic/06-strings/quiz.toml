@@ -1,39 +1,39 @@
 [[questions]]
-text = "¿Qué devuelve `\"https://sitio.com\".strip(\"https://\")`?"
-options = ["`'sitio.com'`", "`'itio.com'`", "`'https://sitio.com'`", "Levanta `ValueError`"]
+text = "What does `\"https://site.com\".strip(\"https://\")` return?"
+options = ["`'site.com'`", "`'ite.com'`", "`'https://site.com'`", "Raises `ValueError`"]
 correct = 1
-explanation = "`strip` saca **caracteres** del conjunto `{h, t, p, s, :, /}` de los extremos, no un prefijo. También se come la `s` de `sitio`. Para un prefijo, usá `removeprefix`."
+explanation = "`strip` removes **characters** in the set `{h, t, p, s, :, /}` from both ends, not a prefix. It also eats the `s` in `site`. For a prefix, use `removeprefix`."
 
 [[questions]]
-text = "¿Cómo se formatea `1234.5` como `'1,234.50'`?"
+text = "How do you format `1234.5` as `'1,234.50'`?"
 options = ["`f\"{x:.2}\"`", "`f\"{x:,.2f}\"`", "`f\"{x:2f,}\"`", "`f\"{x:.2f,}\"`"]
 correct = 1
-explanation = "En la especificación va primero el separador de miles (`,`) y después la precisión con el tipo (`.2f`)."
+explanation = "In the spec, the thousands separator (`,`) comes first, followed by the precision and type (`.2f`)."
 
 [[questions]]
-text = "¿Qué devuelve `\"sin-igual\".partition(\"=\")`?"
+text = "What does `\"no-equals\".partition(\"=\")` return?"
 options = [
-  "Levanta `ValueError`",
-  "`['sin-igual']`",
-  "`('sin-igual', '', '')`",
-  "`('', '', 'sin-igual')`",
+  "Raises `ValueError`",
+  "`['no-equals']`",
+  "`('no-equals', '', '')`",
+  "`('', '', 'no-equals')`",
 ]
 correct = 2
-explanation = "`partition` siempre devuelve 3 elementos. Si no encuentra el separador, lo que no existe queda como string vacío. Por eso el desempaquetado nunca falla."
+explanation = "`partition` always returns 3 elements. If the separator isn't found, the missing parts are empty strings. That's why unpacking it never fails."
 
 [[questions]]
-text = "¿Por qué conviene `\"\".join(partes)` en lugar de `s += parte` dentro de un bucle?"
+text = "Why is `\"\".join(parts)` better than `s += part` inside a loop?"
 options = [
-  "Porque `+=` no funciona con strings",
-  "Porque los strings son inmutables y cada `+=` puede copiar todo: el costo pasa a ser cuadrático",
-  "Porque `join` ordena las partes",
-  "No hay diferencia: CPython siempre lo optimiza",
+  "Because `+=` doesn't work with strings",
+  "Because strings are immutable and each `+=` may copy everything: the cost becomes quadratic",
+  "Because `join` sorts the parts",
+  "There's no difference: CPython always optimizes it",
 ]
 correct = 1
-explanation = "Como un `str` no se puede modificar, cada concatenación puede crear un string nuevo con todo lo anterior. `join` calcula el tamaño total y copia cada parte una sola vez."
+explanation = "Since a `str` can't be modified, each concatenation may create a new string with everything before it. `join` computes the total size and copies each part only once."
 
 [[questions]]
-text = "¿Qué imprime `x = 42; print(f\"{x=}\")`?"
+text = "What does `x = 42; print(f\"{x=}\")` print?"
 options = ["`42`", "`x=42`", "`{x=}`", "`x = 42`"]
 correct = 1
-explanation = "El especificador `=` (3.8+) imprime la expresión y su valor, lo que es muy práctico para depurar. Con espacios, `{x = }`, se respetan los espacios."
+explanation = "The `=` specifier (3.8+) prints the expression and its value, which is very handy for debugging. With spaces, `{x = }`, the spaces are preserved."

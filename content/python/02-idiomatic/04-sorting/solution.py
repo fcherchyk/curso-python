@@ -1,23 +1,23 @@
 from operator import itemgetter
 
 
-def ordenar_personas(personas: list[dict[str, str | int]]) -> list[str]:
-    ordenadas = sorted(personas, key=lambda p: (-int(p["edad"]), str(p["nombre"])))
-    return [str(p["nombre"]) for p in ordenadas]
+def sort_people(people: list[dict[str, str | int]]) -> list[str]:
+    ordered = sorted(people, key=lambda p: (-int(p["age"]), str(p["name"])))
+    return [str(p["name"]) for p in ordered]
 
 
-def mas_caro(productos: list[dict[str, str | float]]) -> str | None:
-    if not productos:
+def most_expensive(products: list[dict[str, str | float]]) -> str | None:
+    if not products:
         return None
-    # max devuelve el primero entre los empatados.
-    return str(max(productos, key=itemgetter("precio"))["nombre"])
+    # max returns the first one among the tied elements.
+    return str(max(products, key=itemgetter("price"))["name"])
 
 
-def ordenar_sin_mayusculas(palabras: list[str]) -> list[str]:
-    return sorted(palabras, key=str.lower)
+def sort_case_insensitive(words: list[str]) -> list[str]:
+    return sorted(words, key=str.lower)
 
 
-def ordenar_por(filas: list[dict[str, str]], *campos: str) -> list[dict[str, str]]:
-    if not campos:
-        return list(filas)
-    return sorted(filas, key=itemgetter(*campos))
+def sort_by(rows: list[dict[str, str]], *fields: str) -> list[dict[str, str]]:
+    if not fields:
+        return list(rows)
+    return sorted(rows, key=itemgetter(*fields))

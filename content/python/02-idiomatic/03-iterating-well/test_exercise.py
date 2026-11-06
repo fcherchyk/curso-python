@@ -1,32 +1,32 @@
 import pytest
-from exercise import diferencias, emparejar, indices_de, numerar_lineas
+from exercise import differences, indices_of, number_lines, pair_up
 
 
-def test_indices_de():
-    assert indices_de(["a", "b", "a", "c", "a"], "a") == [0, 2, 4]
-    assert indices_de(["a"], "z") == []
+def test_indices_of():
+    assert indices_of(["a", "b", "a", "c", "a"], "a") == [0, 2, 4]
+    assert indices_of(["a"], "z") == []
 
 
-def test_emparejar():
-    assert emparejar(["ana", "beto"], [9.5, 7]) == {"ana": 9.5, "beto": 7}
+def test_pair_up():
+    assert pair_up(["alice", "bob"], [9.5, 7]) == {"alice": 9.5, "bob": 7}
 
 
-def test_emparejar_largos_distintos():
+def test_pair_up_different_lengths():
     with pytest.raises(ValueError):
-        emparejar(["ana"], [1, 2])
+        pair_up(["alice"], [1, 2])
     with pytest.raises(ValueError):
-        emparejar(["ana", "beto"], [1])
+        pair_up(["alice", "bob"], [1])
 
 
-def test_diferencias():
-    assert diferencias([18, 21, 19, 25]) == [3, -2, 6]
-    assert diferencias([5]) == []
-    assert diferencias([]) == []
+def test_differences():
+    assert differences([18, 21, 19, 25]) == [3, -2, 6]
+    assert differences([5]) == []
+    assert differences([]) == []
 
 
-def test_numerar_lineas():
-    assert numerar_lineas(["hola", "chau"]) == ["  1 | hola", "  2 | chau"]
+def test_number_lines():
+    assert number_lines(["hello", "bye"]) == ["  1 | hello", "  2 | bye"]
 
 
-def test_numerar_lineas_con_inicio():
-    assert numerar_lineas(["x", "y"], inicio=99) == [" 99 | x", "100 | y"]
+def test_number_lines_with_start():
+    assert number_lines(["x", "y"], start=99) == [" 99 | x", "100 | y"]

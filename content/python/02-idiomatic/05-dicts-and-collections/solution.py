@@ -2,25 +2,25 @@ import re
 from collections import Counter, defaultdict
 
 
-def agrupar_por_inicial(palabras: list[str]) -> dict[str, list[str]]:
-    grupos: defaultdict[str, list[str]] = defaultdict(list)
-    for p in palabras:
-        if p:
-            grupos[p[0].lower()].append(p)
-    return dict(grupos)
+def group_by_initial(words: list[str]) -> dict[str, list[str]]:
+    groups: defaultdict[str, list[str]] = defaultdict(list)
+    for w in words:
+        if w:
+            groups[w[0].lower()].append(w)
+    return dict(groups)
 
 
-def top_palabras(texto: str, n: int) -> list[tuple[str, int]]:
-    return Counter(re.findall(r"\w+", texto.lower())).most_common(n)
+def top_words(text: str, n: int) -> list[tuple[str, int]]:
+    return Counter(re.findall(r"\w+", text.lower())).most_common(n)
 
 
-def invertir_agrupando(d: dict[str, int]) -> dict[int, list[str]]:
-    inverso: defaultdict[int, list[str]] = defaultdict(list)
-    for clave, valor in d.items():
-        inverso[valor].append(clave)
-    return dict(inverso)
+def invert_grouping(d: dict[str, int]) -> dict[int, list[str]]:
+    inverse: defaultdict[int, list[str]] = defaultdict(list)
+    for key, value in d.items():
+        inverse[value].append(key)
+    return dict(inverse)
 
 
-def puede_formar(palabra: str, letras: str) -> bool:
-    # Lo que falta (descontando lo disponible) tiene que estar vacío.
-    return not (Counter(palabra) - Counter(letras))
+def can_form(word: str, letters: str) -> bool:
+    # What's missing (after subtracting what's available) must be empty.
+    return not (Counter(word) - Counter(letters))

@@ -1,29 +1,29 @@
-def primero_y_resto(seq: list[int]) -> tuple[int, list[int]]:
+def first_and_rest(seq: list[int]) -> tuple[int, list[int]]:
     if not seq:
-        raise ValueError("secuencia vacía")
-    primero, *resto = seq
-    return primero, resto
+        raise ValueError("empty sequence")
+    first, *rest = seq
+    return first, rest
 
 
-def extremos(seq: list[int]) -> tuple[int, int]:
+def ends(seq: list[int]) -> tuple[int, int]:
     if not seq:
-        raise ValueError("secuencia vacía")
-    # Con un solo elemento, los dos patrones toman ese mismo valor.
-    primero, *_ = seq
-    *_, ultimo = seq
-    return primero, ultimo
+        raise ValueError("empty sequence")
+    # With a single element, both patterns take that same value.
+    first, *_ = seq
+    *_, last = seq
+    return first, last
 
 
-def sumar_puntos(puntos: list[tuple[int, int]]) -> tuple[int, int]:
+def sum_points(points: list[tuple[int, int]]) -> tuple[int, int]:
     sx = sy = 0
-    for x, y in puntos:
+    for x, y in points:
         sx += x
         sy += y
     return sx, sy
 
 
-def fusionar_config(base: dict[str, object], *overrides: dict[str, object]) -> dict[str, object]:
-    resultado = dict(base)
+def merge_config(base: dict[str, object], *overrides: dict[str, object]) -> dict[str, object]:
+    result = dict(base)
     for o in overrides:
-        resultado |= o
-    return resultado
+        result |= o
+    return result

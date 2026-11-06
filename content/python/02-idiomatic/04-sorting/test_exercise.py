@@ -1,55 +1,55 @@
-from exercise import mas_caro, ordenar_personas, ordenar_por, ordenar_sin_mayusculas
+from exercise import most_expensive, sort_by, sort_case_insensitive, sort_people
 
 
-def test_ordenar_personas():
-    personas = [
-        {"nombre": "Zoe", "edad": 30},
-        {"nombre": "Ana", "edad": 25},
-        {"nombre": "Beto", "edad": 30},
+def test_sort_people():
+    people = [
+        {"name": "Zoe", "age": 30},
+        {"name": "Alice", "age": 25},
+        {"name": "Bob", "age": 30},
     ]
-    assert ordenar_personas(personas) == ["Beto", "Zoe", "Ana"]
+    assert sort_people(people) == ["Bob", "Zoe", "Alice"]
 
 
-def test_ordenar_personas_no_muta():
-    personas = [{"nombre": "B", "edad": 1}, {"nombre": "A", "edad": 2}]
-    ordenar_personas(personas)
-    assert personas[0]["nombre"] == "B"
+def test_sort_people_does_not_mutate():
+    people = [{"name": "B", "age": 1}, {"name": "A", "age": 2}]
+    sort_people(people)
+    assert people[0]["name"] == "B"
 
 
-def test_mas_caro():
-    productos = [
-        {"nombre": "pan", "precio": 1.2},
-        {"nombre": "café", "precio": 9.8},
-        {"nombre": "té", "precio": 9.8},
+def test_most_expensive():
+    products = [
+        {"name": "bread", "price": 1.2},
+        {"name": "coffee", "price": 9.8},
+        {"name": "tea", "price": 9.8},
     ]
-    assert mas_caro(productos) == "café"
+    assert most_expensive(products) == "coffee"
 
 
-def test_mas_caro_vacio():
-    assert mas_caro([]) is None
+def test_most_expensive_empty():
+    assert most_expensive([]) is None
 
 
-def test_ordenar_sin_mayusculas():
-    assert ordenar_sin_mayusculas(["banana", "Ana", "Cereza", "ana"]) == [
-        "Ana",
-        "ana",
+def test_sort_case_insensitive():
+    assert sort_case_insensitive(["banana", "Apple", "Cherry", "apple"]) == [
+        "Apple",
+        "apple",
         "banana",
-        "Cereza",
+        "Cherry",
     ]
 
 
-def test_ordenar_por_varios_campos():
-    filas = [
-        {"pais": "UY", "ciudad": "Salto"},
-        {"pais": "AR", "ciudad": "Rosario"},
-        {"pais": "AR", "ciudad": "Córdoba"},
+def test_sort_by_several_fields():
+    rows = [
+        {"country": "US", "city": "Seattle"},
+        {"country": "CA", "city": "Toronto"},
+        {"country": "CA", "city": "Calgary"},
     ]
-    res = ordenar_por(filas, "pais", "ciudad")
-    assert [f["ciudad"] for f in res] == ["Córdoba", "Rosario", "Salto"]
+    res = sort_by(rows, "country", "city")
+    assert [r["city"] for r in res] == ["Calgary", "Toronto", "Seattle"]
 
 
-def test_ordenar_por_sin_campos():
-    filas = [{"a": "2"}, {"a": "1"}]
-    res = ordenar_por(filas)
-    assert res == filas
-    assert res is not filas
+def test_sort_by_without_fields():
+    rows = [{"a": "2"}, {"a": "1"}]
+    res = sort_by(rows)
+    assert res == rows
+    assert res is not rows

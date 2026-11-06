@@ -1,48 +1,48 @@
-"""Desempaquetado.
+"""Unpacking.
 
-Resolvé cada función sin usar índices (`xs[0]`, `xs[-1]`, `xs[1:]`).
+Solve each function without indexing (`xs[0]`, `xs[-1]`, `xs[1:]`).
 """
 
 
-def primero_y_resto(seq: list[int]) -> tuple[int, list[int]]:
-    """Devolvé (primer elemento, lista con el resto).
+def first_and_rest(seq: list[int]) -> tuple[int, list[int]]:
+    """Return (first element, list with the rest).
 
-    Si la secuencia está vacía, levantá ValueError.
+    If the sequence is empty, raise ValueError.
 
-    >>> primero_y_resto([1, 2, 3])
+    >>> first_and_rest([1, 2, 3])
     (1, [2, 3])
     """
     raise NotImplementedError("TODO")
 
 
-def extremos(seq: list[int]) -> tuple[int, int]:
-    """Devolvé (primero, último). Con un solo elemento, es (x, x).
+def ends(seq: list[int]) -> tuple[int, int]:
+    """Return (first, last). With a single element, it's (x, x).
 
-    Si la secuencia está vacía, levantá ValueError.
+    If the sequence is empty, raise ValueError.
 
-    >>> extremos([4, 8, 15, 16])
+    >>> ends([4, 8, 15, 16])
     (4, 16)
     """
     raise NotImplementedError("TODO")
 
 
-def sumar_puntos(puntos: list[tuple[int, int]]) -> tuple[int, int]:
-    """Sumá una lista de puntos (x, y) componente a componente.
+def sum_points(points: list[tuple[int, int]]) -> tuple[int, int]:
+    """Add up a list of (x, y) points component-wise.
 
-    Pista: desempaquetá en el `for`.
+    Hint: unpack in the `for`.
 
-    >>> sumar_puntos([(1, 2), (3, 4), (0, -1)])
+    >>> sum_points([(1, 2), (3, 4), (0, -1)])
     (4, 5)
     """
     raise NotImplementedError("TODO")
 
 
-def fusionar_config(base: dict[str, object], *overrides: dict[str, object]) -> dict[str, object]:
-    """Fusioná diccionarios: los de la derecha pisan a los de la izquierda.
+def merge_config(base: dict[str, object], *overrides: dict[str, object]) -> dict[str, object]:
+    """Merge dictionaries: the ones on the right overwrite the ones on the left.
 
-    No modifiques `base` ni los overrides.
+    Don't modify `base` or the overrides.
 
-    >>> fusionar_config({"a": 1, "b": 2}, {"b": 3}, {"c": 4})
+    >>> merge_config({"a": 1, "b": 2}, {"b": 3}, {"c": 4})
     {'a': 1, 'b': 3, 'c': 4}
     """
     raise NotImplementedError("TODO")

@@ -1,148 +1,147 @@
-# Ordenar: sorted, key y comparaciones
+# Sorting: sorted, key and comparisons
 
-En Python casi nunca se escribe una función de comparación. Se ordena indicando **por qué
-valor** comparar cada elemento con el parámetro `key`. Esa idea alcanza para resolver desde
-"por edad" hasta "por país ascendente y fecha descendente".
+In Python you almost never write a comparison function. You sort by saying **which value**
+to compare each element by, using the `key` parameter. That one idea covers everything from
+"by age" to "by country ascending and date descending".
 
 ## `sorted` vs. `list.sort`
 
 ```python
 nums = [3, 1, 2]
 
-ordenada = sorted(nums)   # devuelve una lista NUEVA; nums no cambia
-nums.sort()               # ordena EN EL LUGAR y devuelve None
+ordered = sorted(nums)    # returns a NEW list; nums doesn't change
+nums.sort()               # sorts IN PLACE and returns None
 ```
 
-- `sorted(iterable)` acepta **cualquier iterable** (sets, claves de dict, generadores) y
-  siempre devuelve una lista.
-- `lista.sort()` solo existe en listas, no copia y devuelve `None`.
+- `sorted(iterable)` accepts **any iterable** (sets, dict keys, generators) and always
+  returns a list.
+- `items.sort()` only exists on lists, doesn't copy and returns `None`.
 
-Un error clásico es `nums = nums.sort()`, que deja `nums` en `None`. La convención de la
-stdlib es que los métodos que mutan un objeto devuelven `None`, justamente para que no se
-confundan con los que devuelven un valor nuevo.
+A classic mistake is `nums = nums.sort()`, which leaves `nums` as `None`. The stdlib
+convention is that methods that mutate an object return `None`, precisely so they aren't
+confused with the ones that return a new value.
 
-Los dos aceptan los mismos parámetros: `key` y `reverse`.
+Both accept the same parameters: `key` and `reverse`.
 
-## `key`: ordenar por una proyección
+## `key`: sorting by a projection
 
-`key` recibe una función que se aplica **una vez por elemento**. Se ordena según el valor
-que devuelve:
+`key` takes a function that is applied **once per element**. Sorting follows the value it
+returns:
 
 ```python
-palabras = ["banana", "Ana", "cereza", "ábaco"]
+words = ["banana", "Fig", "cherry", "éclair"]
 
-sorted(palabras)                     # ['Ana', 'banana', 'cereza', 'ábaco']  (por código Unicode)
-sorted(palabras, key=str.lower)      # ['Ana', 'banana', 'cereza', 'ábaco']
-sorted(palabras, key=len)            # ['Ana', 'ábaco', 'banana', 'cereza']
+sorted(words)                        # ['Fig', 'banana', 'cherry', 'éclair']  (by Unicode code point)
+sorted(words, key=str.lower)         # ['banana', 'cherry', 'Fig', 'éclair']
+sorted(words, key=len)               # ['Fig', 'banana', 'cherry', 'éclair']
 
-personas = [{"nombre": "Zoe", "edad": 30}, {"nombre": "Ana", "edad": 25}]
-sorted(personas, key=lambda p: p["edad"])
+people = [{"name": "Zoe", "age": 30}, {"name": "Alice", "age": 25}]
+sorted(people, key=lambda p: p["age"])
 ```
 
-> Para ordenar texto en español "como en un diccionario" (con `á` junto a la `a`) hace falta
-> `locale.strxfrm` o una librería como PyICU. `str.lower` no alcanza para los acentos.
+> To sort text "like a dictionary" (with `é` next to `e`) you need `locale.strxfrm` or a
+> library like PyICU. `str.lower` isn't enough for accented letters.
 
-## Varias claves: tuplas
+## Several keys: tuples
 
-Las tuplas se comparan **elemento a elemento**: primero el primero y, si empatan, el
-segundo, y así. Eso permite ordenar por varios criterios devolviendo una tupla en `key`:
+Tuples are compared **element by element**: first the first one and, if they tie, the
+second, and so on. That lets you sort by several criteria by returning a tuple from `key`:
 
 ```python
-# Por edad y, a igual edad, por nombre
-sorted(personas, key=lambda p: (p["edad"], p["nombre"]))
+# By age and, for equal ages, by name
+sorted(people, key=lambda p: (p["age"], p["name"]))
 ```
 
-### Mezclar ascendente y descendente
+### Mixing ascending and descending
 
-`reverse=True` invierte **todo**. Si necesitás un criterio descendente y otro ascendente,
-tenés dos caminos:
+`reverse=True` reverses **everything**. If you need one criterion descending and another
+ascending, you have two options:
 
-**1. Negar la clave numérica.** Es lo más directo cuando la clave descendente es un número:
+**1. Negate the numeric key.** This is the most direct when the descending key is a number:
 
 ```python
-# Edad descendente, nombre ascendente
-sorted(personas, key=lambda p: (-p["edad"], p["nombre"]))
+# Age descending, name ascending
+sorted(people, key=lambda p: (-p["age"], p["name"]))
 ```
 
-**2. Ordenar en varias pasadas, aprovechando la estabilidad.** El sort de Python es
-**estable**: si dos elementos empatan en la clave, conservan el orden relativo que traían.
-Por eso se puede ordenar primero por el criterio *menos* importante y después por el *más*
-importante:
+**2. Sort in several passes, taking advantage of stability.** Python's sort is **stable**:
+if two elements tie on the key, they keep the relative order they came in with. So you can
+sort first by the *least* important criterion and then by the *most* important one:
 
 ```python
-res = sorted(personas, key=lambda p: p["nombre"])            # criterio secundario
-res = sorted(res, key=lambda p: p["edad"], reverse=True)     # criterio principal
+res = sorted(people, key=lambda p: p["name"])                # secondary criterion
+res = sorted(res, key=lambda p: p["age"], reverse=True)      # primary criterion
 ```
 
-Esta segunda forma sirve también para claves que no se pueden negar, como strings.
+This second approach also works for keys that can't be negated, like strings.
 
-## `operator.itemgetter` y `attrgetter`
+## `operator.itemgetter` and `attrgetter`
 
-Para los casos típicos de "ordenar por un campo", el módulo `operator` tiene funciones ya
-hechas que además son un poco más rápidas que una lambda:
+For the typical "sort by a field" cases, the `operator` module has ready-made functions that
+are also a bit faster than a lambda:
 
 ```python
 from operator import attrgetter, itemgetter
 
-sorted(filas, key=itemgetter("pais"))              # == lambda f: f["pais"]
-sorted(filas, key=itemgetter("pais", "ciudad"))    # devuelve una tupla: varias claves
-sorted(tuplas, key=itemgetter(1))                  # por el segundo elemento
-sorted(usuarios, key=attrgetter("apellido", "nombre"))
+sorted(rows, key=itemgetter("country"))            # == lambda r: r["country"]
+sorted(rows, key=itemgetter("country", "city"))    # returns a tuple: several keys
+sorted(tuples, key=itemgetter(1))                  # by the second element
+sorted(users, key=attrgetter("last_name", "first_name"))
 ```
 
-## `min`, `max` y `heapq` también aceptan `key`
+## `min`, `max` and `heapq` take `key` too
 
-No hace falta ordenar todo para encontrar un extremo:
+You don't need to sort everything to find an extreme:
 
 ```python
-max(productos, key=lambda p: p["precio"])          # el más caro: O(n)
-min(palabras, key=len)                             # la más corta
-max([], default=None)                              # evita ValueError con vacíos
+max(products, key=lambda p: p["price"])            # the most expensive: O(n)
+min(words, key=len)                                # the shortest
+max([], default=None)                              # avoids ValueError on empty input
 
 import heapq
-heapq.nlargest(3, productos, key=lambda p: p["precio"])   # top 3 sin ordenar todo
+heapq.nlargest(3, products, key=lambda p: p["price"])     # top 3 without sorting everything
 ```
 
-Ordenar cuesta O(n log n). Si solo querés el máximo, `max` es O(n), y para "los k mayores"
-con k chico, `heapq.nlargest` es más eficiente.
+Sorting costs O(n log n). If you only want the maximum, `max` is O(n), and for "the k
+largest" with a small k, `heapq.nlargest` is more efficient.
 
-## Ordenar dicts
+## Sorting dicts
 
-Un dict no tiene un método para ordenarse, pero se puede construir uno nuevo con el orden
-que quieras, porque los dicts conservan el orden de inserción:
+A dict has no method to sort itself, but you can build a new one in whatever order you want,
+because dicts keep insertion order:
 
 ```python
-stock = {"pera": 3, "manzana": 10, "uva": 7}
+stock = {"pear": 3, "apple": 10, "grape": 7}
 
-dict(sorted(stock.items()))                           # por clave
-dict(sorted(stock.items(), key=itemgetter(1)))        # por valor
-sorted(stock, key=stock.get, reverse=True)            # claves por valor desc: ['manzana', 'uva', 'pera']
+dict(sorted(stock.items()))                           # by key
+dict(sorted(stock.items(), key=itemgetter(1)))        # by value
+sorted(stock, key=stock.get, reverse=True)            # keys by value desc: ['apple', 'grape', 'pear']
 ```
 
-## Trampas comunes
+## Common pitfalls
 
-- `lista = lista.sort()` deja la lista en `None`.
-- Mezclar tipos incomparables: `sorted([1, "2"])` levanta `TypeError` en Python 3.
-- `None` en los datos: `sorted([3, None])` falla. Una solución es
-  `key=lambda x: (x is None, x or 0)` para mandar los `None` al final.
-- Ordenar strings con números: `sorted(["10", "9"])` da `['10', '9']`. Si son números,
-  convertilos en la clave: `key=int`.
+- `items = items.sort()` leaves the list as `None`.
+- Mixing incomparable types: `sorted([1, "2"])` raises `TypeError` in Python 3.
+- `None` in the data: `sorted([3, None])` fails. One fix is
+  `key=lambda x: (x is None, x or 0)` to send the `None` values to the end.
+- Sorting strings that hold numbers: `sorted(["10", "9"])` gives `['10', '9']`. If they're
+  numbers, convert them in the key: `key=int`.
 
-## Resumen
+## Summary
 
-| Querés…                                  | Usá                                           |
+| You want…                                | Use                                           |
 |------------------------------------------|-----------------------------------------------|
-| una copia ordenada                       | `sorted(xs)`                                  |
-| ordenar en el lugar                      | `xs.sort()`                                   |
-| por un campo                             | `key=itemgetter("campo")` / `attrgetter`      |
-| por varios campos                        | `key=lambda x: (x.a, x.b)`                    |
-| un criterio desc y otro asc              | negar el numérico, o dos pasadas estables     |
-| solo el máximo o el mínimo               | `max(xs, key=...)`, `min(...)`                |
-| los k mayores                            | `heapq.nlargest(k, xs, key=...)`              |
+| a sorted copy                            | `sorted(xs)`                                  |
+| to sort in place                         | `xs.sort()`                                   |
+| to sort by one field                     | `key=itemgetter("field")` / `attrgetter`      |
+| to sort by several fields                | `key=lambda x: (x.a, x.b)`                    |
+| one criterion desc and another asc       | negate the numeric one, or two stable passes  |
+| only the maximum or minimum              | `max(xs, key=...)`, `min(...)`                |
+| the k largest                            | `heapq.nlargest(k, xs, key=...)`              |
 
-## Ejercicio
+## Exercise
 
-Cuatro funciones de ordenamiento: con claves compuestas, `max` con `key` e `itemgetter`.
+Four sorting functions: with compound keys, `max` with `key`, and `itemgetter`.
 
-**Para profundizar:** [Sorting HOW TO](https://docs.python.org/3/howto/sorting.html) (en la
-documentación oficial, muy recomendable).
+**Further reading:** [Sorting HOW TO](https://docs.python.org/3/howto/sorting.html) (in the
+official documentation, highly recommended).

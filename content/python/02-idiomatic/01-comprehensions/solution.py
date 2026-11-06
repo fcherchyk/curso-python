@@ -1,15 +1,15 @@
-def pares_al_cuadrado(nums: list[int]) -> list[int]:
+def squares_of_evens(nums: list[int]) -> list[int]:
     return [n * n for n in nums if n % 2 == 0]
 
 
-def aplanar(matriz: list[list[int]]) -> list[int]:
-    return [x for fila in matriz for x in fila]
+def flatten(matrix: list[list[int]]) -> list[int]:
+    return [x for row in matrix for x in row]
 
 
-def invertir_dict(d: dict[str, int]) -> dict[int, str]:
+def invert_dict(d: dict[str, int]) -> dict[int, str]:
     return {v: k for k, v in d.items()}
 
 
-def dominios(emails: list[str]) -> set[str]:
-    # partition no falla si no hay "@": devuelve el separador vacío.
+def domains(emails: list[str]) -> set[str]:
+    # partition doesn't fail when there is no "@": it returns an empty separator.
     return {e.partition("@")[2].lower() for e in emails if "@" in e}

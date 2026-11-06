@@ -1,46 +1,46 @@
-"""Iterar bien.
+"""Iterating well.
 
-Prohibido `range(len(...))`: usá enumerate, zip y pairwise.
+No `range(len(...))` allowed: use enumerate, zip and pairwise.
 """
 
 
-def indices_de(seq: list[str], valor: str) -> list[int]:
-    """Índices donde aparece `valor`.
+def indices_of(seq: list[str], value: str) -> list[int]:
+    """Indices where `value` appears.
 
-    >>> indices_de(["a", "b", "a"], "a")
+    >>> indices_of(["a", "b", "a"], "a")
     [0, 2]
     """
     raise NotImplementedError("TODO")
 
 
-def emparejar(nombres: list[str], notas: list[float]) -> dict[str, float]:
-    """Armá un dict nombre -> nota.
+def pair_up(names: list[str], grades: list[float]) -> dict[str, float]:
+    """Build a name -> grade dict.
 
-    Si las listas tienen distinto largo, tiene que levantar ValueError.
+    If the lists have different lengths, it must raise ValueError.
 
-    >>> emparejar(["ana", "beto"], [9.5, 7])
-    {'ana': 9.5, 'beto': 7}
+    >>> pair_up(["alice", "bob"], [9.5, 7])
+    {'alice': 9.5, 'bob': 7}
     """
     raise NotImplementedError("TODO")
 
 
-def diferencias(nums: list[int]) -> list[int]:
-    """Diferencia entre cada elemento y el anterior.
+def differences(nums: list[int]) -> list[int]:
+    """Difference between each element and the previous one.
 
-    >>> diferencias([18, 21, 19, 25])
+    >>> differences([18, 21, 19, 25])
     [3, -2, 6]
-    >>> diferencias([5])
+    >>> differences([5])
     []
     """
     raise NotImplementedError("TODO")
 
 
-def numerar_lineas(lineas: list[str], inicio: int = 1) -> list[str]:
-    """Anteponé a cada línea su número, alineado a la derecha en 3 caracteres, y ` | `.
+def number_lines(lines: list[str], start: int = 1) -> list[str]:
+    """Prefix each line with its number, right-aligned in 3 characters, and ` | `.
 
-    >>> numerar_lineas(["hola", "chau"])
-    ['  1 | hola', '  2 | chau']
-    >>> numerar_lineas(["x"], inicio=10)
+    >>> number_lines(["hello", "bye"])
+    ['  1 | hello', '  2 | bye']
+    >>> number_lines(["x"], start=10)
     [' 10 | x']
     """
     raise NotImplementedError("TODO")

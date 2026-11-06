@@ -1,33 +1,33 @@
 [[questions]]
-text = "Con `d = defaultdict(list)` vacío, ¿qué pasa después de evaluar `if d[\"x\"]: ...`?"
+text = "With an empty `d = defaultdict(list)`, what happens after evaluating `if d[\"x\"]: ...`?"
 options = [
-  "Levanta `KeyError`",
-  "No pasa nada: `d` sigue vacío",
-  "`d` pasa a tener la clave `\"x\"` con `[]`",
-  "`d[\"x\"]` vale `None`",
+  "Raises `KeyError`",
+  "Nothing: `d` is still empty",
+  "`d` now has the key `\"x\"` with `[]`",
+  "`d[\"x\"]` is `None`",
 ]
 correct = 2
-explanation = "Acceder con `[]` a una clave inexistente de un `defaultdict` llama a la fábrica e **inserta** la clave. Para consultar sin modificar, usá `in` o `.get()`."
+explanation = "Accessing a missing key of a `defaultdict` with `[]` calls the factory and **inserts** the key. To check without modifying, use `in` or `.get()`."
 
 [[questions]]
-text = "¿Qué devuelve `Counter(\"hola\")[\"z\"]`?"
-options = ["`None`", "`0`", "Levanta `KeyError`", "`Counter()`"]
+text = "What does `Counter(\"hello\")[\"z\"]` return?"
+options = ["`None`", "`0`", "Raises `KeyError`", "`Counter()`"]
 correct = 1
-explanation = "Un `Counter` devuelve 0 para los elementos ausentes y, a diferencia de `defaultdict`, no los inserta."
+explanation = "A `Counter` returns 0 for missing elements and, unlike `defaultdict`, doesn't insert them."
 
 [[questions]]
-text = "¿Cuál es el problema de `dict.fromkeys([\"a\", \"b\"], [])`?"
+text = "What's the problem with `dict.fromkeys([\"a\", \"b\"], [])`?"
 options = [
-  "Levanta `TypeError` porque las listas no son hashables",
-  "Las dos claves comparten la **misma** lista",
-  "Crea las claves en orden inverso",
-  "Ninguno: es la forma recomendada",
+  "Raises `TypeError` because lists aren't hashable",
+  "Both keys share the **same** list",
+  "It creates the keys in reverse order",
+  "None: it's the recommended way",
 ]
 correct = 1
-explanation = "`fromkeys` usa el mismo objeto como valor de todas las claves. Si agregás algo en `d[\"a\"]`, también aparece en `d[\"b\"]`. Usá `{k: [] for k in claves}`."
+explanation = "`fromkeys` uses the same object as the value for every key. If you append to `d[\"a\"]`, it also shows up in `d[\"b\"]`. Use `{k: [] for k in keys}`."
 
 [[questions]]
-text = "Con `stock = Counter(a=2)` y `pedido = Counter(a=3, b=1)`, ¿qué es `pedido - stock`?"
+text = "With `stock = Counter(a=2)` and `order = Counter(a=3, b=1)`, what is `order - stock`?"
 options = [
   "`Counter({'a': 1, 'b': 1})`",
   "`Counter({'a': -1})`",
@@ -35,15 +35,15 @@ options = [
   "`Counter({'a': 1, 'b': 1, 'c': 0})`",
 ]
 correct = 0
-explanation = "La resta de `Counter` descuenta cantidades y descarta los resultados <= 0. Lo que queda es lo que falta: una `a` y una `b`."
+explanation = "`Counter` subtraction deducts counts and drops results <= 0. What's left is what's missing: one `a` and one `b`."
 
 [[questions]]
-text = "¿Por qué conviene devolver `dict(grupos)` en lugar del `defaultdict` directamente?"
+text = "Why is it better to return `dict(groups)` instead of the `defaultdict` itself?"
 options = [
-  "Porque `defaultdict` no se puede serializar a JSON",
-  "Porque quien lo reciba podría crear claves sin darse cuenta al leer con `[]`",
-  "Porque `dict` es más rápido para leer",
-  "Porque `defaultdict` no conserva el orden",
+  "Because a `defaultdict` can't be serialized to JSON",
+  "Because whoever receives it could create keys by accident when reading with `[]`",
+  "Because `dict` is faster to read",
+  "Because `defaultdict` doesn't keep order",
 ]
 correct = 1
-explanation = "El comportamiento de \"crear al leer\" es útil mientras construís el resultado, pero queda como una sorpresa para quien lo usa después."
+explanation = "The \"create on read\" behavior is useful while you build the result, but it's a surprise for whoever uses it afterwards."

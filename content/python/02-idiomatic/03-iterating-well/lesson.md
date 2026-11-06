@@ -1,77 +1,77 @@
-# Iterar bien: enumerate, zip y compañía
+# Iterating well: enumerate, zip and friends
 
-El `for` de Python no es un `for (i = 0; i < n; i++)`: recorre **elementos**, no índices.
-Casi todo el código que "huele a otro lenguaje" viene de pelearse con eso y reconstruir
-índices a mano. Este capítulo presenta las herramientas que evitan hacerlo: `enumerate`,
-`zip`, `reversed`, `itertools.pairwise`, `any` y `all`.
+Python's `for` is not a `for (i = 0; i < n; i++)`: it walks **elements**, not indices.
+Almost all code that "smells like another language" comes from fighting that and rebuilding
+indices by hand. This chapter covers the tools that save you from doing so: `enumerate`,
+`zip`, `reversed`, `itertools.pairwise`, `any` and `all`.
 
-## El anti-patrón `range(len(...))`
+## The `range(len(...))` anti-pattern
 
 ```python
-# ✗ Estilo C
-for i in range(len(nombres)):
-    print(nombres[i])
+# ✗ C style
+for i in range(len(names)):
+    print(names[i])
 
 # ✓ Python
-for nombre in nombres:
-    print(nombre)
+for name in names:
+    print(name)
 ```
 
-La versión con índice tiene más ruido, deja lugar a errores de uno más o uno menos y solo
-funciona con secuencias indexables. El `for` directo funciona con **cualquier iterable**:
-archivos, generadores, sets, claves de un dict o resultados de una query.
+The indexed version is noisier, invites off-by-one errors and only works with indexable
+sequences. The direct `for` works with **any iterable**: files, generators, sets, dict keys
+or query results.
 
-## `enumerate`: cuando también necesitás el índice
+## `enumerate`: when you also need the index
 
 ```python
-for i, nombre in enumerate(nombres):
-    print(i, nombre)
+for i, name in enumerate(names):
+    print(i, name)
 
-for n, linea in enumerate(archivo, start=1):   # numerar desde 1
-    print(f"{n:>4} | {linea}", end="")
+for n, line in enumerate(file, start=1):      # number from 1
+    print(f"{n:>4} | {line}", end="")
 ```
 
-`enumerate` devuelve pares `(índice, elemento)` que se desempaquetan en el `for`. El
-parámetro `start` cambia desde qué número cuenta; no saltea elementos.
+`enumerate` returns `(index, element)` pairs that get unpacked in the `for`. The `start`
+parameter changes the number it counts from; it doesn't skip elements.
 
-## `zip`: recorrer varias secuencias en paralelo
+## `zip`: walking several sequences in parallel
 
 ```python
-nombres = ["ana", "beto", "caro"]
-notas   = [9, 7, 8]
+names  = ["alice", "bob", "carol"]
+grades = [9, 7, 8]
 
-for nombre, nota in zip(nombres, notas):
-    print(nombre, nota)
+for name, grade in zip(names, grades):
+    print(name, grade)
 
-dict(zip(nombres, notas))        # {'ana': 9, 'beto': 7, 'caro': 8}
+dict(zip(names, grades))         # {'alice': 9, 'bob': 7, 'carol': 8}
 ```
 
-### El problema del largo distinto y `strict=True` (3.10+)
+### The length mismatch problem and `strict=True` (3.10+)
 
-Por defecto, `zip` **corta en la secuencia más corta sin avisar**:
+By default, `zip` **stops at the shortest sequence without warning**:
 
 ```python
-list(zip([1, 2, 3], ["a", "b"]))                 # [(1, 'a'), (2, 'b')]  <- ¡el 3 se perdió!
+list(zip([1, 2, 3], ["a", "b"]))                 # [(1, 'a'), (2, 'b')]  <- the 3 got lost!
 list(zip([1, 2, 3], ["a", "b"], strict=True))    # ValueError
 ```
 
-Esto causa bugs silenciosos cuando dos listas "deberían" tener el mismo largo y por un error
-anterior no lo tienen. **Regla práctica:** si las secuencias tienen que medir lo mismo, usá
-`strict=True`. Si querés completar la más corta con un valor por defecto, está
+This causes silent bugs when two lists "should" have the same length but don't because of an
+earlier mistake. **Rule of thumb:** if the sequences must be the same length, use
+`strict=True`. If you want to pad the shorter one with a default value, there's
 `itertools.zip_longest(a, b, fillvalue=None)`.
 
-### `zip` para "des-zipear"
+### `zip` to "unzip"
 
-`zip(*pares)` hace la operación inversa: convierte una lista de pares en dos tuplas.
+`zip(*pairs)` does the inverse operation: it turns a list of pairs into two tuples.
 
 ```python
-pares = [("ana", 9), ("beto", 7)]
-nombres, notas = zip(*pares)     # ('ana', 'beto'), (9, 7)
+pairs = [("alice", 9), ("bob", 7)]
+names, grades = zip(*pairs)      # ('alice', 'bob'), (9, 7)
 ```
 
-## Elementos consecutivos: `pairwise` (3.10+)
+## Consecutive elements: `pairwise` (3.10+)
 
-Para comparar cada elemento con el siguiente, no hacen falta índices:
+To compare each element with the next one, you don't need indices:
 
 ```python
 from itertools import pairwise
@@ -79,64 +79,62 @@ from itertools import pairwise
 temps = [18, 21, 19, 25]
 [b - a for a, b in pairwise(temps)]    # [3, -2, 6]
 
-# Antes de 3.10 (o con listas), el truco equivalente:
+# Before 3.10 (or with lists), the equivalent trick:
 [b - a for a, b in zip(temps, temps[1:])]
 ```
 
-`pairwise` funciona con cualquier iterable, incluso con generadores que no se pueden
-recortar con `[1:]`.
+`pairwise` works with any iterable, even generators that can't be sliced with `[1:]`.
 
-## Recorrer al revés y ordenado
-
-```python
-for x in reversed(xs): ...        # sin copiar la lista (xs[::-1] sí copia)
-for x in sorted(xs): ...          # recorre una copia ordenada; xs no cambia
-for k in sorted(d): ...           # claves de un dict en orden
-```
-
-## `any` y `all`: preguntas sobre toda la colección
+## Iterating in reverse and in order
 
 ```python
-any(n < 0 for n in nums)          # ¿hay algún negativo?
-all(u.activo for u in usuarios)   # ¿están todos activos?
+for x in reversed(xs): ...        # without copying the list (xs[::-1] does copy)
+for x in sorted(xs): ...          # walks a sorted copy; xs doesn't change
+for k in sorted(d): ...           # a dict's keys in order
 ```
 
-Las dos **cortan en cuanto saben la respuesta**: `any` se detiene en el primer verdadero
-y `all` en el primer falso. Con un generator expression como argumento, además, no
-construyen ninguna lista intermedia.
-
-Casos borde que conviene recordar: `any([])` es `False` y `all([])` es `True`. En una
-colección vacía no hay ningún elemento que falle.
-
-## Recorrer dicts
+## `any` and `all`: questions about the whole collection
 
 ```python
-for clave in d:                   # claves (no hace falta .keys())
-for valor in d.values():
-for clave, valor in d.items():
+any(n < 0 for n in nums)          # is there any negative?
+all(u.active for u in users)      # are they all active?
 ```
 
-Una trampa: **no agregues ni borres claves de un dict mientras lo recorrés**, porque
-Python levanta `RuntimeError: dictionary changed size during iteration`. Si necesitás
-hacerlo, recorré una copia (`for k in list(d):`) o construí un dict nuevo con una
-comprehension.
+Both **stop as soon as they know the answer**: `any` stops at the first true value and
+`all` at the first false one. With a generator expression as the argument, they also don't
+build any intermediate list.
 
-## Resumen
+Edge cases worth remembering: `any([])` is `False` and `all([])` is `True`. In an empty
+collection there's no element that fails.
 
-| En vez de                                   | Usá                                     |
+## Iterating over dicts
+
+```python
+for key in d:                     # keys (no need for .keys())
+for value in d.values():
+for key, value in d.items():
+```
+
+One trap: **don't add or remove keys from a dict while you iterate over it**, because
+Python raises `RuntimeError: dictionary changed size during iteration`. If you need to,
+iterate over a copy (`for k in list(d):`) or build a new dict with a comprehension.
+
+## Summary
+
+| Instead of                                  | Use                                     |
 |---------------------------------------------|-----------------------------------------|
 | `for i in range(len(xs)): xs[i]`            | `for x in xs`                           |
-| llevar un contador a mano                   | `for i, x in enumerate(xs, start=1)`    |
-| índices para recorrer dos listas            | `for a, b in zip(xs, ys, strict=True)`  |
-| `xs[i+1] - xs[i]` con índices               | `for a, b in pairwise(xs)`              |
-| `xs[::-1]` solo para recorrer               | `reversed(xs)`                          |
-| un bucle con `flag = True` y `break`        | `any(...)` / `all(...)`                 |
+| keeping a counter by hand                   | `for i, x in enumerate(xs, start=1)`    |
+| indices to walk two lists                   | `for a, b in zip(xs, ys, strict=True)`  |
+| `xs[i+1] - xs[i]` with indices              | `for a, b in pairwise(xs)`              |
+| `xs[::-1]` just to iterate                  | `reversed(xs)`                          |
+| a loop with `flag = True` and `break`       | `any(...)` / `all(...)`                 |
 | `if len(xs) == 0`                           | `if not xs`                             |
 
-## Ejercicio
+## Exercise
 
-Cuatro funciones que se resuelven con `enumerate`, `zip` y `pairwise`, sin `range(len(...))`.
+Four functions solved with `enumerate`, `zip` and `pairwise`, without `range(len(...))`.
 
-**Para profundizar:** [Built-in functions: enumerate, zip](https://docs.python.org/3/library/functions.html#enumerate),
+**Further reading:** [Built-in functions: enumerate, zip](https://docs.python.org/3/library/functions.html#enumerate),
 [PEP 618 — zip strict](https://peps.python.org/pep-0618/),
 [itertools.pairwise](https://docs.python.org/3/library/itertools.html#itertools.pairwise).

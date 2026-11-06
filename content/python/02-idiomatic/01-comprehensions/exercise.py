@@ -1,45 +1,45 @@
 """Comprehensions.
 
-Completá cada función reemplazando el `raise NotImplementedError`.
-Todas se resuelven con una sola comprehension.
+Complete each function by replacing the `raise NotImplementedError`.
+Each one can be solved with a single comprehension.
 """
 
 
-def pares_al_cuadrado(nums: list[int]) -> list[int]:
-    """Devolvé el cuadrado de cada número par, en el mismo orden.
+def squares_of_evens(nums: list[int]) -> list[int]:
+    """Return the square of each even number, in the same order.
 
-    >>> pares_al_cuadrado([1, 2, 3, 4])
+    >>> squares_of_evens([1, 2, 3, 4])
     [4, 16]
     """
     raise NotImplementedError("TODO")
 
 
-def aplanar(matriz: list[list[int]]) -> list[int]:
-    """Aplaná una lista de listas (un solo nivel).
+def flatten(matrix: list[list[int]]) -> list[int]:
+    """Flatten a list of lists (one level only).
 
-    Pista: el orden de los `for` es el mismo que con bucles anidados.
+    Hint: the `for` clauses go in the same order as nested loops.
 
-    >>> aplanar([[1, 2], [3], []])
+    >>> flatten([[1, 2], [3], []])
     [1, 2, 3]
     """
     raise NotImplementedError("TODO")
 
 
-def invertir_dict(d: dict[str, int]) -> dict[int, str]:
-    """Invertí claves y valores (asumí que los valores son únicos).
+def invert_dict(d: dict[str, int]) -> dict[int, str]:
+    """Swap keys and values (assume the values are unique).
 
-    >>> invertir_dict({"a": 1, "b": 2})
+    >>> invert_dict({"a": 1, "b": 2})
     {1: 'a', 2: 'b'}
     """
     raise NotImplementedError("TODO")
 
 
-def dominios(emails: list[str]) -> set[str]:
-    """Devolvé el conjunto de dominios (lo que está después de la `@`), en minúscula.
+def domains(emails: list[str]) -> set[str]:
+    """Return the set of domains (whatever comes after the `@`), lowercased.
 
-    Ignorá los strings que no tengan `@`.
+    Ignore strings that have no `@`.
 
-    >>> sorted(dominios(["ana@Gmail.com", "beto@gmail.com", "x@uba.ar", "sin-arroba"]))
-    ['gmail.com', 'uba.ar']
+    >>> sorted(domains(["alice@Gmail.com", "bob@gmail.com", "x@mit.edu", "no-at-sign"]))
+    ['gmail.com', 'mit.edu']
     """
     raise NotImplementedError("TODO")

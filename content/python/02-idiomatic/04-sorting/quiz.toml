@@ -1,49 +1,49 @@
 [[questions]]
-text = "Después de `xs = [3, 1, 2]` y `xs = xs.sort()`, ¿cuánto vale `xs`?"
-options = ["`[1, 2, 3]`", "`[3, 1, 2]`", "`None`", "Levanta `AttributeError`"]
+text = "After `xs = [3, 1, 2]` and `xs = xs.sort()`, what is `xs`?"
+options = ["`[1, 2, 3]`", "`[3, 1, 2]`", "`None`", "Raises `AttributeError`"]
 correct = 2
-explanation = "`list.sort()` ordena en el lugar y devuelve `None`. Al reasignar, perdés la lista."
+explanation = "`list.sort()` sorts in place and returns `None`. By reassigning, you lose the list."
 
 [[questions]]
-text = "¿Qué `key` ordena por edad **descendente** y, a igual edad, por nombre **ascendente**?"
+text = "Which `key` sorts by age **descending** and, for equal ages, by name **ascending**?"
 options = [
-  "`key=lambda p: (p.edad, p.nombre), reverse=True`",
-  "`key=lambda p: (-p.edad, p.nombre)`",
-  "`key=lambda p: (p.edad, -p.nombre)`",
-  "`key=lambda p: -p.edad + p.nombre`",
+  "`key=lambda p: (p.age, p.name), reverse=True`",
+  "`key=lambda p: (-p.age, p.name)`",
+  "`key=lambda p: (p.age, -p.name)`",
+  "`key=lambda p: -p.age + p.name`",
 ]
 correct = 1
-explanation = "Negar la clave numérica la invierte solo a ella. `reverse=True` invertiría también el nombre, y no se puede negar un string."
+explanation = "Negating the numeric key reverses only that key. `reverse=True` would also reverse the name, and you can't negate a string."
 
 [[questions]]
-text = "¿Qué significa que el sort de Python sea **estable**?"
+text = "What does it mean that Python's sort is **stable**?"
 options = [
-  "Que nunca levanta excepciones",
-  "Que los elementos con la misma clave conservan su orden relativo original",
-  "Que siempre tarda lo mismo sin importar los datos",
-  "Que no modifica la lista original",
+  "It never raises exceptions",
+  "Elements with the same key keep their original relative order",
+  "It always takes the same time regardless of the data",
+  "It doesn't modify the original list",
 ]
 correct = 1
-explanation = "La estabilidad es lo que permite ordenar en varias pasadas: primero por el criterio secundario y después por el principal."
+explanation = "Stability is what lets you sort in several passes: first by the secondary criterion and then by the primary one."
 
 [[questions]]
-text = "¿Qué devuelve `sorted(filas, key=itemgetter(\"pais\", \"ciudad\"))`?"
+text = "What does `sorted(rows, key=itemgetter(\"country\", \"city\"))` return?"
 options = [
-  "Las filas ordenadas solo por `pais`",
-  "Las filas ordenadas por `pais` y, en caso de empate, por `ciudad`",
-  "Una lista de tuplas `(pais, ciudad)`",
-  "Levanta `TypeError` porque `itemgetter` acepta una sola clave",
+  "The rows sorted by `country` only",
+  "The rows sorted by `country` and, on ties, by `city`",
+  "A list of `(country, city)` tuples",
+  "Raises `TypeError` because `itemgetter` takes a single key",
 ]
 correct = 1
-explanation = "Con varias claves, `itemgetter` devuelve una tupla, y las tuplas se comparan elemento a elemento. Lo que se ordena siguen siendo las filas completas."
+explanation = "With several keys, `itemgetter` returns a tuple, and tuples are compared element by element. What gets sorted is still the full rows."
 
 [[questions]]
-text = "Necesitás el producto más caro de una lista de 1 millón. ¿Qué conviene?"
+text = "You need the most expensive product from a list of 1 million. What's the best choice?"
 options = [
-  "`sorted(productos, key=precio)[-1]`",
-  "`max(productos, key=precio)`",
-  "`productos.sort(); productos[-1]`",
-  "`sorted(productos, reverse=True)[0]`",
+  "`sorted(products, key=price)[-1]`",
+  "`max(products, key=price)`",
+  "`products.sort(); products[-1]`",
+  "`sorted(products, reverse=True)[0]`",
 ]
 correct = 1
-explanation = "`max` recorre una sola vez, en O(n), sin ordenar ni copiar. Ordenar cuesta O(n log n) y la última opción ni siquiera usa el precio."
+explanation = "`max` goes through the list once, in O(n), without sorting or copying. Sorting costs O(n log n), and the last option doesn't even use the price."

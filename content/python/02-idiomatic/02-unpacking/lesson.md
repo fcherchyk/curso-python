@@ -1,183 +1,183 @@
-# Desempaquetado
+# Unpacking
 
-*Desempaquetar* (unpacking) es asignar los elementos de un iterable a varios nombres de una
-sola vez. Parece un detalle de sintaxis, pero aparece en todos lados: en asignaciones, en
-bucles `for`, en llamadas a funciones y al combinar colecciones. Si lo dominás, desaparecen
-casi todos los `x[0]`, `x[1]` y `x[-1]` sueltos que hacen difícil leer el código.
+*Unpacking* means assigning the elements of an iterable to several names in one go. It looks
+like a syntax detail, but it shows up everywhere: in assignments, in `for` loops, in function
+calls and when combining collections. Once you master it, almost all the stray `x[0]`, `x[1]`
+and `x[-1]` that make code hard to read disappear.
 
-## Asignación múltiple
+## Multiple assignment
 
 ```python
-x, y = 3, 4                  # la derecha es una tupla (los paréntesis son opcionales)
-nombre, dominio = "ana@uba.ar".split("@")
-a, b = b, a                  # swap sin variable temporal
+x, y = 3, 4                  # the right side is a tuple (parentheses are optional)
+user, domain = "alice@mit.edu".split("@")
+a, b = b, a                  # swap without a temporary variable
 ```
 
-Funciona con **cualquier iterable**: listas, tuplas, strings, generadores, el resultado de
-`dict.items()`, etc. La única regla es que la cantidad de nombres coincida con la cantidad
-de elementos:
+It works with **any iterable**: lists, tuples, strings, generators, the result of
+`dict.items()`, etc. The only rule is that the number of names must match the number of
+elements:
 
 ```python
 a, b = [1, 2, 3]   # ValueError: too many values to unpack (expected 2)
 a, b, c = [1, 2]   # ValueError: not enough values to unpack (expected 3, got 2)
 ```
 
-Ese error es una ventaja: si una función "debería" devolver dos cosas y un día devuelve
-tres, te enterás enseguida en lugar de arrastrar un dato incorrecto.
+That error works in your favor: if a function "should" return two things and one day returns
+three, you find out right away instead of carrying a wrong value around.
 
-### ¿Cómo funciona el swap?
+### How does the swap work?
 
-`a, b = b, a` primero evalúa la derecha completa y construye la tupla `(b, a)` con los valores
-**viejos**. Recién después asigna. Por eso no hace falta una variable temporal.
+`a, b = b, a` first evaluates the whole right side and builds the tuple `(b, a)` with the
+**old** values. Only then does it assign. That's why no temporary variable is needed.
 
-## Desempaquetado extendido: `*resto`
+## Extended unpacking: `*rest`
 
-Un nombre con asterisco "se lleva" todo lo que sobra, siempre como **lista**:
+A starred name "takes" everything left over, always as a **list**:
 
 ```python
-primero, *resto = [1, 2, 3, 4]      # primero=1, resto=[2, 3, 4]
-*init, ultimo = "abc"               # init=['a', 'b'], ultimo='c'
-cabeza, *medio, cola = range(5)     # 0, [1, 2, 3], 4
-primero, *resto = [7]               # primero=7, resto=[]
+first, *rest = [1, 2, 3, 4]         # first=1, rest=[2, 3, 4]
+*init, last = "abc"                 # init=['a', 'b'], last='c'
+head, *middle, tail = range(5)      # 0, [1, 2, 3], 4
+first, *rest = [7]                  # first=7, rest=[]
 ```
 
-- Solo puede haber **un** nombre con `*` por asignación.
-- Si no sobra nada, el resto es una lista vacía (no falla).
-- Si faltan elementos para los nombres **sin** asterisco, sí falla: `a, *b = []` levanta
-  `ValueError`.
+- There can be only **one** starred name per assignment.
+- If nothing is left over, the rest is an empty list (it doesn't fail).
+- If there aren't enough elements for the **unstarred** names, it does fail: `a, *b = []`
+  raises `ValueError`.
 
-Para descartar valores, la convención es `_`:
+To discard values, the convention is `_`:
 
 ```python
-_, dominio = email.split("@")
-primero, *_, ultimo = linea.split(",")
+_, domain = email.split("@")
+first, *_, last = line.split(",")
 ```
 
-## En bucles `for`
+## In `for` loops
 
-Cada elemento que produce el iterable se desempaqueta en los nombres del `for`. Es lo que
-hacés sin pensar con `dict.items()`:
+Each element the iterable produces is unpacked into the names in the `for`. It's what you
+do without thinking with `dict.items()`:
 
 ```python
-for clave, valor in config.items():
+for key, value in config.items():
     ...
 
-puntos = [(0, 0), (3, 4), (1, 1)]
-for x, y in puntos:
+points = [(0, 0), (3, 4), (1, 1)]
+for x, y in points:
     print(x + y)
 
-# Estructuras anidadas: los paréntesis siguen la forma de los datos
-for i, (x, y) in enumerate(puntos):
+# Nested structures: the parentheses follow the shape of the data
+for i, (x, y) in enumerate(points):
     ...
 ```
 
-Comparalo con la alternativa:
+Compare it with the alternative:
 
 ```python
-for p in puntos:
-    print(p[0] + p[1])     # ¿qué era p[0]?
+for p in points:
+    print(p[0] + p[1])     # what was p[0] again?
 ```
 
-## Desempaquetar al llamar funciones: `*` y `**`
+## Unpacking in function calls: `*` and `**`
 
-En una **llamada**, `*` expande un iterable en argumentos posicionales y `**` expande un dict
-en argumentos por nombre:
+In a **call**, `*` expands an iterable into positional arguments and `**` expands a dict
+into keyword arguments:
 
 ```python
-def conectar(host, puerto, timeout=5): ...
+def connect(host, port, timeout=5): ...
 
 args = ("db.local", 5432)
-opciones = {"timeout": 10}
-conectar(*args, **opciones)     # == conectar("db.local", 5432, timeout=10)
+options = {"timeout": 10}
+connect(*args, **options)       # == connect("db.local", 5432, timeout=10)
 
 print(*["a", "b", "c"], sep="-")  # a-b-c
 ```
 
-Es el mismo asterisco que en la **definición** `def f(*args, **kwargs)`, pero al revés: en
-la definición *junta* argumentos y en la llamada los *expande*.
+It's the same asterisk as in the **definition** `def f(*args, **kwargs)`, but in reverse: in
+the definition it *collects* arguments and in the call it *expands* them.
 
-## Combinar colecciones con `*` y `**`
+## Combining collections with `*` and `**`
 
-Dentro de literales de lista, tupla, set y dict, los asteriscos "vuelcan" el contenido:
+Inside list, tuple, set and dict literals, the asterisks "spill" the contents:
 
 ```python
 a = [1, 2]
 b = (3, 4)
-todo = [*a, *b, 5]             # [1, 2, 3, 4, 5]
-unicos = {*a, *b}              # {1, 2, 3, 4}
+everything = [*a, *b, 5]       # [1, 2, 3, 4, 5]
+unique = {*a, *b}              # {1, 2, 3, 4}
 
-defaults = {"debug": False, "puerto": 80}
-config   = {"puerto": 8080}
+defaults = {"debug": False, "port": 80}
+config   = {"port": 8080}
 final = {**defaults, **config, "host": "x"}
-# {'debug': False, 'puerto': 8080, 'host': 'x'}  <- la derecha pisa a la izquierda
+# {'debug': False, 'port': 8080, 'host': 'x'}  <- the right side overwrites the left
 ```
 
-### El operador `|` para dicts (3.9+)
+### The `|` operator for dicts (3.9+)
 
-Para fusionar dicts, `|` suele leerse mejor que `{**a, **b}`:
+To merge dicts, `|` usually reads better than `{**a, **b}`:
 
 ```python
-final = defaults | config          # nuevo dict, no modifica ninguno
-defaults |= config                 # actualiza defaults en el lugar (como .update)
+final = defaults | config          # new dict, modifies neither
+defaults |= config                 # updates defaults in place (like .update)
 ```
 
-Las dos formas crean un dict **nuevo** y no mutan los originales, salvo `|=`, que sí
-modifica el de la izquierda. Tené esa diferencia presente cuando el dict lo recibiste como
-parámetro: modificarlo es un efecto secundario que quien llama no espera.
+Both forms create a **new** dict and don't mutate the originals, except `|=`, which does
+modify the left one. Keep that difference in mind when you received the dict as a
+parameter: modifying it is a side effect the caller doesn't expect.
 
-## Desempaquetar lo que devuelve una función
+## Unpacking what a function returns
 
-Devolver una tupla y desempaquetarla es la forma idiomática de retornar varios valores:
+Returning a tuple and unpacking it is the idiomatic way to return several values:
 
 ```python
 def min_max(xs: list[int]) -> tuple[int, int]:
     return min(xs), max(xs)
 
-menor, mayor = min_max([3, 1, 4])
-cociente, resto = divmod(17, 5)
+lowest, highest = min_max([3, 1, 4])
+quotient, remainder = divmod(17, 5)
 ```
 
-Si los valores son más de tres o tienen significado propio, conviene una `NamedTuple`: se
-sigue pudiendo desempaquetar como una tupla y además cada campo tiene nombre
-(`r.cociente`). Lo vemos en el módulo de modelado.
+If there are more than three values or they have meaning of their own, use a `NamedTuple`:
+you can still unpack it like a tuple, and each field also gets a name (`r.quotient`). We'll
+cover it in the modeling module.
 
-## Trampas comunes
+## Common pitfalls
 
 ```python
-# 1. Asumir que *resto es tupla: siempre es LISTA
-_, *resto = (1, 2, 3)
-type(resto)                   # list
+# 1. Assuming *rest is a tuple: it's always a LIST
+_, *rest = (1, 2, 3)
+type(rest)                    # list
 
-# 2. Olvidar la coma en una tupla de un elemento
+# 2. Forgetting the comma in a one-element tuple
 (x,) = [42]                   # x = 42
-x, = [42]                     # igual, más críptico
+x, = [42]                     # same thing, more cryptic
 
-# 3. Mutar el dict que te pasaron al fusionar
-def aplicar(base, extra):
-    base.update(extra)        # ✗ modifica el dict de quien llama
+# 3. Mutating the dict you were given when merging
+def apply(base, extra):
+    base.update(extra)        # ✗ modifies the caller's dict
     return base
 
-def aplicar(base, extra):
-    return base | extra       # ✓ devuelve uno nuevo
+def apply(base, extra):
+    return base | extra       # ✓ returns a new one
 ```
 
-## Resumen
+## Summary
 
-| Querés…                               | Usá                          |
+| You want to…                          | Use                          |
 |---------------------------------------|------------------------------|
-| separar el primero del resto          | `primero, *resto = xs`       |
-| quedarte con extremos                 | `primero, *_, ultimo = xs`   |
-| intercambiar valores                  | `a, b = b, a`                |
-| recorrer pares                        | `for k, v in d.items()`      |
-| pasar una lista como argumentos       | `f(*lista)`                  |
-| pasar un dict como keyword arguments  | `f(**opciones)`              |
-| concatenar iterables                  | `[*a, *b]`                   |
-| fusionar dicts sin mutar              | `a | b` o `{**a, **b}`       |
+| split the first from the rest         | `first, *rest = xs`          |
+| keep only the ends                    | `first, *_, last = xs`       |
+| swap values                           | `a, b = b, a`                |
+| iterate over pairs                    | `for k, v in d.items()`      |
+| pass a list as arguments              | `f(*items)`                  |
+| pass a dict as keyword arguments      | `f(**options)`               |
+| concatenate iterables                 | `[*a, *b]`                   |
+| merge dicts without mutating          | `a | b` or `{**a, **b}`      |
 
-## Ejercicio
+## Exercise
 
-Vas a implementar cuatro funciones que se resuelven con desempaquetado y sin índices.
+You'll implement four functions that are solved with unpacking and no indexing.
 
-**Para profundizar:** [PEP 3132 — Extended Iterable Unpacking](https://peps.python.org/pep-3132/),
+**Further reading:** [PEP 3132 — Extended Iterable Unpacking](https://peps.python.org/pep-3132/),
 [PEP 448 — Additional Unpacking Generalizations](https://peps.python.org/pep-0448/),
-[PEP 584 — operador `|` para dicts](https://peps.python.org/pep-0584/).
+[PEP 584 — Add Union Operators To dict](https://peps.python.org/pep-0584/).

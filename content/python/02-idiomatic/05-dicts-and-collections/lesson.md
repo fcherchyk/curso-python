@@ -1,75 +1,74 @@
-# Dicts, defaultdict y Counter
+# Dicts, defaultdict and Counter
 
-El dict es la estructura central de Python: con dicts se implementan los objetos, los
-módulos, los namespaces y los kwargs. Saber usarlo bien, junto con sus variantes de
-`collections`, elimina una gran cantidad de código repetitivo: contadores a mano,
-`if clave not in d` y `try/except KeyError`.
+The dict is Python's central data structure: objects, modules, namespaces and kwargs are all
+implemented with dicts. Using it well, together with its variants from `collections`, removes
+a lot of repetitive code: hand-rolled counters, `if key not in d` and `try/except KeyError`.
 
-## Lo básico que conviene tener fresco
+## The basics worth keeping fresh
 
-- Los dicts **conservan el orden de inserción** (garantizado desde 3.7).
-- Las claves tienen que ser **hashables**: `str`, `int`, `tuple` de hashables y
-  `frozenset` sirven; `list`, `dict` y `set` no.
-- Buscar, insertar y borrar cuestan O(1) en promedio.
-- `k in d` pregunta por **claves** (no hace falta `.keys()`).
+- Dicts **keep insertion order** (guaranteed since 3.7).
+- Keys must be **hashable**: `str`, `int`, `tuple` of hashables and `frozenset` work;
+  `list`, `dict` and `set` don't.
+- Lookup, insertion and deletion cost O(1) on average.
+- `k in d` checks **keys** (no need for `.keys()`).
 
-## Leer sin romperse: `get`, `setdefault` y `pop`
-
-```python
-precios = {"pan": 1200}
-
-precios["leche"]                 # KeyError
-precios.get("leche")             # None
-precios.get("leche", 0)          # 0
-
-precios.pop("pan")               # 1200 y la saca
-precios.pop("pan", None)         # None; sin default, levanta KeyError
-```
-
-`setdefault(k, default)` devuelve el valor de `k` y, si no existe, primero lo inserta con
-`default`. Sirve para agrupar sin un `if`:
+## Reading without crashing: `get`, `setdefault` and `pop`
 
 ```python
-grupos = {}
-for palabra in palabras:
-    grupos.setdefault(palabra[0], []).append(palabra)
+prices = {"bread": 1200}
+
+prices["milk"]                   # KeyError
+prices.get("milk")               # None
+prices.get("milk", 0)            # 0
+
+prices.pop("bread")              # 1200, and removes it
+prices.pop("bread", None)        # None; without a default, raises KeyError
 ```
 
-Tiene un detalle: el `default` se construye **siempre**, aunque la clave ya exista. En el
-ejemplo se crea una lista vacía en cada vuelta y casi siempre se descarta. Para agrupar,
-`defaultdict` queda más limpio.
+`setdefault(k, default)` returns the value of `k` and, if it doesn't exist, first inserts it
+with `default`. It lets you group without an `if`:
 
-## `defaultdict`: valores por defecto automáticos
+```python
+groups = {}
+for word in words:
+    groups.setdefault(word[0], []).append(word)
+```
+
+There's a catch: the `default` is **always** built, even if the key already exists. In the
+example, an empty list is created on every iteration and almost always thrown away. For
+grouping, `defaultdict` is cleaner.
+
+## `defaultdict`: automatic default values
 
 ```python
 from collections import defaultdict
 
-grupos = defaultdict(list)          # recibe una FÁBRICA (list, int, set…), no un valor
-for palabra in palabras:
-    grupos[palabra[0]].append(palabra)
+groups = defaultdict(list)          # takes a FACTORY (list, int, set…), not a value
+for word in words:
+    groups[word[0]].append(word)
 
-conteo = defaultdict(int)           # int() == 0
-for letra in texto:
-    conteo[letra] += 1
+counts = defaultdict(int)           # int() == 0
+for char in text:
+    counts[char] += 1
 ```
 
-Cuando accedés con `[]` a una clave que no existe, `defaultdict` llama a la fábrica, guarda
-el resultado y te lo devuelve.
+When you access a missing key with `[]`, `defaultdict` calls the factory, stores the result
+and returns it to you.
 
-### Cuidado con los efectos secundarios
+### Watch out for side effects
 
 ```python
 d = defaultdict(list)
-if d["x"]:          # ¡esto CREA la clave "x" con []!
+if d["x"]:          # this CREATES the key "x" with []!
     ...
 "x" in d            # True
 ```
 
-Leer con `[]` inserta la clave. Para consultar sin modificar, usá `in` o `.get()`. Por la
-misma razón, **no devuelvas un `defaultdict` desde una API pública**: quien lo reciba puede
-crear claves sin darse cuenta. Convertilo antes con `dict(grupos)`.
+Reading with `[]` inserts the key. To check without modifying, use `in` or `.get()`. For the
+same reason, **don't return a `defaultdict` from a public API**: whoever receives it may
+create keys without noticing. Convert it first with `dict(groups)`.
 
-## `Counter`: contar cosas
+## `Counter`: counting things
 
 ```python
 from collections import Counter
@@ -78,78 +77,78 @@ c = Counter("abracadabra")
 # Counter({'a': 5, 'b': 2, 'r': 2, 'c': 1, 'd': 1})
 
 c["a"]             # 5
-c["z"]             # 0  <- no levanta KeyError ni inserta la clave
+c["z"]             # 0  <- doesn't raise KeyError or insert the key
 c.most_common(2)   # [('a', 5), ('b', 2)]
 c.total()          # 11 (3.10+)
 ```
 
-`most_common` ordena por cantidad y, **ante empates, respeta el orden en que cada elemento
-apareció por primera vez**. Con eso se resuelve un "top N" sin ordenar a mano.
+`most_common` sorts by count and, **on ties, keeps the order in which each element first
+appeared**. That solves a "top N" without sorting by hand.
 
-`Counter` también tiene aritmética de multiconjuntos:
+`Counter` also has multiset arithmetic:
 
 ```python
-stock   = Counter(manzana=3, pera=1)
-pedido  = Counter(manzana=2, pera=2)
+stock = Counter(apple=3, pear=1)
+order = Counter(apple=2, pear=2)
 
-stock - pedido      # Counter({'manzana': 1})  <- descarta los <= 0
-pedido - stock      # Counter({'pera': 1})      <- lo que falta
-stock + pedido      # suma cantidades
-stock & pedido      # mínimo de cada uno
-stock | pedido      # máximo de cada uno
+stock - order       # Counter({'apple': 1})  <- drops counts <= 0
+order - stock       # Counter({'pear': 1})   <- what's missing
+stock + order       # adds counts
+stock & order       # minimum of each
+stock | order       # maximum of each
 ```
 
-`pedido - stock` vacío (falsy) significa "alcanza con el stock". Es un truco muy práctico
-para problemas de anagramas y de disponibilidad.
+An empty (falsy) `order - stock` means "the stock is enough". It's a very handy trick for
+anagram and availability problems.
 
-## Construir e invertir dicts
+## Building and inverting dicts
 
 ```python
-dict(zip(claves, valores))                  # a partir de dos listas
+dict(zip(keys, values))                     # from two lists
 dict.fromkeys(["a", "b"], 0)                # {'a': 0, 'b': 0}
-{v: k for k, v in d.items()}                # invertir si los valores son únicos
+{v: k for k, v in d.items()}                # invert if the values are unique
 
-# Si los valores se repiten, invertir agrupando:
-inverso = defaultdict(list)
+# If values repeat, invert by grouping:
+inverse = defaultdict(list)
 for k, v in d.items():
-    inverso[v].append(k)
+    inverse[v].append(k)
 ```
 
-> `dict.fromkeys(claves, [])` es una trampa: **todas** las claves comparten la misma lista.
-> Usá una comprehension: `{k: [] for k in claves}`.
+> `dict.fromkeys(keys, [])` is a trap: **all** the keys share the same list. Use a
+> comprehension: `{k: [] for k in keys}`.
 
-## Fusionar y actualizar
+## Merging and updating
 
 ```python
-a | b          # nuevo dict (3.9+); b pisa a a
-a |= b         # actualiza a en el lugar (como a.update(b))
-{**a, **b}     # equivalente a a | b, anterior a 3.9
+a | b          # new dict (3.9+); b overwrites a
+a |= b         # updates a in place (like a.update(b))
+{**a, **b}     # equivalent to a | b, before 3.9
 ```
 
-## Otros de `collections` que vale la pena conocer
+## Other `collections` types worth knowing
 
-| Tipo           | Para qué                                                              |
+| Type           | What for                                                              |
 |----------------|-----------------------------------------------------------------------|
-| `deque`        | cola con append/pop O(1) en los dos extremos (lo vemos en algoritmos) |
-| `ChainMap`     | buscar en varios dicts en capas (por ejemplo, config → env → defaults) sin copiarlos |
-| `OrderedDict`  | casi obsoleto: tiene `move_to_end` y su igualdad tiene en cuenta el orden |
-| `namedtuple`   | tupla con nombres; hoy suele preferirse `typing.NamedTuple`           |
+| `deque`        | queue with O(1) append/pop at both ends (covered in the algorithms module) |
+| `ChainMap`     | look up several dicts in layers (e.g. config → env → defaults) without copying them |
+| `OrderedDict`  | nearly obsolete: has `move_to_end`, and its equality takes order into account |
+| `namedtuple`   | tuple with field names; `typing.NamedTuple` is usually preferred today |
 
-## Resumen
+## Summary
 
-| Querés…                                | Usá                                    |
+| You want to…                           | Use                                    |
 |----------------------------------------|----------------------------------------|
-| leer con un default                    | `d.get(k, default)`                    |
-| agrupar                                | `defaultdict(list)` y después `dict()` |
-| contar                                 | `Counter(iterable)`                    |
-| top N por frecuencia                   | `Counter(...).most_common(n)`          |
-| saber si alcanza un stock              | `not (pedido - stock)`                 |
-| quitar sin fallar                      | `d.pop(k, None)`                       |
+| read with a default                    | `d.get(k, default)`                    |
+| group                                  | `defaultdict(list)`, then `dict()`     |
+| count                                  | `Counter(iterable)`                    |
+| get the top N by frequency             | `Counter(...).most_common(n)`          |
+| check whether the stock is enough      | `not (order - stock)`                  |
+| remove without failing                 | `d.pop(k, None)`                       |
 
-## Ejercicio
+## Exercise
 
-Cuatro funciones: agrupar, contar palabras, invertir agrupando y un problema de
-disponibilidad con aritmética de `Counter`.
+Four functions: grouping, counting words, inverting by grouping and an availability problem
+using `Counter` arithmetic.
 
-**Para profundizar:** [collections — Container datatypes](https://docs.python.org/3/library/collections.html),
-*Fluent Python* (2.ª ed.), cap. 3.
+**Further reading:** [collections — Container datatypes](https://docs.python.org/3/library/collections.html),
+*Fluent Python* (2nd ed.), ch. 3.

@@ -1,157 +1,158 @@
-# Strings idiomáticos
+# Idiomatic strings
 
-Los `str` de Python son **inmutables**, están en Unicode y traen muchos métodos. La mayoría
-de los errores con strings vienen de construirlos mal (concatenando en bucles), de
-parsearlos a mano con índices o de no conocer el método que ya resuelve el problema.
+Python's `str` is **immutable**, Unicode-based and comes with lots of methods. Most string
+bugs come from building them badly (concatenating in loops), parsing them by hand with
+indices or not knowing the method that already solves the problem.
 
-## f-strings: el formato por defecto
+## f-strings: the default format
 
-Desde 3.6, las f-strings son la forma recomendada de interpolar. Son más legibles y más
-rápidas que `%` y que `.format()`:
+Since 3.6, f-strings are the recommended way to interpolate. They're more readable and
+faster than `%` and `.format()`:
 
 ```python
-nombre, edad = "Ana", 31
-f"{nombre} tiene {edad} años"
-f"{nombre!r}"            # repr: "'Ana'"  (útil en logs y mensajes de error)
-f"{edad + 1}"            # cualquier expresión
+name, age = "Alice", 31
+f"{name} is {age} years old"
+f"{name!r}"              # repr: "'Alice'"  (useful in logs and error messages)
+f"{age + 1}"             # any expression
 f"{x=}"                  # debug (3.8+): "x=42"
-f"{x = }"                # con espacios: "x = 42"
+f"{x = }"                # with spaces: "x = 42"
 ```
 
-### El mini-lenguaje de formato
+### The format mini-language
 
-Después de los `:` va una especificación de formato:
+After the `:` comes a format specification:
 
 ```python
-precio = 1234.5
-f"{precio:.2f}"          # '1234.50'     2 decimales
-f"{precio:,.2f}"         # '1,234.50'    separador de miles
-f"{precio:_.0f}"         # '1_234'
+price = 1234.5
+f"{price:.2f}"           # '1234.50'     2 decimal places
+f"{price:,.2f}"          # '1,234.50'    thousands separator
+f"{price:_.0f}"          # '1_234'
 f"{0.256:.1%}"           # '25.6%'
-f"{42:>6}"               # '    42'      alineado a la derecha en 6
-f"{'hola':<8}|"          # 'hola    |'   izquierda
-f"{'hola':^10}"          # '   hola   '  centrado
-f"{7:03d}"               # '007'         relleno con ceros
-f"{255:x} {255:b}"       # 'ff 11111111' hexa y binario
-f"{fecha:%Y-%m-%d}"      # los objetos definen su propio formato (datetime)
+f"{42:>6}"               # '    42'      right-aligned in 6
+f"{'hello':<8}|"         # 'hello   |'   left
+f"{'hello':^10}"         # '  hello   '  centered
+f"{7:03d}"               # '007'         zero-padded
+f"{255:x} {255:b}"       # 'ff 11111111' hex and binary
+f"{date:%Y-%m-%d}"       # objects define their own format (datetime)
 ```
 
-La especificación también puede venir de una variable: `f"{valor:>{ancho}}"`.
+The specification can also come from a variable: `f"{value:>{width}}"`.
 
-> El separador de miles de `,` usa el formato inglés (`1,234.50`). Para el formato
-> argentino (`1.234,50`) hay dos caminos: `locale` (que depende de la configuración del
-> sistema) o intercambiar los caracteres después de formatear. Lo practicás en el ejercicio.
+> The `,` thousands separator uses the US/English format (`1,234.50`). For the format used
+> in Argentina and much of Europe (`1.234,50`) there are two options: `locale` (which depends
+> on the system configuration) or swapping the characters after formatting. You'll practice
+> this in the exercise.
 
-## Unir y partir
+## Joining and splitting
 
 ```python
-", ".join(["a", "b", "c"])         # 'a, b, c'  <- join es un método del SEPARADOR
-" ".join(str(n) for n in nums)     # join solo acepta strings: convertí antes
+", ".join(["a", "b", "c"])         # 'a, b, c'  <- join is a method of the SEPARATOR
+" ".join(str(n) for n in nums)     # join only accepts strings: convert first
 
 "a,b,,c".split(",")                # ['a', 'b', '', 'c']
-"  hola   mundo ".split()          # ['hola', 'mundo']  <- sin argumento: cualquier espacio, sin vacíos
-"k=v=w".split("=", 1)              # ['k', 'v=w']       <- como máximo 1 corte
-"ruta/a/archivo.txt".rsplit("/", 1)  # ['ruta/a', 'archivo.txt']
+"  hello   world ".split()         # ['hello', 'world']  <- no argument: any whitespace, no empties
+"k=v=w".split("=", 1)              # ['k', 'v=w']        <- at most 1 split
+"path/to/file.txt".rsplit("/", 1)  # ['path/to', 'file.txt']
 ```
 
-### Nunca concatenes en un bucle
+### Never concatenate in a loop
 
 ```python
-# ✗ Cuadrático: cada += puede copiar todo el string
+# ✗ Quadratic: each += may copy the whole string
 s = ""
-for palabra in palabras:
-    s += palabra + " "
+for word in words:
+    s += word + " "
 
-# ✓ Lineal
-s = " ".join(palabras)
+# ✓ Linear
+s = " ".join(words)
 ```
 
-### `partition`: partir en tres sin sorpresas
+### `partition`: splitting in three with no surprises
 
 ```python
-"clave=valor".partition("=")       # ('clave', '=', 'valor')
-"sin-igual".partition("=")         # ('sin-igual', '', '')  <- no falla
-usuario, _, dominio = email.partition("@")
+"key=value".partition("=")         # ('key', '=', 'value')
+"no-equals".partition("=")         # ('no-equals', '', '')  <- doesn't fail
+user, _, domain = email.partition("@")
 ```
 
-Con `split("=")` tenés que controlar cuántos pedazos quedaron. `partition` siempre devuelve
-una tupla de tres elementos, así que el desempaquetado nunca falla.
+With `split("=")` you have to check how many pieces you got. `partition` always returns a
+three-element tuple, so unpacking it never fails.
 
-## Limpiar y consultar
+## Cleaning and querying
 
 ```python
-"  hola \n".strip()                # 'hola'   (también lstrip / rstrip)
-"xxhola".lstrip("x")               # 'hola'   ¡OJO! saca CARACTERES, no un prefijo
-"https://sitio".removeprefix("https://")   # 'sitio'  (3.9+) saca el prefijo exacto
-"foto.jpg".removesuffix(".jpg")    # 'foto'
+"  hello \n".strip()               # 'hello'  (also lstrip / rstrip)
+"xxhello".lstrip("x")              # 'hello'  CAREFUL! it removes CHARACTERS, not a prefix
+"https://site".removeprefix("https://")    # 'site'  (3.9+) removes the exact prefix
+"photo.jpg".removesuffix(".jpg")   # 'photo'
 
-"archivo.py".endswith((".py", ".pyi"))     # acepta una tupla de opciones
-"ab" in "cabeza"                   # búsqueda de substring
-"hola".find("z")                   # -1 (index() levantaría ValueError)
-"Straße".casefold() == "strasse"   # True: comparación sin mayúsculas más robusta que lower()
+"file.py".endswith((".py", ".pyi"))        # accepts a tuple of options
+"ab" in "cabin"                    # substring search
+"hello".find("z")                  # -1 (index() would raise ValueError)
+"Straße".casefold() == "strasse"   # True: case-insensitive comparison, sturdier than lower()
 "42".isdigit(), "abc".isalpha(), "   ".isspace()
 ```
 
-La trampa de `strip("https://")` es clásica: saca cualquier combinación de los caracteres
-`h t p s : /` de los extremos, no el prefijo. Para prefijos y sufijos usá
-`removeprefix` y `removesuffix`.
+The `strip("https://")` trap is a classic: it removes any combination of the characters
+`h t p s : /` from both ends, not the prefix. For prefixes and suffixes use
+`removeprefix` and `removesuffix`.
 
-## Reemplazar y traducir
+## Replacing and translating
 
 ```python
 "a-b-c".replace("-", "_")          # 'a_b_c'
-"a-b-c".replace("-", "_", 1)       # 'a_b-c'   solo el primero
+"a-b-c".replace("-", "_", 1)       # 'a_b-c'   only the first one
 
-# translate: varios reemplazos de un carácter en una sola pasada
-tabla = str.maketrans({",": ".", ".": ","})
-"1,234.50".translate(tabla)        # '1.234,50'
+# translate: several single-character replacements in one pass
+table = str.maketrans({",": ".", ".": ","})
+"1,234.50".translate(table)        # '1.234,50'
 ```
 
-`translate` es la forma correcta de **intercambiar** caracteres. Con dos `replace` seguidos,
-el segundo pisaría lo que hizo el primero.
+`translate` is the right way to **swap** characters. With two `replace` calls in a row, the
+second would undo what the first did.
 
-## Strings multilínea y crudos
+## Multiline and raw strings
 
 ```python
 sql = """
     SELECT *
-    FROM usuarios
+    FROM users
 """
 import textwrap
-textwrap.dedent(sql).strip()       # saca la indentación común
+textwrap.dedent(sql).strip()       # removes the common indentation
 
-r"C:\nueva\carpeta"                # raw string: la \ no escapa (útil en regex y en rutas de Windows)
+r"C:\new\folder"                   # raw string: \ doesn't escape (useful in regexes and Windows paths)
 ```
 
 ## `str` vs. `bytes`
 
-`str` es texto Unicode; `bytes` son octetos. Se convierte en los bordes del programa:
+`str` is Unicode text; `bytes` are octets. You convert at the edges of the program:
 
 ```python
-"ñandú".encode("utf-8")            # b'\xc3\xb1and\xc3\xba'
-b"\xc3\xb1".decode("utf-8")        # 'ñ'
+"café".encode("utf-8")             # b'caf\xc3\xa9'
+b"\xc3\xa9".decode("utf-8")        # 'é'
 ```
 
-Regla: **decodificá al leer y codificá al escribir**. Adentro del programa trabajá siempre
-con `str`, y abrí los archivos de texto con `encoding="utf-8"` explícito.
+Rule: **decode when reading and encode when writing**. Inside the program always work with
+`str`, and open text files with an explicit `encoding="utf-8"`.
 
-## Resumen
+## Summary
 
-| Querés…                                 | Usá                                  |
+| You want to…                            | Use                                  |
 |-----------------------------------------|--------------------------------------|
-| interpolar                              | f-string                             |
-| formatear números                       | `f"{x:,.2f}"`, `f"{x:.1%}"`          |
-| unir muchas partes                      | `sep.join(partes)`                   |
-| partir en dos por un separador          | `a, _, b = s.partition(sep)`         |
-| sacar un prefijo o sufijo exacto        | `removeprefix` / `removesuffix`      |
-| varias terminaciones posibles           | `s.endswith((".a", ".b"))`           |
-| intercambiar caracteres                 | `str.maketrans` + `translate`        |
-| comparar sin mayúsculas                 | `a.casefold() == b.casefold()`       |
+| interpolate                             | f-string                             |
+| format numbers                          | `f"{x:,.2f}"`, `f"{x:.1%}"`          |
+| join many parts                         | `sep.join(parts)`                    |
+| split in two on a separator             | `a, _, b = s.partition(sep)`         |
+| remove an exact prefix or suffix        | `removeprefix` / `removesuffix`      |
+| check several possible endings          | `s.endswith((".a", ".b"))`           |
+| swap characters                         | `str.maketrans` + `translate`        |
+| compare case-insensitively              | `a.casefold() == b.casefold()`       |
 
-## Ejercicio
+## Exercise
 
-Cuatro funciones: formatear moneda en formato argentino, generar un *slug*, parsear pares
-`clave=valor` y construir una URL.
+Four functions: format currency the Argentine way, generate a *slug*, parse `key=value`
+pairs and build a URL.
 
-**Para profundizar:** [Format Specification Mini-Language](https://docs.python.org/3/library/string.html#formatspec),
-[métodos de str](https://docs.python.org/3/library/stdtypes.html#string-methods).
+**Further reading:** [Format Specification Mini-Language](https://docs.python.org/3/library/string.html#formatspec),
+[str methods](https://docs.python.org/3/library/stdtypes.html#string-methods).

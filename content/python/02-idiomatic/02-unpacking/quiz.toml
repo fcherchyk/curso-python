@@ -1,44 +1,44 @@
 [[questions]]
-text = "¿Cuánto vale `medio` después de `a, *medio, b = (1, 2, 3, 4)`?"
+text = "What is the value of `middle` after `a, *middle, b = (1, 2, 3, 4)`?"
 options = ["`(2, 3)`", "`[2, 3]`", "`2`", "`[1, 2, 3]`"]
 correct = 1
-explanation = "El nombre con asterisco siempre recibe una **lista**, aunque el origen sea una tupla."
+explanation = "The starred name always gets a **list**, even when the source is a tuple."
 
 [[questions]]
-text = "¿Qué pasa con `primero, *resto = []`?"
+text = "What happens with `first, *rest = []`?"
 options = [
-  "`primero` vale `None` y `resto` vale `[]`",
-  "Levanta `ValueError`",
-  "`primero` vale `[]`",
-  "Levanta `IndexError`",
+  "`first` is `None` and `rest` is `[]`",
+  "Raises `ValueError`",
+  "`first` is `[]`",
+  "Raises `IndexError`",
 ]
 correct = 1
-explanation = "El `*resto` puede quedar vacío, pero los nombres sin asterisco necesitan un elemento cada uno. Sin elementos, falla con `ValueError: not enough values to unpack`."
+explanation = "`*rest` can end up empty, but each unstarred name needs one element. With no elements, it fails with `ValueError: not enough values to unpack`."
 
 [[questions]]
-text = "Dado `defaults = {\"a\": 1, \"b\": 2}` y `cfg = {\"b\": 3}`, ¿qué devuelve `defaults | cfg`?"
+text = "Given `defaults = {\"a\": 1, \"b\": 2}` and `cfg = {\"b\": 3}`, what does `defaults | cfg` return?"
 options = [
   "`{'a': 1, 'b': 2}`",
-  "`{'a': 1, 'b': 3}` y además modifica `defaults`",
-  "`{'a': 1, 'b': 3}` sin modificar ninguno",
-  "`TypeError`: los dicts no soportan `|`",
+  "`{'a': 1, 'b': 3}` and it also modifies `defaults`",
+  "`{'a': 1, 'b': 3}` without modifying either one",
+  "`TypeError`: dicts don't support `|`",
 ]
 correct = 2
-explanation = "`|` (3.9+) crea un dict nuevo en el que la derecha pisa a la izquierda. El que modifica en el lugar es `|=`."
+explanation = "`|` (3.9+) creates a new dict where the right side overwrites the left. The in-place version is `|=`."
 
 [[questions]]
-text = "Si `def f(a, b, c)` y `args = [1, 2]`, ¿qué llamada es válida?"
+text = "Given `def f(a, b, c)` and `args = [1, 2]`, which call is valid?"
 options = ["`f(args, c=3)`", "`f(*args, c=3)`", "`f(**args, c=3)`", "`f(*args, *3)`"]
 correct = 1
-explanation = "`*args` expande la lista en posicionales (`a=1`, `b=2`) y `c` se pasa por nombre. `**` sirve para expandir dicts, no listas."
+explanation = "`*args` expands the list into positional arguments (`a=1`, `b=2`) and `c` is passed by name. `**` is for expanding dicts, not lists."
 
 [[questions]]
-text = "¿Por qué funciona `a, b = b, a` sin una variable temporal?"
+text = "Why does `a, b = b, a` work without a temporary variable?"
 options = [
-  "Porque Python asigna de derecha a izquierda",
-  "Porque primero se evalúa la tupla `(b, a)` con los valores viejos y después se asigna",
-  "Porque `a` y `b` pasan a ser la misma referencia",
-  "Solo funciona con enteros",
+  "Because Python assigns from right to left",
+  "Because the tuple `(b, a)` is evaluated first with the old values and assigned afterwards",
+  "Because `a` and `b` become the same reference",
+  "It only works with integers",
 ]
 correct = 1
-explanation = "La expresión de la derecha se evalúa completa antes de cualquier asignación: se arma una tupla con los valores originales y después se desempaqueta."
+explanation = "The right-hand expression is fully evaluated before any assignment: a tuple with the original values is built and then unpacked."

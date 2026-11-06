@@ -1,59 +1,59 @@
-"""Strings idiomáticos."""
+"""Idiomatic strings."""
 
 import re  # noqa: F401
 from urllib.parse import urlencode  # noqa: F401
 
 
-def formatear_pesos(monto: float) -> str:
-    """Formateá en pesos con formato argentino: punto de miles y coma decimal.
+def format_pesos(amount: float) -> str:
+    """Format as Argentine pesos: dot as the thousands separator and comma for decimals.
 
-    >>> formatear_pesos(1234.5)
+    >>> format_pesos(1234.5)
     '$ 1.234,50'
-    >>> formatear_pesos(-9876543.219)
+    >>> format_pesos(-9876543.219)
     '$ -9.876.543,22'
 
-    Pista: f-string con `,.2f` y después `str.maketrans` + `translate`.
+    Hint: f-string with `,.2f`, then `str.maketrans` + `translate`.
     """
     raise NotImplementedError("TODO")
 
 
-def slug(titulo: str) -> str:
-    """Convertí un título en un slug para URLs: palabras en minúscula unidas con `-`.
+def slug(title: str) -> str:
+    """Turn a title into a URL slug: lowercase words joined with `-`.
 
-    Una palabra es una secuencia de caracteres `\\w` (se mantienen los acentos).
+    A word is a sequence of `\\w` characters (accented letters are kept).
 
-    >>> slug("  ¡Hola, Mundo! Python 3.14  ")
-    'hola-mundo-python-3-14'
+    >>> slug("  Hello, World! Python 3.14  ")
+    'hello-world-python-3-14'
     """
     raise NotImplementedError("TODO")
 
 
-def parsear_opciones(texto: str) -> dict[str, str]:
-    """Parseá `"clave=valor"` separados por `;`.
+def parse_options(text: str) -> dict[str, str]:
+    """Parse `"key=value"` pairs separated by `;`.
 
-    - Sacá los espacios alrededor de claves y valores.
-    - Ignorá los segmentos vacíos.
-    - Si un segmento no tiene `=`, el valor es `""`.
-    - El valor puede contener `=` (solo se parte por el primero).
+    - Strip the whitespace around keys and values.
+    - Ignore empty segments.
+    - If a segment has no `=`, the value is `""`.
+    - The value may contain `=` (split only on the first one).
 
-    >>> parsear_opciones(" host = db.local ; debug ;; url=a=b ")
+    >>> parse_options(" host = db.local ; debug ;; url=a=b ")
     {'host': 'db.local', 'debug': '', 'url': 'a=b'}
     """
     raise NotImplementedError("TODO")
 
 
-def construir_url(host: str, *segmentos: str, https: bool = True, **query: str | int) -> str:
-    """Construí una URL.
+def build_url(host: str, *segments: str, https: bool = True, **query: str | int) -> str:
+    """Build a URL.
 
-    - `segmentos` son partes del path.
-    - `https` es keyword-only (ya está en la firma: va después de `*segmentos`).
-    - `query` son parámetros del querystring, en el orden recibido.
+    - `segments` are parts of the path.
+    - `https` is keyword-only (already in the signature: it comes after `*segments`).
+    - `query` are querystring parameters, in the order received.
 
-    >>> construir_url("api.com", "v1", "users", page=2)
+    >>> build_url("api.com", "v1", "users", page=2)
     'https://api.com/v1/users?page=2'
-    >>> construir_url("api.com", https=False)
+    >>> build_url("api.com", https=False)
     'http://api.com/'
 
-    Pista: `urllib.parse.urlencode`.
+    Hint: `urllib.parse.urlencode`.
     """
     raise NotImplementedError("TODO")

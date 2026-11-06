@@ -1,53 +1,53 @@
-"""Ordenar.
+"""Sorting.
 
-Usá `sorted`, `max` y `operator.itemgetter` con el parámetro `key`.
+Use `sorted`, `max` and `operator.itemgetter` with the `key` parameter.
 """
 
-from operator import itemgetter  # noqa: F401  (te va a servir)
+from operator import itemgetter  # noqa: F401  (it will come in handy)
 
 
-def ordenar_personas(personas: list[dict[str, str | int]]) -> list[str]:
-    """Devolvé los nombres ordenados por edad descendente y, a igual edad,
-    por nombre ascendente.
+def sort_people(people: list[dict[str, str | int]]) -> list[str]:
+    """Return the names sorted by age descending and, for equal ages,
+    by name ascending.
 
-    Cada persona es `{"nombre": str, "edad": int}`.
+    Each person is `{"name": str, "age": int}`.
 
-    >>> ordenar_personas([{"nombre": "Zoe", "edad": 30}, {"nombre": "Ana", "edad": 25},
-    ...                   {"nombre": "Beto", "edad": 30}])
-    ['Beto', 'Zoe', 'Ana']
+    >>> sort_people([{"name": "Zoe", "age": 30}, {"name": "Alice", "age": 25},
+    ...              {"name": "Bob", "age": 30}])
+    ['Bob', 'Zoe', 'Alice']
     """
     raise NotImplementedError("TODO")
 
 
-def mas_caro(productos: list[dict[str, str | float]]) -> str | None:
-    """Nombre del producto con mayor `precio`, o None si la lista está vacía.
+def most_expensive(products: list[dict[str, str | float]]) -> str | None:
+    """Name of the product with the highest `price`, or None if the list is empty.
 
-    Ante empates, el primero que aparece.
+    On ties, the first one that appears.
 
-    >>> mas_caro([{"nombre": "pan", "precio": 1.2}, {"nombre": "café", "precio": 9.8}])
-    'café'
+    >>> most_expensive([{"name": "bread", "price": 1.2}, {"name": "coffee", "price": 9.8}])
+    'coffee'
     """
     raise NotImplementedError("TODO")
 
 
-def ordenar_sin_mayusculas(palabras: list[str]) -> list[str]:
-    """Ordená alfabéticamente sin distinguir mayúsculas de minúsculas.
+def sort_case_insensitive(words: list[str]) -> list[str]:
+    """Sort alphabetically, ignoring uppercase vs. lowercase.
 
-    Las palabras se devuelven tal como vinieron (no las pases a minúscula).
+    Return the words exactly as they came in (don't lowercase them).
 
-    >>> ordenar_sin_mayusculas(["banana", "Ana", "Cereza"])
-    ['Ana', 'banana', 'Cereza']
+    >>> sort_case_insensitive(["banana", "Apple", "Cherry"])
+    ['Apple', 'banana', 'Cherry']
     """
     raise NotImplementedError("TODO")
 
 
-def ordenar_por(filas: list[dict[str, str]], *campos: str) -> list[dict[str, str]]:
-    """Ordená las filas por los campos indicados, en ese orden de prioridad.
+def sort_by(rows: list[dict[str, str]], *fields: str) -> list[dict[str, str]]:
+    """Sort the rows by the given fields, in that order of priority.
 
-    Sin campos, devolvé una copia sin cambiar el orden.
+    With no fields, return a copy without changing the order.
 
-    >>> filas = [{"pais": "AR", "ciudad": "Rosario"}, {"pais": "AR", "ciudad": "Córdoba"}]
-    >>> [f["ciudad"] for f in ordenar_por(filas, "pais", "ciudad")]
-    ['Córdoba', 'Rosario']
+    >>> rows = [{"country": "CA", "city": "Toronto"}, {"country": "CA", "city": "Calgary"}]
+    >>> [r["city"] for r in sort_by(rows, "country", "city")]
+    ['Calgary', 'Toronto']
     """
     raise NotImplementedError("TODO")

@@ -1,17 +1,17 @@
 [[questions]]
-text = "¿Qué devuelve `[x for fila in [[1, 2], [3]] for x in fila]`?"
+text = "What does `[x for row in [[1, 2], [3]] for x in row]` return?"
 options = ["`[[1, 2], [3]]`", "`[1, 2, 3]`", "`NameError`", "`[3, 1, 2]`"]
 correct = 1
-explanation = "Dos `for` seguidos se leen como bucles anidados en el mismo orden: primero `fila`, después `x`. El resultado queda aplanado."
+explanation = "Two consecutive `for` clauses read like nested loops in the same order: first `row`, then `x`. The result is flattened."
 
 [[questions]]
-text = "¿Cuál de estas expresiones es un **generador** y no una colección?"
+text = "Which of these expressions is a **generator** rather than a collection?"
 options = ["`[x * 2 for x in xs]`", "`{x * 2 for x in xs}`", "`(x * 2 for x in xs)`", "`{x: x * 2 for x in xs}`"]
 correct = 2
-explanation = "Con paréntesis se obtiene un *generator expression*: produce los valores de a uno y no construye nada en memoria. La \"tuple comprehension\" no existe."
+explanation = "Parentheses give you a *generator expression*: it produces values one at a time and builds nothing in memory. There is no such thing as a \"tuple comprehension\"."
 
 [[questions]]
-text = "Querés reemplazar los negativos por 0 y dejar el resto igual. ¿Qué expresión es correcta?"
+text = "You want to replace negatives with 0 and leave everything else alone. Which expression is correct?"
 options = [
   "`[x for x in xs if x >= 0 else 0]`",
   "`[0 if x < 0 else x for x in xs]`",
@@ -19,21 +19,21 @@ options = [
   "`[if x < 0: 0 else: x for x in xs]`",
 ]
 correct = 1
-explanation = "Para **transformar** todos los elementos, el `if/else` va al principio como expresión condicional. El `if` del final solo **filtra** y no admite `else`."
+explanation = "To **transform** every element, the `if/else` goes at the front as a conditional expression. The trailing `if` only **filters** and doesn't accept `else`."
 
 [[questions]]
-text = "¿Qué devuelve `{len(p): p for p in [\"ab\", \"cd\", \"e\"]}`?"
-options = ["`{2: 'ab', 1: 'e'}`", "`{2: 'cd', 1: 'e'}`", "`{2: ['ab', 'cd'], 1: ['e']}`", "Levanta `KeyError` por clave duplicada"]
+text = "What does `{len(p): p for p in [\"ab\", \"cd\", \"e\"]}` return?"
+options = ["`{2: 'ab', 1: 'e'}`", "`{2: 'cd', 1: 'e'}`", "`{2: ['ab', 'cd'], 1: ['e']}`", "Raises `KeyError` for a duplicate key"]
 correct = 1
-explanation = "En un dict, cuando una clave se repite gana la última asignación: `'cd'` pisa a `'ab'`."
+explanation = "In a dict, when a key repeats, the last assignment wins: `'cd'` overwrites `'ab'`."
 
 [[questions]]
-text = "¿En cuál de estos casos es mejor un `for` común que una comprehension?"
+text = "In which of these cases is a plain `for` loop better than a comprehension?"
 options = [
-  "Para construir una lista con los cuadrados de los números pares",
-  "Para mandar un email por cada usuario (efecto secundario)",
-  "Para armar un dict `id -> objeto`",
-  "Para calcular una suma con `sum(...)`",
+  "To build a list with the squares of the even numbers",
+  "To send an email to each user (a side effect)",
+  "To build an `id -> object` dict",
+  "To compute a total with `sum(...)`",
 ]
 correct = 1
-explanation = "Las comprehensions sirven para *construir* valores. Usarlas solo por el efecto secundario genera una lista de `None` que no se usa y confunde a quien lee el código."
+explanation = "Comprehensions are for *building* values. Using one just for its side effect creates a list of `None` that nobody uses and confuses whoever reads the code."
